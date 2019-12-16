@@ -1,3 +1,4 @@
+*.exe
 *.sln
 *.vcxproj
 *.filters
