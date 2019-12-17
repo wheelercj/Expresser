@@ -73,6 +73,7 @@ std::string calc(std::string input)
 						- Exponent
 						- Multiplication and Division
 						- Addition and Subtraction
+						- Modulus
 					*/
 
 					if (input[i] == '(')
