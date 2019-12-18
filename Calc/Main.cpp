@@ -91,6 +91,15 @@ std::string calc(std::string input)
 						else
 							ops.push(input[i++]);
 					}
+					else if (input[i] == ')')
+					{
+						while (!ops.empty() && ops.top() != '(')
+							pop(nums, ops);
+						if (ops.empty())
+							throw "Invalid syntax";
+						pop(nums, ops);
+						i++;
+					}
 					else if (input[i] == '!')
 					{
 						ops.push(input[i++]);
@@ -139,14 +148,12 @@ std::string calc(std::string input)
 								ops.push(input[i++]);
 						}
 					}
-					else if (input[i] == ')')
+					else if (input[i] == '%')
 					{
-						while (!ops.empty() && ops.top() != '(')
+						if (ops.top() == '(')
+							ops.push(input[i++]);
+						else
 							pop(nums, ops);
-						if (ops.empty())
-							throw "Invalid syntax";
-						pop(nums, ops);
-						i++;
 					}
 				}
 			}
@@ -163,6 +170,8 @@ std::string calc(std::string input)
 
 		std::string result = std::to_string(nums.top());
 		formatOutput(result);
+		if (result == "-0")
+			result = "0";
 
 		return result;
 	}
@@ -203,7 +212,7 @@ void formatOutput(std::string& str)
 	if (str == "inf")
 		throw "Infinity";
 
-	// remove trailing zeros if there are any
+	// remove any trailing zeros
 	for (int i = str.size() - 1; i > 0; i--)
 	{
 		if (str[i] == '0')
@@ -227,7 +236,7 @@ bool isNumber(char ch)
 
 bool isOp(char ch)
 {
-	if (ch == '(' || ch == ')' || ch == '^' || ch == '*' || ch == '/' || ch == '+' || ch == '-' || ch == '!')
+	if (ch == '(' || ch == ')' || ch == '^' || ch == '*' || ch == '/' || ch == '+' || ch == '-' || ch == '!' || ch == '%')
 		return true;
 	return false;
 }
@@ -291,7 +300,7 @@ void pop(std::stack<double>& nums, std::stack<char>& ops)
 			while (temp > 1)
 				temp -= 1;
 			if (temp < 1 && temp > 0)
-				throw "The factorial operator is undefined for non-integer numbers";
+				throw "Undefined";
 			else if (n == 0)
 				total = 1; // 0!=1 by convention
 			else
@@ -345,5 +354,10 @@ void pop(std::stack<double>& nums, std::stack<char>& ops)
 		break;
 	case '-':
 		nums.push(num1 - num2);
+		break;
+	case '%':
+		if (num2 == 0)
+			throw "Undefined";
+		nums.push(fmod(num1, num2));
 	}
 }
