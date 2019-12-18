@@ -143,7 +143,7 @@ namespace IntegrationTest1
 			equal("Invalid syntax", "!");
 			equal("Invalid syntax", "!4");
 			equal("Invalid syntax", "3+!");
-			equal("The factorial operator is undefined for non-integer numbers", "2.5!");
+			equal("Undefined", "2.5!");
 			equal("Complex infinity", "(-2)!");
 		}
 		TEST_METHOD(Modulus)
@@ -158,12 +158,13 @@ namespace IntegrationTest1
 			equal("2", "2%3");
 			equal("1", "3%2");
 			equal("1", "7%2");
+			equal("2", "2%7");
 			equal("2.5", "2.5%5");
 			equal("0", "3%1.5");
 			equal("0", "7.5%3.75");
 			equal("3.75", "3.75%7.5");
 			equal("-3", "-3%4");
-			equal("Invalid syntax", "4%-2");
+			equal("0", "4%-2");
 			equal("-2", "-2%-4");
 			equal("0", "-4%-2");
 			equal("1", "2+3%4");
@@ -171,7 +172,7 @@ namespace IntegrationTest1
 			equal("1", "5-4%2");
 			equal("5", "5-(4%2)");
 			equal("4", "4%3+2");
-			equal("3", "3%4-2");
+			equal("1", "3%4-2");
 			equal("1", "(3%4)-2");
 			equal("1", "4%3%2");
 			Assert::AreNotEqual((std::string)"0", calc("4%3%2"));
