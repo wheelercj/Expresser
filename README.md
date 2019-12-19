@@ -4,10 +4,10 @@ A command-line calculator.
 
 ## Features:
 - The PEMDAS operators
-- Factorials
+- Factorial
+- Modulus
 
 ## Coming soon:
-- The modulo operator
 - Comparison operators
 
 ## Tips:
