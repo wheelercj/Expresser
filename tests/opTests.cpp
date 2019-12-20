@@ -4,17 +4,34 @@
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-namespace IntegrationTest1
+namespace opTests
 {
 	void equal(std::string str1, std::string str2)
 	{
 		Assert::AreEqual(str1, calc(str2));
 	}
 
-	TEST_CLASS(BasicOps) // TODO: figure out how to know whether these tests cover all possibilities
+	TEST_CLASS(opTests) // TODO: figure out how to know whether these tests cover all possibilities
 	{					  // TODO: figure out how to find the range of the calculator
 	public:
 
+		TEST_METHOD(Syntax)
+		{
+			equal("3", "    1      +         2  ");
+			equal("8.15", "8+.15");
+			equal("8.3", "0.30 + 8");
+			equal("Invalid syntax", ".");
+			equal("Invalid syntax", ".+3");
+			equal("Invalid syntax", "3+.");
+			equal("Invalid syntax", "192.168.0.1");
+			equal("Invalid syntax", "+/");
+			equal(" ", " ");
+			equal(" ", "");
+			equal("Undefined character", "a");
+			equal("Undefined character", "11+12g");
+			equal("Undefined character", "jajvoaierjal;ndvoiasejrlaenafl;jo;ijwer");
+			equal("Undefined character", "$5");
+		}
 		TEST_METHOD(Add)
 		{
 			equal("-100", "-25+-75");
@@ -22,14 +39,12 @@ namespace IntegrationTest1
 			equal("0", "0 + 0");
 			equal("1", " 1 + 0 ");
 			equal("2", "1+1");
-			equal("3", "    1      +       2");
 			equal("4", "0+4   ");
 			equal("5", "4+1+0");
 			equal("5.859874", "3.1415926 + 2.7182818");
 			equal("6", "8+-2");
 			equal("7", "3+4");
 			equal("8", "2 + 6");
-			equal("8.15", "8 + .15");
 			equal("9.15", "9 + 0.15");
 			equal("10", "2+3 + 1 + 4");
 			equal("11", "1+1+1+1+1+1+1+1+1+1+1");
@@ -54,6 +69,7 @@ namespace IntegrationTest1
 		}
 		TEST_METHOD(Multiply)
 		{
+			equal("Invalid syntax", "*");
 			equal("-24", "-2*3*4");
 			equal("-18", "9* -2");
 			equal("0", "0*0");
@@ -66,7 +82,6 @@ namespace IntegrationTest1
 			Assert::AreNotEqual((std::string)"pie", calc("3.1415926 * 2.7182818"));
 			equal("100", "10*10");
 			equal("576", "4*2*9*4*2");
-			equal("Invalid syntax", "*");
 		}
 		TEST_METHOD(Divide)
 		{
@@ -204,23 +219,11 @@ namespace IntegrationTest1
 		}
 		TEST_METHOD(Errors)
 		{
-			equal("Undefined character", "a");
-			equal("Undefined character", "11+12g");
-			equal("Undefined character", "jajvoaierjal;ndvoiasejrlaenafl;jo;ijwer");
-			equal("Undefined character", "$5");
-			equal("Invalid syntax", ".");
-			equal("Invalid syntax", ".+3");
-			equal("Invalid syntax", "3+.");
 			equal("Invalid syntax", "5-+3");
 			equal("Invalid syntax", "8 -   + 1");
 			equal("Invalid syntax", "*4+2");
 			equal("Invalid syntax", "3*--*4");
-			equal("Invalid syntax", "+/");
 			equal("Invalid syntax", "(3+5/(2*4)))");
-			equal("Invalid syntax", "192.168.0.1");
-			equal("5040", "50 40");
-			equal(" ", " ");
-			equal(" ", "");
 		}
 	};
 }

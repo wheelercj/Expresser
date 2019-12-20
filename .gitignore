@@ -7,3 +7,8 @@
 pch.cpp
 pch.h
 Debug/
+*.tlog
+*.obj
+*.log
+*.idb
+*.pdb

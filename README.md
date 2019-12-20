@@ -1,14 +1,14 @@
-#Calc
+# Calc
 
 A command-line calculator.
 
-##Features:
+## Features:
 - The PEMDAS operators
 - Factorial
-- Modulo
+- Modulus
 
-##Coming soon:
+## Coming soon:
 - Comparison operators
 
-##Tips:
+## Tips:
 - You can enter "quit" or "exit" to exit out of the calculator
