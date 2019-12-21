@@ -1,14 +1,16 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "../Calc/Main.cpp"
+#include "../Calc/Calc.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace opTests
 {
+	Calc c;
+
 	void equal(std::string str1, std::string str2)
 	{
-		Assert::AreEqual(str1, calc(str2));
+		Assert::AreEqual(str1, c.calc(str2));
 	}
 
 	TEST_CLASS(opTests) // TODO: figure out how to know whether these tests cover all possibilities
@@ -208,7 +210,7 @@ namespace opTests
 			equal("0.0625", "4^-2");
 			equal("-0.0625", "-2^-4");
 			equal("-0.0625", "-4^-2");
-			Assert::AreEqual(calc("4^(3^2)"), calc("4^3^2"));
+			Assert::AreEqual(c.calc("4^(3^2)"), c.calc("4^3^2"));
 			equal("Invalid syntax", "4^^2");
 			equal("Invalid syntax", "4^*2");
 			equal("Invalid syntax", "4*^2");
@@ -269,7 +271,7 @@ namespace opTests
 			equal("Complex infinity", "(-3)!");
 			equal("Undefined", "2.5!");
 			equal("720", "(3!)!");
-			Assert::AreNotEqual((std::string)"720", calc("3!!"));
+			Assert::AreNotEqual((std::string)"720", c.calc("3!!"));
 			equal("36", "3!^2");
 			equal("64", "2^3!");
 		}
@@ -295,7 +297,7 @@ namespace opTests
 			equal("-2", "-2%-4");
 			equal("0", "-4%-2");
 			equal("1", "4%3%2");
-			Assert::AreNotEqual((std::string)"0", calc("4%3%2"));
+			Assert::AreNotEqual((std::string)"0", c.calc("4%3%2"));
 			equal("2", "2%3%4");
 			equal("Invalid syntax", "4%%2");
 			equal("Invalid syntax", "4%+2");
