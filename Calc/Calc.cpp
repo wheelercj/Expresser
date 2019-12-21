@@ -140,9 +140,6 @@ std::string Calc::calc(std::string input)
 			pop();
 
 		result = std::to_string(nums.top());
-		formatOutput(result);
-		if (result == "-0")
-			result = "0";
 	}
 	catch (const char* error)
 	{
@@ -157,6 +154,8 @@ std::string Calc::calc(std::string input)
 		nums.pop();
 	while (!ops.empty())
 		ops.pop();
+
+	formatOutput(result);
 	return result;
 }
 
@@ -185,7 +184,7 @@ void Calc::formatInput(std::string& input)
 void Calc::formatOutput(std::string& str)
 {
 	if (str == "inf")
-		throw "Infinity";
+		str = "Infinity";
 
 	// remove any trailing zeros
 	for (int i = str.size() - 1; i > 0; i--)
@@ -195,11 +194,16 @@ void Calc::formatOutput(std::string& str)
 		else if (str[i] == '.')
 		{
 			str.erase(i, 1);
-			return;
+			break;
 		}
 		else
-			return;
+			break;
 	}
+
+	if (str == "-0")
+		str = "0";
+
+	str.insert(0, "\n = ");
 }
 
 bool Calc::isNumber(char ch)

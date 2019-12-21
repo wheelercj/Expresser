@@ -14,6 +14,6 @@ int main() // TODO: improve the precision of floating point answers (by replacin
 		if (input == "exit" || input == "quit")
 			return 0;
 
-		std::cout << "\n = " << c.calc(input) << std::endl;
+		std::cout << c.calc(input) << std::endl;
 	}
 }

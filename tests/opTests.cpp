@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "CppUnitTest.h"
 #include "../Calc/Calc.h"
+#include "../Calc/Calc.cpp"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -10,6 +11,7 @@ namespace opTests
 
 	void equal(std::string str1, std::string str2)
 	{
+		str1.insert(0, "\n = ");
 		Assert::AreEqual(str1, c.calc(str2));
 	}
 
