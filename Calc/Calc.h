@@ -10,7 +10,7 @@ public:
 	std::string calc(std::string);
 private:
 	std::stack<double> nums;
-	std::stack<char> ops;
+	std::stack<std::string> ops;
 	void formatInput(std::string&);
 	void formatOutput(std::string&);
 	bool isNumber(char);
