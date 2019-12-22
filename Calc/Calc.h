@@ -1,8 +1,8 @@
 #ifndef CALC_H
 #define CALC_H
-#include <iostream>
 #include <string>
 #include <stack>
+#include <vector>
 
 class Calc
 {
@@ -16,6 +16,7 @@ private:
 	bool isNumber(char);
 	bool isOp(char);
 	int getNumLength(std::string);
+	bool hasPrecedence(std::string, std::string);
 	void pop();
 };
 

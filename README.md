@@ -9,6 +9,9 @@ A command-line calculator.
 
 ## Coming soon:
 - Comparison operators
+- Defined variables
+- Functions
+- Undefined variables
 
 ## Tips:
 - You can enter "quit" or "exit" to exit out of the calculator

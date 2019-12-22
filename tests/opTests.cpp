@@ -84,6 +84,7 @@ namespace opTests
 			equal("Invalid syntax", "-");
 			equal("Invalid syntax", "2-");
 			equal("-2", "-2");
+			equal("0", "-0");
 			equal("0", "0-0");
 			equal("2", "2-0");
 			equal("-2", "0-2");
@@ -212,7 +213,7 @@ namespace opTests
 			equal("0.0625", "4^-2");
 			equal("-0.0625", "-2^-4");
 			equal("-0.0625", "-4^-2");
-			Assert::AreEqual(c.calc("4^(3^2)"), c.calc("4^3^2"));
+			Assert::AreEqual(c.calc("(4^3)^2"), c.calc("4^3^2"));
 			equal("Invalid syntax", "4^^2");
 			equal("Invalid syntax", "4^*2");
 			equal("Invalid syntax", "4*^2");

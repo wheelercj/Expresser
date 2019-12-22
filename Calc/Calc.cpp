@@ -23,34 +23,26 @@ std::string Calc::calc(std::string input)
 			}
 			else if (isOp(input[i]))
 			{
+				std::string newOp = input.substr(i, 1);
+
 				if (ops.empty())
 				{
-					if (i == 0 && input[i] == '-') // then the minus is a negation operator
+					if (newOp == "-")
 					{
-						ops.push("negate");
-						i++;
+						if (i == 0)
+							ops.push("negate");
+						else
+							ops.push("subtract");
 					}
-					else if (nums.empty() && input[i] == '!')
+					else if (nums.empty() && newOp == "!")
 						throw "Invalid syntax";
 					else
-					{
-						ops.push(input.substr(i, 1));
-						i++;
-					}
+						ops.push(newOp);
+					i++;
 				}
-				else // follow the order of operations
+				else
 				{
-					/*	Order of ops:
-						- Operators within parentheses
-						- Factorial
-						- Negation
-						- Exponent
-						- Multiplication and Division
-						- Addition and Subtraction
-						- Modulus
-					*/
-
-					if (input[i] == '(')
+					if (newOp == "(")
 					{
 						if (i > 0 && isNumber(input[i - 1]))
 						{
@@ -65,11 +57,11 @@ std::string Calc::calc(std::string input)
 						}
 						else
 						{
-							ops.push(input.substr(i, 1));
+							ops.push(newOp);
 							i++;
 						}
 					}
-					else if (input[i] == ')')
+					else if (newOp == ")")
 					{
 						while (!ops.empty() && ops.top() != "(")
 							pop();
@@ -78,72 +70,26 @@ std::string Calc::calc(std::string input)
 						pop();
 						i++;
 					}
-					else if (input[i] == '!')
+					else if (newOp == "!" || newOp == "^" || newOp == "*" || newOp == "/" || newOp == "+" || newOp == "%")
 					{
-						ops.push(input.substr(i, 1));
-						i++;
-						pop();
-					}
-					else if (input[i] == '^')
-					{
-						if (ops.top() == "!")
-							pop();
-						else
+						if (hasPrecedence(newOp, ops.top()))
 						{
-							ops.push(input.substr(i, 1));
+							ops.push(newOp);
 							i++;
 						}
-					}
-					else if (input[i] == '*' || input[i] == '/')
-					{
-						if (ops.top() == "^" || ops.top() == "*" || ops.top() == "/" || ops.top() == "negate" || ops.top() == "!")
-							pop();
 						else
-						{
-							ops.push(input.substr(i, 1));
-							i++;
-						}
-					}
-					else if (input[i] == '+')
-					{
-						if (ops.top() == "^" || ops.top() == "*" || ops.top() == "/" || ops.top() == "+"
-							|| ops.top() == "-" || ops.top() == "negate" || ops.top() == "!")
 							pop();
+					}
+					else if (newOp == "-")
+					{
+						if (i == 0 || isOp(input[i - 1]))
+							newOp = "negate";
 						else
+							newOp = "subtract";
+						
+						if (newOp == "negate" || hasPrecedence(newOp, ops.top()))
 						{
-							ops.push(input.substr(i, 1));
-							i++;
-						}
-					}
-					else if (input[i] == '-')
-					{
-						if (i == 0 || isOp(input[i - 1])) // then the minus is a negation operator
-						{
-							if (ops.top() == "!")
-								pop();
-							else
-							{
-								ops.push("negate");
-								i++;
-							}
-						}
-						else // then the minus is a subtraction operator
-						{
-							if (ops.top() == "^" || ops.top() == "*" || ops.top() == "/" || ops.top() == "+"
-								|| ops.top() == "-" || ops.top() == "negate" || ops.top() == "!")
-								pop();
-							else
-							{
-								ops.push(input.substr(i, 1));
-								i++;
-							}
-						}
-					}
-					else if (input[i] == '%')
-					{
-						if (ops.top() == "(")
-						{
-							ops.push(input.substr(i, 1));
+							ops.push(newOp);
 							i++;
 						}
 						else
@@ -177,7 +123,6 @@ std::string Calc::calc(std::string input)
 		nums.pop();
 	while (!ops.empty())
 		ops.pop();
-
 	formatOutput(result);
 	return result;
 }
@@ -196,9 +141,11 @@ void Calc::formatInput(std::string& input)
 	// check for invalid syntax: multiple operators next to each other
 	for (int i = 1; i < input.size(); i++)
 	{
-		if (isOp(input[i]) && input[i] != '-' && input[i] != '(' && input[i] != ')')
+		char ch1 = input[i - 1],
+			ch2 = input[i];
+		if (isOp(ch2) && ch2 != '-' && ch2 != '(' && ch2 != ')')
 		{
-			if (isOp(input[i - 1]) && input[i - 1] != ')' && (input[i - 1] != '!' || input[i - 1] == '!' && input[i] == '!'))
+			if (isOp(ch1) && ch1 != ')' && (ch1 != '!' || ch1 == '!' && ch2 == '!'))
 				throw "Invalid syntax";
 		}
 	}
@@ -238,7 +185,8 @@ bool Calc::isNumber(char ch)
 
 bool Calc::isOp(char ch)
 {
-	if (ch == '(' || ch == ')' || ch == '^' || ch == '*' || ch == '/' || ch == '+' || ch == '-' || ch == '!' || ch == '%')
+	std::string validOps = "()^*/+-!%";
+	if (validOps.find(ch) != std::string::npos)
 		return true;
 	return false;
 }
@@ -263,6 +211,29 @@ int Calc::getNumLength(std::string str)
 	}
 
 	return str.size();
+}
+
+// if the first operator has precedence over the second
+bool Calc::hasPrecedence(std::string op1, std::string op2)
+{
+	std::vector<std::string> order = { "!", "^", "negate", "*", "+", "%", "(" };
+
+	if (op1 == "/")
+		op1 = "*";
+	else if (op1 == "subtract")
+		op1 = "+";
+	if (op2 == "/")
+		op2 = "*";
+	else if (op2 == "subtract")
+		op2 = "+";
+
+	for (int i = 0; i < order.size(); i++)
+	{
+		if (order[i] == op2)
+			return false;
+		if (order[i] == op1)
+			return true;
+	}
 }
 
 void Calc::pop()
@@ -306,7 +277,7 @@ void Calc::pop()
 				total = 1; // 0!=1 by convention
 			else
 			{
-				for (int i = n; i > 0; i--)
+				for (int i = n; i > 1; i--)
 					total *= i;
 			}
 
@@ -355,7 +326,7 @@ void Calc::pop()
 	{
 		nums.push(num1 + num2);
 	}
-	else if (op == "-")
+	else if (op == "subtract")
 	{
 		nums.push(num1 - num2);
 	}
