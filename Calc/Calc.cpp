@@ -72,7 +72,7 @@ std::string Calc::calc(std::string input)
 					}
 					else if (newOp == "!" || newOp == "^" || newOp == "*" || newOp == "/" || newOp == "+" || newOp == "%")
 					{
-						if (hasPrecedence(newOp, ops.top()))
+						if (hasPrecedence(newOp))
 						{
 							ops.push(newOp);
 							i++;
@@ -87,7 +87,7 @@ std::string Calc::calc(std::string input)
 						else
 							newOp = "subtract";
 						
-						if (newOp == "negate" || hasPrecedence(newOp, ops.top()))
+						if (newOp == "negate" || hasPrecedence(newOp))
 						{
 							ops.push(newOp);
 							i++;
@@ -213,9 +213,9 @@ int Calc::getNumLength(std::string str)
 	return str.size();
 }
 
-// if the first operator has precedence over the second
-bool Calc::hasPrecedence(std::string op1, std::string op2)
+bool Calc::hasPrecedence(std::string op1)
 {
+	std::string op2 = ops.top();
 	std::vector<std::string> order = { "!", "^", "negate", "*", "+", "%", "(" };
 
 	if (op1 == "/")

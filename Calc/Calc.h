@@ -16,7 +16,7 @@ private:
 	bool isNumber(char);
 	bool isOp(char);
 	int getNumLength(std::string);
-	bool hasPrecedence(std::string, std::string);
+	bool hasPrecedence(std::string);
 	void pop();
 };
 
