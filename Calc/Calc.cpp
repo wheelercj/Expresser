@@ -1,4 +1,5 @@
 #include "Calc.h"
+#include <vector>
 
 std::string Calc::calc(std::string input)
 {
@@ -21,6 +22,7 @@ std::string Calc::calc(std::string input)
 				nums.push(stod(input.substr(i, numLength)));
 				i += numLength;
 			}
+			else if (isVar(input, i));
 			else if (isOp(input[i]))
 			{
 				int opLength = getOpLength(input.substr(i, input.size() - i));
@@ -114,14 +116,17 @@ std::string Calc::calc(std::string input)
 			pop();
 
 		result = std::to_string(nums.top());
+		ans = result;
 	}
 	catch (const char* error)
 	{
 		result = error;
+		ans = "";
 	}
 	catch (std::bad_alloc)
 	{
 		result = "Insufficient memory";
+		ans = "";
 	}
 
 	while (!nums.empty())
@@ -186,6 +191,31 @@ bool Calc::isNumber(char ch)
 {
 	if (ch >= '0' && ch <= '9' || ch == '.')
 		return true;
+	return false;
+}
+
+bool Calc::isVar(std::string& str, int i)
+{
+	std::list<Var>::iterator it;
+	for (it = constants.begin(); it != constants.end(); it++)
+	{
+		for (int j = str.size() - i; j > 0; j--)
+		{
+			if (str.substr(i, j) == "ans")
+			{
+				str.erase(i, j);
+				str.insert(i, ans);
+				return true;
+			}
+			else if (str.substr(i, j) == it->name)
+			{
+				str.erase(i, j);
+				str.insert(i, it->value);
+				return true;
+			}
+		}
+	}
+
 	return false;
 }
 

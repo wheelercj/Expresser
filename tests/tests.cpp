@@ -2,10 +2,9 @@
 #include "CppUnitTest.h"
 #include "../Calc/Calc.h"
 #include "../Calc/Calc.cpp"
-
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-namespace opTests
+namespace Tests
 {
 	Calc c;
 
@@ -15,7 +14,7 @@ namespace opTests
 		Assert::AreEqual(str1, c.calc(str2));
 	}
 
-	TEST_CLASS(opTests) // TODO: figure out how to know whether these tests cover all possibilities
+	TEST_CLASS(Ops) // TODO: figure out how to know whether these tests cover all possibilities
 	{					  // TODO: figure out how to find the range of the calculator
 	public:
 
@@ -32,7 +31,6 @@ namespace opTests
 			Assert::AreEqual((std::string)"", c.calc(" "));
 			Assert::AreEqual((std::string)"", c.calc(""));
 			equal("Undefined character", "a");
-			equal("Undefined character", "11+12g");
 			equal("Undefined character", "jajvoaierjal;ndvoiasejrlaenafl;jo;ijwer");
 			equal("Undefined character", "$5");
 			equal("-382.00476", "53.28394 + 392.48 - 1.5^3(65.23 * 3.76)");
@@ -477,6 +475,38 @@ namespace opTests
 			equal("0", "3!<3");
 			equal("1", "3<6!");
 			equal("0", "6%5<1");
+		}
+	};
+	TEST_CLASS(Vars)
+	{
+		TEST_METHOD(Ans)
+		{
+			// don't change the order of these tests
+			equal("2", "1+1");
+			equal("2", "ans");
+			equal("2", "ans");
+			equal("3", "3");
+			equal("3", "ans");
+			equal("5", "ans+2");
+			equal("50", "10*ans");
+			equal("100", "ans+ans");
+			equal("Infinity", "1/0");
+			Assert::AreEqual((std::string)"", c.calc("ans"));
+		}
+		TEST_METHOD(Constants)
+		{
+			equal("3.141593", "pi");
+			equal("2.718282", "e");
+			equal("8.539734", "pie");
+			equal("8.539734", "pi*e");
+			equal("5.859874", "pi+e");
+			equal("22.459158", "pi^e");
+			equal("8.539734", "epi");
+			equal("Undefined character", "pei");
+			equal("6.283185", "2pi");
+			equal("5.141593", "2+pi");
+			equal("0", "e>pi");
+			equal("7.389056", "e^2");
 		}
 	};
 }
