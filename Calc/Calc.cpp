@@ -23,7 +23,8 @@ std::string Calc::calc(std::string input)
 			}
 			else if (isOp(input[i]))
 			{
-				std::string newOp = input.substr(i, 1);
+				int opLength = getOpLength(input.substr(i, input.size() - i));
+				std::string newOp = input.substr(i, opLength);
 
 				if (ops.empty())
 				{
@@ -38,7 +39,7 @@ std::string Calc::calc(std::string input)
 						throw "Invalid syntax";
 					else
 						ops.push(newOp);
-					i++;
+					i += opLength;
 				}
 				else
 				{
@@ -70,12 +71,14 @@ std::string Calc::calc(std::string input)
 						pop();
 						i++;
 					}
-					else if (newOp == "!" || newOp == "^" || newOp == "*" || newOp == "/" || newOp == "+" || newOp == "%")
+					else if (newOp == "!" || newOp == "^" || newOp == "*" || newOp == "/"
+						|| newOp == "+" || newOp == "%" || newOp == "==" || newOp == ">="
+						|| newOp == "<=" || newOp == "!=" || newOp == ">" || newOp == "<")
 					{
 						if (hasPrecedence(newOp))
 						{
 							ops.push(newOp);
-							i++;
+							i += opLength;
 						}
 						else
 							pop();
@@ -86,7 +89,7 @@ std::string Calc::calc(std::string input)
 							newOp = "negate";
 						else
 							newOp = "subtract";
-						
+
 						if (newOp == "negate" || hasPrecedence(newOp))
 						{
 							ops.push(newOp);
@@ -95,6 +98,8 @@ std::string Calc::calc(std::string input)
 						else
 							pop();
 					}
+					else
+						throw "Invalid syntax";
 				}
 			}
 			else
@@ -102,7 +107,7 @@ std::string Calc::calc(std::string input)
 		}
 
 		if (!input.size())
-			throw " ";
+			throw "";
 		while (!ops.empty())
 			pop();
 		while (nums.size() > 1) // remaining numbers will be multiplied together
@@ -143,9 +148,9 @@ void Calc::formatInput(std::string& input)
 	{
 		char ch1 = input[i - 1],
 			ch2 = input[i];
-		if (isOp(ch2) && ch2 != '-' && ch2 != '(' && ch2 != ')')
+		if (isOp(ch2) && ch2 != '-' && ch2 != '(' && ch2 != ')' && ch2 != '=')
 		{
-			if (isOp(ch1) && ch1 != ')' && (ch1 != '!' || ch1 == '!' && ch2 == '!'))
+			if (isOp(ch1) && ch1 != ')' && (ch1 != '!' || ch1 == '!' && ch2 == '!' && i < input.size() - 1 && input[i + 1] != '='))
 				throw "Invalid syntax";
 		}
 	}
@@ -173,7 +178,8 @@ void Calc::formatOutput(std::string& str)
 	if (str == "-0")
 		str = "0";
 
-	str.insert(0, "\n = ");
+	if (str.size())
+		str.insert(0, "\n = ");
 }
 
 bool Calc::isNumber(char ch)
@@ -185,7 +191,7 @@ bool Calc::isNumber(char ch)
 
 bool Calc::isOp(char ch)
 {
-	std::string validOps = "()^*/+-!%";
+	std::string validOps = "()^*/+-!%<>=";
 	if (validOps.find(ch) != std::string::npos)
 		return true;
 	return false;
@@ -213,19 +219,37 @@ int Calc::getNumLength(std::string str)
 	return str.size();
 }
 
+int Calc::getOpLength(std::string str)
+{
+	if (str.size() > 1)
+	{
+		if (str[0] == '!' || str[0] == '=' || str[0] == '>' || str[0] == '<')
+		{
+			if (str[1] == '=' && !(str.size() > 2 && str[2] == '='))
+				return 2;
+		}
+	}
+
+	return 1;
+}
+
 bool Calc::hasPrecedence(std::string op1)
 {
 	std::string op2 = ops.top();
-	std::vector<std::string> order = { "!", "^", "negate", "*", "+", "%", "(" };
+	std::vector<std::string> order = { "!", "^", "negate", "*", "+", "%", "==", "(" };
 
 	if (op1 == "/")
 		op1 = "*";
 	else if (op1 == "subtract")
 		op1 = "+";
+	else if (op1 == ">=" || op1 == "<=" || op1 == "!=" || op1 == ">" || op1 == "<")
+		op1 = "==";
 	if (op2 == "/")
 		op2 = "*";
 	else if (op2 == "subtract")
 		op2 = "+";
+	else if (op2 == ">=" || op2 == "<=" || op2 == "!=" || op2 == ">" || op2 == "<")
+		op2 = "==";
 
 	for (int i = 0; i < order.size(); i++)
 	{
@@ -309,9 +333,7 @@ void Calc::pop()
 		nums.push(pow(num1, num2));
 	}
 	else if (op == "*")
-	{
 		nums.push(num1 * num2);
-	}
 	else if (op == "/")
 	{
 		if (num2 == 0)
@@ -323,17 +345,27 @@ void Calc::pop()
 		nums.push(num1 / num2);
 	}
 	else if (op == "+")
-	{
 		nums.push(num1 + num2);
-	}
 	else if (op == "subtract")
-	{
 		nums.push(num1 - num2);
-	}
 	else if (op == "%")
 	{
 		if (num2 == 0)
 			throw "Undefined";
 		nums.push(fmod(num1, num2));
 	}
+	else if (op == "==")
+		nums.push(num1 == num2);
+	else if (op == "!=")
+		nums.push(num1 != num2);
+	else if (op == ">=")
+		nums.push(num1 >= num2);
+	else if (op == "<=")
+		nums.push(num1 <= num2);
+	else if (op == ">")
+		nums.push(num1 > num2);
+	else if (op == "<")
+		nums.push(num1 < num2);
+	else
+		throw "Invalid syntax";
 }

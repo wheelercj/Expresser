@@ -6,9 +6,9 @@ A command-line calculator.
 - The PEMDAS operators
 - Factorial
 - Modulus
+- Comparison operators
 
 ## Coming soon:
-- Comparison operators
 - Defined variables
 - Functions
 - Undefined variables

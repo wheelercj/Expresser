@@ -11,7 +11,7 @@ int main() // TODO: improve the precision of floating point answers (by replacin
 		std::cout << "\n> ";
 		std::getline(std::cin, input);
 
-		if (input == "exit" || input == "quit")
+		if (input == "exit" || input == "quit" || input == "EXIT" || input == "QUIT")
 			return 0;
 
 		std::cout << c.calc(input) << std::endl;

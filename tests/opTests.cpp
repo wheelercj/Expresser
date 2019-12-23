@@ -29,8 +29,8 @@ namespace opTests
 			equal("Invalid syntax", "3+.");
 			equal("Invalid syntax", "192.168.0.1");
 			equal("Invalid syntax", "+/");
-			equal(" ", " ");
-			equal(" ", "");
+			Assert::AreEqual((std::string)"", c.calc(" "));
+			Assert::AreEqual((std::string)"", c.calc(""));
 			equal("Undefined character", "a");
 			equal("Undefined character", "11+12g");
 			equal("Undefined character", "jajvoaierjal;ndvoiasejrlaenafl;jo;ijwer");
@@ -70,6 +70,8 @@ namespace opTests
 			equal("Invalid syntax", "4+*2");
 			equal("Invalid syntax", "4*+2");
 			equal("Invalid syntax", "4-+2");
+			equal("Invalid syntax", "2+3+");
+			equal("Invalid syntax", "+2+3");
 
 			equal("10", "2*3+4");
 			equal("-2", "2*-3+4");
@@ -98,6 +100,7 @@ namespace opTests
 			equal("3.75", "7.5-3.75");
 			equal("-3.75", "3.75-7.5");
 			equal("-7", "-3-4");
+			equal("1", "-2+3");
 			equal("6", "4--2");
 			equal("2", "-2--4");
 			equal("-2", "-4--2");
@@ -109,6 +112,7 @@ namespace opTests
 			equal("0", "1---1");
 			equal("7", "------------7");
 			equal("Invalid syntax", "3*---*4");
+			equal("Invalid syntax", "2+3-");
 
 			equal("2", "2*3-4");
 			equal("-10", "2*-3-4");
@@ -145,6 +149,8 @@ namespace opTests
 			equal("Invalid syntax", "4*+2");
 			equal("Invalid syntax", "4+*2");
 			equal("Invalid syntax", "4-*2");
+			equal("Invalid syntax", "2+3*");
+			equal("Invalid syntax", "*2+3");
 
 			equal("32", "2^3*4");
 			equal("0.5", "2^-3*4");
@@ -181,6 +187,8 @@ namespace opTests
 			equal("Invalid syntax", "4/*2");
 			equal("Invalid syntax", "4*/2");
 			equal("Invalid syntax", "4-/2");
+			equal("Invalid syntax", "2+3/");
+			equal("Invalid syntax", "/2+3");
 
 			equal("2", "2^3/4");
 			equal("0.03125", "2^-3/4");
@@ -218,6 +226,8 @@ namespace opTests
 			equal("Invalid syntax", "4^*2");
 			equal("Invalid syntax", "4*^2");
 			equal("Invalid syntax", "4-^2");
+			equal("Invalid syntax", "2+3^");
+			equal("Invalid syntax", "^2+3");
 
 			equal("162", "2*3^4");
 			equal("-162", "2*-3^4");
@@ -238,7 +248,9 @@ namespace opTests
 		{
 			equal("Invalid syntax", "(");
 			equal("Invalid syntax", ")");
-			equal("2", "2(");
+			equal("Invalid syntax", "2)");
+			equal("Invalid syntax", ")2");
+			equal("3", "3(");
 			equal("2", "(2");
 			equal("0", "0(0");
 			equal("0", "2(0");
@@ -306,6 +318,8 @@ namespace opTests
 			equal("Invalid syntax", "4%+2");
 			equal("Invalid syntax", "4+%2");
 			equal("Invalid syntax", "4-%2");
+			equal("Invalid syntax", "2+3%");
+			equal("Invalid syntax", "%2+3");
 
 			equal("1", "2+3%4");
 			equal("1", "2--3%4");
@@ -314,6 +328,155 @@ namespace opTests
 			equal("4", "4%3+2");
 			equal("1", "3%4-2");
 			equal("1", "(3%4)-2");
+		}
+		TEST_METHOD(AreEqual)
+		{
+			equal("Invalid syntax", "==");
+			equal("Invalid syntax", "1==");
+			equal("Invalid syntax", "==2");
+			equal("Invalid syntax", "2+3==");
+			equal("Invalid syntax", "==2+3");
+			equal("Invalid syntax", "3===3");
+			equal("Invalid syntax", "3>==3");
+			equal("1", "2==2");
+			equal("0", "1==2");
+			equal("1", "-5==-5");
+			equal("1", "5==--5");
+			equal("1", "--5==5");
+			equal("1", "--5==--5");
+			equal("1", "3.14==3.14");
+			equal("0", "3==3.14");
+			equal("1", "3+.14==3.14");
+			equal("1", "1+1==2");
+			equal("1", "3==1+2");
+			equal("1", "3!==6");
+			equal("0", "3!==3");
+			equal("0", "3==6!");
+			equal("1", "6%5==1");
+		}
+		TEST_METHOD(AreNotEqual)
+		{
+			equal("Invalid syntax", "!=");
+			equal("Invalid syntax", "1!=");
+			equal("Invalid syntax", "!=2");
+			equal("Invalid syntax", "2+3!=");
+			equal("Invalid syntax", "!=2+3");
+			equal("Invalid syntax", "3>!=3");
+			equal("0", "2!=2");
+			equal("1", "1!=2");
+			equal("0", "-5!=-5");
+			equal("0", "5!=--5");
+			equal("0", "--5!=5");
+			equal("0", "--5!=--5");
+			equal("0", "3.14!=3.14");
+			equal("1", "3!=3.14");
+			equal("0", "3+.14!=3.14");
+			equal("0", "1+1!=2");
+			equal("0", "3!=1+2");
+			equal("0", "3!!=6");
+			equal("1", "3!!=3");
+			equal("1", "3!=6!");
+			equal("0", "6%5!=1");
+		}
+		TEST_METHOD(GreaterOrEqual)
+		{
+			equal("Invalid syntax", ">=");
+			equal("Invalid syntax", "1>=");
+			equal("Invalid syntax", ">=2");
+			equal("Invalid syntax", "2+3>=");
+			equal("Invalid syntax", ">=2+3");
+			equal("Invalid syntax", "3>>=3");
+			equal("1", "2>=2");
+			equal("0", "1>=2");
+			equal("1", "3>=1");
+			equal("1", "-5>=-5");
+			equal("1", "5>=--5");
+			equal("1", "--5>=5");
+			equal("1", "--5>=--5");
+			equal("1", "3.14>=3.14");
+			equal("0", "3>=3.14");
+			equal("1", "3+.14>=3.14");
+			equal("1", "1+1>=2");
+			equal("1", "3>=1+2");
+			equal("1", "3!>=6");
+			equal("1", "3!>=3");
+			equal("0", "3>=6!");
+			equal("1", "6%5>=1");
+		}
+		TEST_METHOD(LesserOrEqual)
+		{
+			equal("Invalid syntax", "<=");
+			equal("Invalid syntax", "1<=");
+			equal("Invalid syntax", "<=2");
+			equal("Invalid syntax", "2+3<=");
+			equal("Invalid syntax", "<=2+3");
+			equal("Invalid syntax", "3><=3");
+			equal("1", "2<=2");
+			equal("1", "1<=2");
+			equal("0", "3<=1");
+			equal("1", "-5<=-5");
+			equal("1", "5<=--5");
+			equal("1", "--5<=5");
+			equal("1", "--5<=--5");
+			equal("1", "3.14<=3.14");
+			equal("1", "3<=3.14");
+			equal("1", "3+.14<=3.14");
+			equal("1", "1+1<=2");
+			equal("1", "3<=1+2");
+			equal("1", "3!<=6");
+			equal("0", "3!<=3");
+			equal("1", "3<=6!");
+			equal("1", "6%5<=1");
+		}
+		TEST_METHOD(Greater)
+		{
+			equal("Invalid syntax", ">");
+			equal("Invalid syntax", "1>");
+			equal("Invalid syntax", ">2");
+			equal("Invalid syntax", "2+3>");
+			equal("Invalid syntax", ">2+3");
+			equal("Invalid syntax", "3>>3");
+			equal("0", "2>2");
+			equal("0", "1>2");
+			equal("1", "3>1");
+			equal("0", "-5>-5");
+			equal("0", "5>--5");
+			equal("0", "--5>5");
+			equal("0", "--5>--5");
+			equal("0", "3.14>3.14");
+			equal("0", "3>3.14");
+			equal("0", "3+.14>3.14");
+			equal("0", "1+1>2");
+			equal("0", "3>1+2");
+			equal("0", "3!>6");
+			equal("1", "3!>3");
+			equal("0", "3>6!");
+			equal("0", "6%5>1");
+		}
+		TEST_METHOD(Lesser)
+		{
+			equal("Invalid syntax", "<");
+			equal("Invalid syntax", "1<");
+			equal("Invalid syntax", "<2");
+			equal("Invalid syntax", "2+3<");
+			equal("Invalid syntax", "<2+3");
+			equal("Invalid syntax", "3<<3");
+			equal("0", "2<2");
+			equal("1", "1<2");
+			equal("0", "3<1");
+			equal("0", "-5<-5");
+			equal("0", "5<--5");
+			equal("0", "--5<5");
+			equal("0", "--5<--5");
+			equal("0", "3.14<3.14");
+			equal("1", "3<3.14");
+			equal("0", "3+.14<3.14");
+			equal("0", "1+1<2");
+			equal("0", "3<1+2");
+			equal("0", "3!<6");
+			equal("0", "3!<3");
+			equal("1", "3<6!");
+			equal("0", "6%5<1");
 		}
 	};
 }
