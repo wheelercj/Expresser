@@ -3,7 +3,7 @@
 A command-line calculator.
 
 ## Features:
-- Operators: PEMDAS, factorial, modulus, comparison
+- Operators: PEMDAS, factorial, modulo, comparison
 - Constants
 - The ans variable
 
@@ -11,4 +11,4 @@ A command-line calculator.
 - User-defined variables
 - Functions
 - Undefined variables
-- Memory
+- Memory between sessions

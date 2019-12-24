@@ -12,21 +12,25 @@ std::string Calc::calc(std::string input)
 
 	try
 	{
-		formatInput(input);
+		validateInput(input);
 
 		for (int i = 0; i < input.size();) // the index is incremented when value(s) are pushed onto a stack
 		{
 			if (isNumber(input[i]))
 			{
-				int numLength = getNumLength(input.substr(i, input.size() - i));
-				nums.push(stod(input.substr(i, numLength)));
-				i += numLength;
+				int numSize = getNumSize(input.substr(i, input.size() - i));
+				nums.push(stod(input.substr(i, numSize)));
+				i += numSize;
+				lastType = "num";
 			}
-			else if (isVar(input, i));
+			else if (input[i] == ' ')
+				i++;
+			else if (getVar(input, i))
+				lastType = Vars::lastType;
 			else if (isOp(input[i]))
 			{
-				int opLength = getOpLength(input.substr(i, input.size() - i));
-				std::string newOp = input.substr(i, opLength);
+				int opSize = getOpSize(input.substr(i, input.size() - i));
+				std::string newOp = input.substr(i, opSize);
 
 				if (ops.empty())
 				{
@@ -36,18 +40,23 @@ std::string Calc::calc(std::string input)
 							ops.push("negate");
 						else
 							ops.push("subtract");
+						lastType = "op";
 					}
 					else if (nums.empty() && newOp == "!")
 						throw "Invalid syntax";
 					else
+					{
 						ops.push(newOp);
-					i += opLength;
+						lastType = "op";
+					}
+
+					i += opSize;
 				}
 				else
 				{
 					if (newOp == "(")
 					{
-						if (i > 0 && isNumber(input[i - 1]))
+						if (i > 0 && lastType == "num")
 						{
 							if (ops.top() == "^" || ops.top() == "*" || ops.top() == "/")
 								pop();
@@ -56,12 +65,14 @@ std::string Calc::calc(std::string input)
 								ops.push("*");
 								ops.push(input.substr(i, 1));
 								i++;
+								lastType = "op";
 							}
 						}
 						else
 						{
 							ops.push(newOp);
 							i++;
+							lastType = "op";
 						}
 					}
 					else if (newOp == ")")
@@ -80,14 +91,15 @@ std::string Calc::calc(std::string input)
 						if (hasPrecedence(newOp))
 						{
 							ops.push(newOp);
-							i += opLength;
+							i += opSize;
+							lastType = "op";
 						}
 						else
 							pop();
 					}
 					else if (newOp == "-")
 					{
-						if (i == 0 || isOp(input[i - 1]))
+						if (i == 0 || lastType == "op")
 							newOp = "negate";
 						else
 							newOp = "subtract";
@@ -96,6 +108,7 @@ std::string Calc::calc(std::string input)
 						{
 							ops.push(newOp);
 							i++;
+							lastType = "op";
 						}
 						else
 							pop();
@@ -108,25 +121,30 @@ std::string Calc::calc(std::string input)
 				throw "Undefined character";
 		}
 
-		if (!input.size())
+		bool emptyString = true;
+		for (int i = 0; i < input.size(); i++)
+		{
+			if (input[i] != ' ')
+				emptyString = false;
+		}
+		if (emptyString)
 			throw "";
+
 		while (!ops.empty())
 			pop();
 		while (nums.size() > 1) // remaining numbers will be multiplied together
 			pop();
 
 		result = std::to_string(nums.top());
-		ans = result;
+		setVar("ans", result);
 	}
 	catch (const char* error)
 	{
 		result = error;
-		ans = "";
 	}
 	catch (std::bad_alloc)
 	{
 		result = "Insufficient memory";
-		ans = "";
 	}
 
 	while (!nums.empty())
@@ -137,21 +155,20 @@ std::string Calc::calc(std::string input)
 	return result;
 }
 
-void Calc::formatInput(std::string& input)
+void Calc::validateInput(std::string& input)
 {
-	// remove all spaces from the input string
-	for (int i = 0; i < input.size();)
-	{
-		if (input[i] == ' ')
-			input.erase(i, 1);
-		else
-			i++;
-	}
-
 	// check for invalid syntax: multiple operators next to each other
-	for (int i = 1; i < input.size(); i++)
+	for (int i = 1, j = 0; i < input.size() && j < input.size(); i++, j++)
 	{
-		char ch1 = input[i - 1],
+		// skip over spaces
+		while (j < input.size() && input[j] == ' ')
+			j++;
+		while (i < input.size() && (input[i] == ' ') || i == j)
+			i++;
+		if (j >= input.size() || i >= input.size())
+			return;
+
+		char ch1 = input[j],
 			ch2 = input[i];
 		if (isOp(ch2) && ch2 != '-' && ch2 != '(' && ch2 != ')' && ch2 != '=')
 		{
@@ -187,47 +204,7 @@ void Calc::formatOutput(std::string& str)
 		str.insert(0, "\n = ");
 }
 
-bool Calc::isNumber(char ch)
-{
-	if (ch >= '0' && ch <= '9' || ch == '.')
-		return true;
-	return false;
-}
-
-bool Calc::isVar(std::string& str, int i)
-{
-	std::list<Var>::iterator it;
-	for (it = constants.begin(); it != constants.end(); it++)
-	{
-		for (int j = str.size() - i; j > 0; j--)
-		{
-			if (str.substr(i, j) == "ans")
-			{
-				str.erase(i, j);
-				str.insert(i, ans);
-				return true;
-			}
-			else if (str.substr(i, j) == it->name)
-			{
-				str.erase(i, j);
-				str.insert(i, it->value);
-				return true;
-			}
-		}
-	}
-
-	return false;
-}
-
-bool Calc::isOp(char ch)
-{
-	std::string validOps = "()^*/+-!%<>=";
-	if (validOps.find(ch) != std::string::npos)
-		return true;
-	return false;
-}
-
-int Calc::getNumLength(std::string str)
+int Calc::getNumSize(std::string str)
 {
 	bool periodFound = false;
 	for (int i = 0; i < str.size(); i++)
@@ -235,7 +212,7 @@ int Calc::getNumLength(std::string str)
 		if (str[i] == '.')
 		{
 			if (periodFound || str.size() == 1)
-				throw "Invalid syntax";
+				throw "Invalid syntax"; // TODO: make all error messages more specific
 			periodFound = true;
 		}
 		else if (!isNumber(str[i]))
@@ -249,7 +226,7 @@ int Calc::getNumLength(std::string str)
 	return str.size();
 }
 
-int Calc::getOpLength(std::string str)
+int Calc::getOpSize(std::string str)
 {
 	if (str.size() > 1)
 	{
@@ -268,6 +245,8 @@ bool Calc::hasPrecedence(std::string op1)
 	std::string op2 = ops.top();
 	std::vector<std::string> order = { "!", "^", "negate", "*", "+", "%", "==", "(" };
 
+	// Replace some ops with others locally so that the order vector does not imply
+	// that some ops with the same precedence have different precedences.
 	if (op1 == "/")
 		op1 = "*";
 	else if (op1 == "subtract")

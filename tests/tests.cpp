@@ -2,6 +2,8 @@
 #include "CppUnitTest.h"
 #include "../Calc/Calc.h"
 #include "../Calc/Calc.cpp"
+#include "../Calc/Vars.h"
+#include "../Calc/Vars.cpp"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace Tests
@@ -40,6 +42,8 @@ namespace Tests
 			equal("20.935185", "3 + 4 * 5 - 6 ( 7 / 8 ) / 9 ^ 2 - 2");
 			equal("306.25", "((4*5)^2(7/8)^2)");
 			equal("1461.333333", "9-8+7/6*5^4(3-1)+2");
+			equal("80", "20 4");
+			equal("24", "20 +4");
 		}
 		TEST_METHOD(Add)
 		{
@@ -241,6 +245,7 @@ namespace Tests
 			equal("0.008", "5^-3");
 			equal("11112006825558016", "14^14");
 			// equal("437893890380859375", "15^15"); // TODO: figure out why this fails by a small amount
+			equal("1606938044258990275541962092341162602522202993782792835301376", "4^100");
 		}
 		TEST_METHOD(Parentheses)
 		{
@@ -491,7 +496,7 @@ namespace Tests
 			equal("50", "10*ans");
 			equal("100", "ans+ans");
 			equal("Infinity", "1/0");
-			Assert::AreEqual((std::string)"", c.calc("ans"));
+			equal("100", "ans"); // ans ignores error messages
 		}
 		TEST_METHOD(Constants)
 		{
@@ -503,6 +508,8 @@ namespace Tests
 			equal("22.459158", "pi^e");
 			equal("8.539734", "epi");
 			equal("Undefined character", "pei");
+			equal("Undefined character", "p ie");
+			equal("8.539734", "pi e");
 			equal("6.283185", "2pi");
 			equal("5.141593", "2+pi");
 			equal("0", "e>pi");
