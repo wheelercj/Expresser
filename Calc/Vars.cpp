@@ -4,6 +4,7 @@
 bool Vars::getVar(std::string& str, int i)
 {
 	int size = getAlphaSize(str.substr(i, str.size() - i));
+	// there may be multiple variables named in the alpha string with no spaces between them
 
 	std::list<Var>::iterator it;
 	// for each variable
@@ -21,22 +22,6 @@ bool Vars::getVar(std::string& str, int i)
 					// replace the variable name with its value
 					str.erase(i + k, j);
 					std::string value = it->value;
-
-					// determine the datatype at the end of the string
-					for (int m = value.size() - 1; m >= 0; m--)
-					{
-						if (isNumber(value[m]))
-						{
-							lastType = "num";
-							break;
-						}
-						if (isOp(value[m]))
-						{
-							lastType = "op";
-							break;
-						}
-					}
-
 					value.insert(0, " ");
 					value.append(" ");
 					str.insert(i + k, value);
@@ -88,5 +73,4 @@ void Vars::setVar(std::string name, std::string value)
 	}
 
 	//TODO: create a new var, and insert it into the correct part of the list
-	// prevent any variable from having the same name as a function and vice-versa
 }

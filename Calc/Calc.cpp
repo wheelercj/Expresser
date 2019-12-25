@@ -9,6 +9,7 @@ std::string Calc::calc(std::string input)
 	 */
 
 	std::string result;
+	lastTypePushed = "";
 
 	try
 	{
@@ -18,15 +19,19 @@ std::string Calc::calc(std::string input)
 		{
 			if (isNumber(input[i]))
 			{
-				int numSize = getNumSize(input.substr(i, input.size() - i));
-				nums.push(stod(input.substr(i, numSize)));
-				i += numSize;
-				lastType = "num";
+				if (lastTypePushed == "num")
+					input.insert(i, "*");
+				else
+				{
+					int numSize = getNumSize(input.substr(i, input.size() - i));
+					nums.push(stod(input.substr(i, numSize)));
+					i += numSize;
+					lastTypePushed = "num";
+				}
 			}
 			else if (input[i] == ' ')
 				i++;
-			else if (getVar(input, i))
-				lastType = Vars::lastType;
+			else if (getVar(input, i));
 			else if (isOp(input[i]))
 			{
 				int opSize = getOpSize(input.substr(i, input.size() - i));
@@ -40,14 +45,14 @@ std::string Calc::calc(std::string input)
 							ops.push("negate");
 						else
 							ops.push("subtract");
-						lastType = "op";
+						lastTypePushed = "op";
 					}
 					else if (nums.empty() && newOp == "!")
 						throw "Invalid syntax";
 					else
 					{
 						ops.push(newOp);
-						lastType = "op";
+						lastTypePushed = "op";
 					}
 
 					i += opSize;
@@ -56,7 +61,7 @@ std::string Calc::calc(std::string input)
 				{
 					if (newOp == "(")
 					{
-						if (i > 0 && lastType == "num")
+						if (i > 0 && lastTypePushed == "num")
 						{
 							if (ops.top() == "^" || ops.top() == "*" || ops.top() == "/")
 								pop();
@@ -65,14 +70,14 @@ std::string Calc::calc(std::string input)
 								ops.push("*");
 								ops.push(input.substr(i, 1));
 								i++;
-								lastType = "op";
+								lastTypePushed = "op";
 							}
 						}
 						else
 						{
 							ops.push(newOp);
 							i++;
-							lastType = "op";
+							lastTypePushed = "op";
 						}
 					}
 					else if (newOp == ")")
@@ -84,22 +89,33 @@ std::string Calc::calc(std::string input)
 						pop();
 						i++;
 					}
-					else if (newOp == "!" || newOp == "^" || newOp == "*" || newOp == "/"
-						|| newOp == "+" || newOp == "%" || newOp == "==" || newOp == ">="
-						|| newOp == "<=" || newOp == "!=" || newOp == ">" || newOp == "<")
+					else if (newOp == "!" || newOp == "*" || newOp == "/" || newOp == "+"
+						|| newOp == "%" || newOp == "==" || newOp == ">=" || newOp == "<="
+						|| newOp == "!=" || newOp == ">" || newOp == "<")
 					{
 						if (hasPrecedence(newOp))
 						{
 							ops.push(newOp);
 							i += opSize;
-							lastType = "op";
+							lastTypePushed = "op";
+						}
+						else
+							pop();
+					}
+					else if (newOp == "^")
+					{
+						if (ops.top() == "^" || hasPrecedence(newOp))
+						{
+							ops.push(newOp);
+							i += opSize;
+							lastTypePushed = "op";
 						}
 						else
 							pop();
 					}
 					else if (newOp == "-")
 					{
-						if (i == 0 || lastType == "op")
+						if (i == 0 || lastTypePushed == "op")
 							newOp = "negate";
 						else
 							newOp = "subtract";
@@ -108,7 +124,7 @@ std::string Calc::calc(std::string input)
 						{
 							ops.push(newOp);
 							i++;
-							lastType = "op";
+							lastTypePushed = "op";
 						}
 						else
 							pop();

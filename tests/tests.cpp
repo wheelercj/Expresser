@@ -44,6 +44,7 @@ namespace Tests
 			equal("1461.333333", "9-8+7/6*5^4(3-1)+2");
 			equal("80", "20 4");
 			equal("24", "20 +4");
+			equal("23", "3+4 5");
 		}
 		TEST_METHOD(Add)
 		{
@@ -223,7 +224,7 @@ namespace Tests
 			equal("0.0625", "4^-2");
 			equal("-0.0625", "-2^-4");
 			equal("-0.0625", "-4^-2");
-			Assert::AreEqual(c.calc("(4^3)^2"), c.calc("4^3^2"));
+			Assert::AreEqual(c.calc("4^(3^2)"), c.calc("4^3^2"));
 			equal("Invalid syntax", "4^^2");
 			equal("Invalid syntax", "4^*2");
 			equal("Invalid syntax", "4*^2");

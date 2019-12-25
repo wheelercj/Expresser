@@ -10,7 +10,7 @@ public:
 private:
 	std::stack<double> nums;
 	std::stack<std::string> ops;
-	std::string lastType = "";
+	std::string lastTypePushed = "";
 	void validateInput(std::string&);
 	void formatOutput(std::string&);
 	int getNumSize(std::string);

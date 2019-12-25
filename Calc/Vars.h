@@ -11,7 +11,14 @@ struct Var
 
 class Vars
 {
+protected:
+	bool getVar(std::string&, int);
+	bool isNumber(char);
+	bool isOp(char);
+private:
+	int getAlphaSize(std::string);
 public:
+	void setVar(std::string, std::string);
 	std::list<Var> vars = { // variables must be ordered by names longest to shortest
 		{ "ans", "" },
 		{ "phi", "1.618033989" },
@@ -19,14 +26,6 @@ public:
 		{ "e", "2.718281828" },
 		{ "g", "9.80665000"}
 	};
-	void setVar(std::string, std::string);
-protected:
-	bool getVar(std::string&, int);
-	bool isNumber(char);
-	bool isOp(char);
-	std::string lastType = "";
-private:
-	int getAlphaSize(std::string);
 };
 
 #endif // !VARS_H
