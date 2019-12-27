@@ -6,9 +6,9 @@ A command-line calculator.
 - Operators: PEMDAS, factorial, modulo, comparison
 - Constants
 - The ans variable
+- User-defined variables
 
 ## Coming soon:
-- User-defined variables
 - Functions
-- Undefined variables
 - Memory between sessions
+- Undefined variables

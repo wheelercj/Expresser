@@ -1,32 +1,35 @@
 #include "Vars.h"
 
-// find a variable in the input string, and replace it with its value
-bool Vars::getVar(std::string& str, int i)
+bool Vars::getVarValue(std::string& str, int i, int alphaSize)
 {
-	int size = getAlphaSize(str.substr(i, str.size() - i));
-	// there may be multiple variables named in the alpha string with no spaces between them
+	/*
+		This function finds the name of one defined variable within a string of alpha characters,
+		and replaces the name with its value. There may be multiple variables named in the alpha
+		string with no spaces or anything else between them. Precedence is given to variables
+		with longer names, and to variables further to the right of the string.
+	*/
 
 	std::list<Var>::iterator it;
-	// for each variable
+	int varSize;
+
+	// for each defined variable
 	for (it = vars.begin(); it != vars.end(); it++)
 	{
-		// for each substring of the alpha string
-		for (int j = str.size() - i; j > 0; j--)
+		varSize = it->name.size();
+		
+		// for each position the variable can fit into the alpha string, from right to left
+		for (int k = alphaSize - varSize; k >= 0; k--)
 		{
-			// for each position the substring can fit into the alpha string, from right to left
-			for (int k = j - it->name.size(); k >= 0; k--)
+			// if the substring matches the name of a defined variable
+			if (str.substr(i + k, varSize) == it->name)
 			{
-				// if the substring matches a variable name
-				if (str.substr(i + k, j) == it->name)
-				{
-					// replace the variable name with its value
-					str.erase(i + k, j);
-					std::string value = it->value;
-					value.insert(0, " ");
-					value.append(" ");
-					str.insert(i + k, value);
-					return true;
-				}
+				// replace the variable name with its value
+				str.erase(i + k, varSize);
+				std::string value = it->value;
+				value.insert(0, " ");
+				value.append(" ");
+				str.insert(i + k, value);
+				return true;
 			}
 		}
 	}
@@ -34,9 +37,17 @@ bool Vars::getVar(std::string& str, int i)
 	return false;
 }
 
-bool Vars::isNumber(char ch)
+bool Vars::isNum(char ch)
 {
 	if (ch >= '0' && ch <= '9' || ch == '.')
+		return true;
+	return false;
+}
+
+bool Vars::isAlpha(char ch)
+{
+	ch = tolower(ch);
+	if (ch >= 'a' && ch <= 'z' || ch == '_')
 		return true;
 	return false;
 }
@@ -51,12 +62,15 @@ bool Vars::isOp(char ch)
 
 int Vars::getAlphaSize(std::string str)
 {
-	for (int i = 0; i < str.size(); i++)
+	int i = 0;
+	for (; i < str.size(); i++)
 	{
 		char ch = tolower(str[i]);
-		if (!(ch >= 'a' && ch <= 'z') && ch != '_' && ch != '(')
-			return i;
+		if ((ch < 'a' || ch > 'z') && ch != '_')
+			break;
 	}
+
+	return i;
 }
 
 void Vars::setVar(std::string name, std::string value)
@@ -72,5 +86,13 @@ void Vars::setVar(std::string name, std::string value)
 		}
 	}
 
-	//TODO: create a new var, and insert it into the correct part of the list
+	// else, create a new var and insert it into the correct part of the list
+	for (it = vars.begin(); it != vars.end(); it++)
+	{
+		if (name.size() > it->name.size())
+		{
+			vars.insert(it, { name, value });
+			return;
+		}
+	}
 }
