@@ -1,9 +1,8 @@
 #ifndef CALC_H
 #define CALC_H
-#include "Vars.h"
-#include <stack>
+#include "Symbols.h"
 
-class Calc : public Vars
+class Calc : public Symbols
 {
 public:
 	std::string calc(std::string);

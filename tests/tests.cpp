@@ -2,8 +2,8 @@
 #include "CppUnitTest.h"
 #include "../Calc/Calc.h"
 #include "../Calc/Calc.cpp"
-#include "../Calc/Vars.h"
-#include "../Calc/Vars.cpp"
+#include "../Calc/Symbols.h"
+#include "../Calc/Symbols.cpp"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 // The test methods within each test class run in alphabetical order. They can affect each other.
@@ -592,5 +592,9 @@ namespace Tests
 			Assert::AreEqual((std::string)"", c.calc("pi = 3.141592653589793238462643383279502884197169399375105820974"));
 			equal("3.141592654", "pi");
 		}
+	};
+	TEST_CLASS(Funcs)
+	{
+
 	};
 }
