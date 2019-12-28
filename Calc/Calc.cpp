@@ -1,6 +1,7 @@
 #include "Calc.h"
 #include <vector>
 #include <sstream>
+#include <cmath>
 
 std::string Calc::calc(std::string input)
 {

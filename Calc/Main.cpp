@@ -3,6 +3,7 @@
 
 int main()
 {
+	system("clear");
 	std::string input;
 	Calc c;
 
