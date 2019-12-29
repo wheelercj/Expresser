@@ -1,6 +1,4 @@
 #include "Calc.h"
-#include <vector>
-#include <sstream>
 
 std::string Calc::calc(std::string input)
 {
@@ -21,7 +19,7 @@ std::string Calc::calc(std::string input)
 		while (!varsBeingDefined.empty())
 		{
 			assigning = true;
-			setVar(varsBeingDefined.top(), result);
+			setSymbol(varsBeingDefined.top(), result);
 			varsBeingDefined.pop();
 		}
 
@@ -123,7 +121,7 @@ void Calc::assignmentFormat(std::string& input)
 	}
 }
 
-std::string Calc::evaluate(std::string str)
+std::string Calc::evaluate(std::string input)
 {
 	/*
 		Reads the input string and pushes values onto the appropriate stack. Values are popped off the stacks
@@ -133,33 +131,33 @@ std::string Calc::evaluate(std::string str)
 	std::string result;
 	lastTypePushed = "";
 
-	for (int i = 0; i < str.size();) // the index is incremented when value(s) are pushed onto a stack
+	for (int i = 0; i < input.size();) // the index is incremented when value(s) are pushed onto a stack
 	{
-		if (isNum(str[i]))
+		if (isNum(input[i]))
 		{
 			if (lastTypePushed == "num")
-				str.insert(i, "*");
+				input.insert(i, "*");
 			else
 			{
-				int numSize = getNumSize(str.substr(i, str.size() - i));
-				nums.push(stod(str.substr(i, numSize)));
+				int numSize = getNumSize(input.substr(i, input.size() - i));
+				nums.push(stold(input.substr(i, numSize)));
 				i += numSize;
 				lastTypePushed = "num";
 			}
 		}
-		else if (str[i] == ' ')
+		else if (input[i] == ' ')
 			i++;
-		else if (isAlpha(str[i]))
+		else if (isAlpha(input[i]))
 		{
-			int alphaSize = getAlphaSize(str.substr(i, str.size() - i));
+			int alphaSize = getAlphaSize(input.substr(i, input.size() - i));
 
-			if (!getVarValue(str, i, alphaSize))
+			if (!getSymbolValue(input, i, alphaSize))
 				throw "Undefined character";
 		}
-		else if (isOp(str[i]))
+		else if (isOp(input[i]))
 		{
-			int opSize = getOpSize(str.substr(i, str.size() - i));
-			std::string newOp = str.substr(i, opSize);
+			int opSize = getOpSize(input.substr(i, input.size() - i));
+			std::string newOp = input.substr(i, opSize);
 
 			if (ops.empty())
 			{
@@ -192,7 +190,7 @@ std::string Calc::evaluate(std::string str)
 						else
 						{
 							ops.push("*");
-							ops.push(str.substr(i, 1));
+							ops.push(input.substr(i, 1));
 							i++;
 							lastTypePushed = "op";
 						}
@@ -262,9 +260,9 @@ std::string Calc::evaluate(std::string str)
 	}
 
 	bool emptyString = true;
-	for (int i = 0; i < str.size(); i++)
+	for (int i = 0; i < input.size(); i++)
 	{
-		if (str[i] != ' ')
+		if (input[i] != ' ')
 			emptyString = false;
 	}
 	if (emptyString)
@@ -277,11 +275,11 @@ std::string Calc::evaluate(std::string str)
 
 	std::stringstream ss;
 	ss.setf(std::ios::fixed);
-	int p = Precision + 6;
-	ss.precision(p); // precision will be reduced by six after this, before printing
+	int p = Precision + 5;
+	ss.precision(p); // precision will be reduced by five after this, before printing
 	ss << nums.top();
 	result = ss.str();
-	setVar("ans", result);
+	setSymbol("ans", result);
 	return result;
 }
 

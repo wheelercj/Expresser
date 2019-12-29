@@ -525,7 +525,7 @@ namespace Tests
 			equal("0", "e>pi");
 			equal("7.389056099", "e^2");
 		}
-		TEST_METHOD(Assign)
+		TEST_METHOD(AssignVars)
 		{
 			equal("Undefined character", "five");
 			Assert::AreEqual((std::string)"", c.calc(" five = 5"));
@@ -592,9 +592,9 @@ namespace Tests
 			Assert::AreEqual((std::string)"", c.calc("pi = 3.141592653589793238462643383279502884197169399375105820974"));
 			equal("3.141592654", "pi");
 		}
-	};
-	TEST_CLASS(Funcs)
-	{
+		TEST_METHOD(CppFunctionCall)
+		{
 
+		}
 	};
 }
