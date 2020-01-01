@@ -1,4 +1,5 @@
 #include "Calc.h"
+#include <vector>
 
 std::string Calc::calc(std::string input)
 {
@@ -129,20 +130,20 @@ std::string Calc::evaluate(std::string input)
 	 */
 
 	std::string result;
-	lastTypePushed = "";
+	lastTypePushed = NONE;
 
 	for (int i = 0; i < input.size();) // the index is incremented when value(s) are pushed onto a stack
 	{
 		if (isNum(input[i]))
 		{
-			if (lastTypePushed == "num")
+			if (lastTypePushed == NUM)
 				input.insert(i, "*");
 			else
 			{
 				int numSize = getNumSize(input.substr(i, input.size() - i));
 				nums.push(stold(input.substr(i, numSize)));
 				i += numSize;
-				lastTypePushed = "num";
+				lastTypePushed = NUM;
 			}
 		}
 		else if (input[i] == ' ')
@@ -163,18 +164,18 @@ std::string Calc::evaluate(std::string input)
 			{
 				if (newOp == "-")
 				{
-					if (lastTypePushed == "")
+					if (lastTypePushed == NONE)
 						ops.push("negate");
 					else
 						ops.push("subtract");
-					lastTypePushed = "op";
+					lastTypePushed = OP;
 				}
 				else if (nums.empty() && newOp == "!")
 					throw "Invalid syntax";
 				else
 				{
 					ops.push(newOp);
-					lastTypePushed = "op";
+					lastTypePushed = OP;
 				}
 
 				i += opSize;
@@ -183,7 +184,7 @@ std::string Calc::evaluate(std::string input)
 			{
 				if (newOp == "(")
 				{
-					if (i > 0 && lastTypePushed == "num")
+					if (i > 0 && lastTypePushed == NUM)
 					{
 						if (ops.top() == "^" || ops.top() == "*" || ops.top() == "/")
 							pop();
@@ -192,14 +193,14 @@ std::string Calc::evaluate(std::string input)
 							ops.push("*");
 							ops.push(input.substr(i, 1));
 							i++;
-							lastTypePushed = "op";
+							lastTypePushed = OP;
 						}
 					}
 					else
 					{
 						ops.push(newOp);
 						i++;
-						lastTypePushed = "op";
+						lastTypePushed = OP;
 					}
 				}
 				else if (newOp == ")")
@@ -219,7 +220,7 @@ std::string Calc::evaluate(std::string input)
 					{
 						ops.push(newOp);
 						i += opSize;
-						lastTypePushed = "op";
+						lastTypePushed = OP;
 					}
 					else
 						pop();
@@ -230,14 +231,14 @@ std::string Calc::evaluate(std::string input)
 					{
 						ops.push(newOp);
 						i += opSize;
-						lastTypePushed = "op";
+						lastTypePushed = OP;
 					}
 					else
 						pop();
 				}
 				else if (newOp == "-")
 				{
-					if (lastTypePushed == "" || lastTypePushed == "op")
+					if (lastTypePushed == NONE || lastTypePushed == OP)
 						newOp = "negate";
 					else
 						newOp = "subtract";
@@ -246,7 +247,7 @@ std::string Calc::evaluate(std::string input)
 					{
 						ops.push(newOp);
 						i++;
-						lastTypePushed = "op";
+						lastTypePushed = OP;
 					}
 					else
 						pop();
@@ -281,6 +282,38 @@ std::string Calc::evaluate(std::string input)
 	result = ss.str();
 	setSymbol("ans", result);
 	return result;
+}
+
+bool Calc::isNum(char ch)
+{
+	if (ch >= '0' && ch <= '9' || ch == '.')
+		return true;
+	return false;
+}
+
+bool Calc::isAlpha(char ch)
+{
+	ch = tolower(ch);
+	if (ch >= 'a' && ch <= 'z' || ch == '_')
+		return true;
+	return false;
+}
+
+bool Calc::isOp(char ch)
+{
+	std::string validOps = "()^*/+-!%<>=";
+	if (validOps.find(ch) != std::string::npos)
+		return true;
+	return false;
+}
+
+// replace a symbol name with its value
+void Calc::insertVarValue(std::string& input, std::string value, int start)
+{
+	input.erase(start, value.size());
+	value.insert(0, " ");
+	value.append(" ");
+	input.insert(start, value);
 }
 
 void Calc::formatOutput(std::string& str)
@@ -346,6 +379,107 @@ int Calc::getOpSize(std::string str)
 	}
 
 	return 1;
+}
+
+int Calc::getAlphaSize(std::string substr)
+{
+	int i = 1;
+	for (; i < substr.size(); i++)
+	{
+		char ch = tolower(substr[i]);
+		if ((ch < 'a' || ch > 'z') && ch != '_')
+			break;
+	}
+
+	return i;
+}
+
+bool Calc::getSymbolValue(std::string& input, int i, int alphaSize)
+{
+	/*
+		This function finds the name of one defined symbol within a string of alpha characters,
+		and replaces the name with its value. There may be multiple symbols named in the alpha
+		string with no spaces or anything else between them. Precedence is given to symbols
+		with longer names, and to symbols further to the right of the string.
+	*/
+
+	std::list<Symbol>::iterator it;
+
+	// for each defined symbol
+	for (it = symbols.begin(); it != symbols.end(); it++)
+	{
+		int nameSize = it->name.size();
+
+		// for each position the symbol's name can fit into the alpha string, from right to left
+		for (int j = alphaSize - nameSize; j >= 0; j--)
+		{
+			// if the substring matches the symbol's name
+			if (input.substr(i + j, nameSize) == it->name)
+			{
+				int nameLoc = i + j;
+
+				if (it->params.empty()) // the symbol is a variable
+				{
+					insertVarValue(input, it->value, nameLoc);
+					return true;
+				}
+				else // the symbol is a function
+				{
+					// find the function's arguments
+					int start = i + alphaSize;
+					if (input[start] != '(')
+						throw "Invalid syntax";
+					start++;
+					int count = 0;
+					while (start + count < input.size() - 1 && input[start + count] != ')')
+						count++;
+					std::string argStr = input.substr(start, count);
+					input.erase(start - 1, count + 2);
+
+					/*
+					// TODO: To allow arguments to be expressions containing operators, variables, etc.,
+						create a new calculator object to evaluate each argument. The new calculator
+						should be created in a way that does not make a copy of any symbols or
+						settings from the original calculator, but instead has read-only access to
+						those of the original.
+
+						If I create the new calculator without dynamically allocating it, what will
+						happen if the new calculator also creates a new calculator?
+					*/
+
+					// separate the arguments
+					std::vector<std::string> args;
+					Calc c2;
+					for (int i = 0; i < argStr.size(); i++)
+					{
+						if (argStr[i] == ',')
+						{
+							std::string arg = c2.calc(argStr.substr(0, i));
+							args.push_back(arg);
+							argStr.erase(0, i + 1);
+							i = 0;
+						}
+					}
+
+					// call the function
+					if (it->value == "\\") // then the function is expressed in C++
+					{
+						std::string value = callFunction(it->name, args);
+						insertVarValue(input, value, nameLoc);
+						return true;
+					}
+					else // the function is expressed as a string stored in value
+					{
+						// TODO: plug in the found args
+						return true;
+					}
+				}
+			}
+		}
+	}
+
+	// the symbol is undefined
+	return false;
 }
 
 bool Calc::hasPrecedence(std::string op1)
