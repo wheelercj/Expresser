@@ -3,22 +3,6 @@
 
 Calc::Calc()
 {
-	using Symbols::varList;
-	using Symbols::strFuncList;
-	using Symbols::cppFuncList;
-
-	// add all variables and functions from the default symbols lists to hash tables
-	std::list<Variable>::const_iterator it;
-	for (it = varList.begin(); it != varList.end(); it++)
-		vars->emplace(it->getName(), *it);
-
-	std::list<StrFunction>::const_iterator it2;
-	for (it2 = strFuncList.begin(); it2 != strFuncList.end(); it2++)
-		strFuncs->emplace(it2->getName(), *it2);
-
-	std::list<CppFunction>::const_iterator it3;
-	for (it3 = cppFuncList.begin(); it3 != cppFuncList.end(); it3++)
-		cppFuncs->emplace(it3->getName(), *it3);
 }
 
 Calc::Calc(Calc* other)
@@ -561,14 +545,14 @@ int Calc::getOpSize(std::string str)
 void Calc::setVar(std::string newName, std::string newValue)
 {
 	// first, erase any existing variable or function with the given name
-	vars->erase(newName);
-	strFuncs->erase(newName);
-	cppFuncs->erase(newName);
+	vars.erase(newName);
+	strFuncs.erase(newName);
+	cppFuncs.erase(newName);
 
-	vars->emplace(newName, Variable(newName, stold(newValue)));
+	vars.emplace(newName, stold(newValue));
 }
 
-bool Calc::getSymbolValue(std::string& input, int pos, int alphaSize)
+bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 {
 	/*
 		This function finds the name of one defined symbol within a string of alpha characters
@@ -582,23 +566,25 @@ bool Calc::getSymbolValue(std::string& input, int pos, int alphaSize)
 	for (int size = alphaSize; size > 0; size--)
 	{
 		// for each substring position of the alpha string
-		for (; pos + size < alphaSize; pos++)
+		for (int pos = alphaPos; pos + size <= alphaPos + alphaSize; pos++)
 		{
 			std::string substr = input.substr(pos, size);
 
 			// Variables
-			std::unordered_map<std::string, Variable>::iterator it = vars->find(substr);
-			if (it != vars->end())
+			std::unordered_map<std::string, double>::iterator it = vars.find(substr);
+			if (it != vars.end())
 			{
 				// replace the variable name with its value
 				input.erase(pos, size);
-				input.insert(pos, it->second.getValue());
+				std::stringstream ss;
+				ss << " " << it->second << " ";
+				input.insert(pos, ss.str());
 				return true;
 			}
 			
 			// String Functions
-			std::unordered_map<std::string, StrFunction>::iterator it2 = strFuncs->find(substr);
-			if (it2 != strFuncs->end())
+			std::unordered_map<std::string, StrFunction>::iterator it2 = strFuncs.find(substr);
+			if (it2 != strFuncs.end())
 			{
 				std::vector<std::string> args = readArgs(input, pos, size);
 
@@ -626,13 +612,13 @@ bool Calc::getSymbolValue(std::string& input, int pos, int alphaSize)
 					args[i] = c2.calc(args[i]);
 
 				// call the function and insert its return value
-				input.insert(pos, it2->second(args));		
+				input.insert(pos, " " + it2->second(args) + " ");		
 				return true;
 			}
 
 			// C++ Functions
-			std::unordered_map<std::string, CppFunction>::iterator it3 = cppFuncs->find(substr);
-			if (it3 != cppFuncs->end())
+			std::unordered_map<std::string, CppFunction>::iterator it3 = cppFuncs.find(substr);
+			if (it3 != cppFuncs.end())
 			{
 				std::vector<std::string> args = readArgs(input, pos, size);
 
@@ -642,7 +628,7 @@ bool Calc::getSymbolValue(std::string& input, int pos, int alphaSize)
 					args[i] = c2.calc(args[i]);
 
 				// call the function and insert its return value
-				input.insert(pos, it3->second(args));
+				input.insert(pos, " " + it3->second(args) + " ");
 				return true;
 			}
 		}
@@ -683,20 +669,24 @@ void Calc::help()
 {
 	std::string message = "";
 
-	message += "Variables:";
-	std::unordered_map<std::string, Variable>::iterator it;
-	for (it = vars->begin(); it != vars->end(); it++)
-		message += "\n " + it->first + " = " + it->second.getValue();
+	message += "\nVariables:";
+	std::unordered_map<std::string, double>::iterator it;
+	for (it = vars.begin(); it != vars.end(); it++)
+	{
+		std::stringstream ss;
+		ss << it->second;
+		message += "\n\t " + it->first + " = " + ss.str();
+	}
 
 	message += "\nFunctions:";
 	std::unordered_map<std::string, StrFunction>::iterator it2;
-	for (it2 = strFuncs->begin(); it2 != strFuncs->end(); it2++)
-		message += "\n " + it2->first + "(" + it2->second.getParams() + ")" + " = " + it2->second.getFunc();
+	for (it2 = strFuncs.begin(); it2 != strFuncs.end(); it2++)
+		message += "\n\t " + it2->first + "(" + it2->second.getParams() + ")" + " = " + it2->second.getFunc();
 
 	message += "\nC++ Functions:";
 	std::unordered_map<std::string, CppFunction>::iterator it3;
-	for (it3 = cppFuncs->begin(); it3 != cppFuncs->end(); it3++)
-		message += "\n " + it3->first;
+	for (it3 = cppFuncs.begin(); it3 != cppFuncs.end(); it3++)
+		message += "\n\t " + it3->first;
 
 	throw message;
 }
@@ -706,22 +696,24 @@ void Calc::help(std::string name)
 {
 	std::string message = "";
 
-	std::unordered_map<std::string, Variable>::iterator it = vars->find(name);
-	if (it != vars->end())
+	std::unordered_map<std::string, double>::iterator it = vars.find(name);
+	if (it != vars.end())
 	{
-		message += "Variable " + it->first + " = " + it->second.getValue();
+		std::stringstream ss;
+		ss << it->second;
+		message += "Variable " + it->first + " = " + ss.str();
 		throw message;
 	}
 
-	std::unordered_map<std::string, StrFunction>::iterator it2 = strFuncs->find(name);
-	if (it2 != strFuncs->end())
+	std::unordered_map<std::string, StrFunction>::iterator it2 = strFuncs.find(name);
+	if (it2 != strFuncs.end())
 	{
 		message += "Function " + it2->first + "(" + it2->second.getParams() + ")" + " = " + it2->second.getFunc();
 		throw message;
 	}
 
-	std::unordered_map<std::string, CppFunction>::iterator it3 = cppFuncs->find(name);
-	if (it3 != cppFuncs->end())
+	std::unordered_map<std::string, CppFunction>::iterator it3 = cppFuncs.find(name);
+	if (it3 != cppFuncs.end())
 		throw "C++ Function";
 
 	throw "Undefined character(s)";

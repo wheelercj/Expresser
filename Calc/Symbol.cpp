@@ -1,40 +1,7 @@
 #include "Symbol.h"
-#include <sstream>
 
-Variable::Variable(std::string newName, double newValue)
+StrFunction::StrFunction(std::vector<std::string> newParams, std::string newFunction)
 {
-	name = newName;
-	value = newValue;
-}
-
-std::string Variable::getName() const
-{
-	return name;
-}
-
-std::string Variable::getValue()
-{
-	std::stringstream ss;
-	ss << value;
-	std::string val = ss.str();
-	val.insert(0, " ");
-	val.append(" ");
-	return val;
-}
-
-void Variable::setName(std::string newName)
-{
-	name = newName;
-}
-
-void Variable::setValue(std::string newValue)
-{
-	value = stod(newValue);
-}
-
-StrFunction::StrFunction(std::string newName, std::vector<std::string> newParams, std::string newFunction)
-{
-	name = newName;
 	params = newParams;
 	function = newFunction;
 }
@@ -64,11 +31,6 @@ std::string StrFunction::operator()(std::vector<std::string> args)
 	return tempFunc;
 }
 
-std::string StrFunction::getName() const
-{
-	return name;
-}
-
 std::string StrFunction::getFunc()
 {
 	return function;
@@ -80,11 +42,6 @@ std::string StrFunction::getParams()
 	for (int i = 0; i < params.size(); i++)
 		paramStr += params[i] + ",";
 	return paramStr;
-}
-
-void StrFunction::setName(std::string newName)
-{
-	name = newName;
 }
 
 void StrFunction::setFunc(std::string newFunction)
@@ -104,9 +61,8 @@ void StrFunction::setParams(std::string newParams)
 	}
 }
 
-CppFunction::CppFunction(std::string newName, double(*newFuncPtr)(double))
+CppFunction::CppFunction(double(*newFuncPtr)(double))
 {
-	name = newName;
 	funcPtr = newFuncPtr;
 }
 
@@ -116,16 +72,6 @@ std::string CppFunction::operator()(std::vector<std::string> args)
 	std::stringstream ss;
 	ss << result;
 	return ss.str();
-}
-
-std::string CppFunction::getName() const
-{
-	return name;
-}
-
-void CppFunction::setName(std::string newName)
-{
-	name = newName;
 }
 
 void CppFunction::setFunc(double(*newFuncPtr)(double))

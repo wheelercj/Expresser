@@ -3,7 +3,6 @@
 #include "DefaultSymbols.hpp"
 #include <string>
 #include <stack>
-#include <unordered_map>
 
 class Calc
 {
@@ -32,9 +31,9 @@ private:
 	int getAlphaSize(std::string str);
 	int getOpSize(std::string str);
 
-	std::unordered_map<std::string, Variable>* vars;
-	std::unordered_map<std::string, StrFunction>* strFuncs;
-	std::unordered_map<std::string, CppFunction>* cppFuncs;
+	std::unordered_map<std::string, double> vars = Symbols::defaultVars;
+	std::unordered_map<std::string, StrFunction> strFuncs = Symbols::defaultStrFuncs;
+	std::unordered_map<std::string, CppFunction> cppFuncs = Symbols::defaultCppFuncs;
 	std::stack<std::string> varsBeingDefined;
 	void setVar(std::string newName, std::string newValue);
 	// TODO: create a setStrFunc function
@@ -46,3 +45,4 @@ private:
 	void setprecision(int);
 	std::string random();
 };
+

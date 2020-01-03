@@ -1,16 +1,15 @@
 #pragma once
 
 #include "Symbol.h"
-#include <list>
 #include <ctime>
-#include <sstream>
 #include <cmath>
+#include <unordered_map>
 
 // Variable and function names must contain only alpha characters and/or underscores
 
 namespace Symbols
 {
-	const std::list<Variable> varList =
+	const std::unordered_map<std::string, double> defaultVars =
 	{ // name, value
 		{ "ans", 0 },
 		{ "phi", 1.618033988749894848204586834365638117720309179805762862135 },
@@ -19,30 +18,30 @@ namespace Symbols
 		{ "g", 9.80665 }
 	};
 
-	const std::list<StrFunction> strFuncList =
+	const std::unordered_map<std::string, StrFunction> defaultStrFuncs =
 	{ // name, parameters, string-based function
-		{ "csc", { "x" }, "1/sin(x)" },
-		{ "sec", { "x" }, "1/cos(x)" },
-		{ "cot", { "x" }, "1/tan(x)" },
-		{ "acsc", { "x" }, "1/asin(x)" },
-		{ "asec", { "x" }, "1/acos(x)" },
-		{ "acot", { "x" }, "1/atan(x)" },
-		{ "acsch", { "x" }, "1/asinh(x)" },
-		{ "asech", { "x" }, "1/acosh(x)" },
-		{ "acoth", { "x" }, "1/atanh(x)" },
+		{ "csc", {{ "x" }, "1/sin(x)" }},
+		{ "sec", {{ "x" }, "1/cos(x)" }},
+		{ "cot", {{ "x" }, "1/tan(x)" }},
+		{ "acsc", {{ "x" }, "1/asin(x)" }},
+		{ "asec", {{ "x" }, "1/acos(x)" }},
+		{ "acot", {{ "x" }, "1/atan(x)" }},
+		{ "acsch", {{ "x" }, "1/asinh(x)" }},
+		{ "asech", {{ "x" }, "1/acosh(x)" }},
+		{ "acoth", {{ "x" }, "1/atanh(x)" }},
 	  
-		{ "cylinder_volume", { "r", "h"}, "pi*r^2*h" },
-		{ "sphere_volume", { "r" }, "(4/3)pi*r^3" },
-		{ "cone_volume", { "r", "h" }, "(h/3)pi*r^2" },
-		{ "pyramid_volume", { "base_area", "h" }, "base_area*h/3" },
+		{ "cylinder_volume", {{ "r", "h"}, "pi*r^2*h" }},
+		{ "sphere_volume", {{ "r" }, "(4/3)pi*r^3" }},
+		{ "cone_volume", {{ "r", "h" }, "(h/3)pi*r^2" }},
+		{ "pyramid_volume", {{ "base_area", "h" }, "base_area*h/3" }},
 
 		 // functions further defined in the Calc class
-		{ "help", { "" }, "Display info about defined variables and functions" },
-		{ "setprecision", { "" }, "Adjust the number of fractional digits displayed in answers" },
-		{ "rand", { "" }, "Generate a random number" }
+		{ "help", {{ "" }, "Display info about defined variables and functions" }},
+		{ "setprecision", {{ "" }, "Adjust the number of fractional digits displayed in answers" }},
+		{ "rand", {{ "" }, "Generate a random number" }}
 	};
 
-	const std::list<CppFunction> cppFuncList =
+	const std::unordered_map<std::string, CppFunction> defaultCppFuncs =
 	{ // name, function pointer
 		{ "sqrt", &sqrt },
 		{ "cbrt", &cbrt },
