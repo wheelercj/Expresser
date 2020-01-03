@@ -4,17 +4,15 @@
 #include <list>
 #include <ctime>
 #include <sstream>
+#include <cmath>
 
-// Variable and function names must not contain numbers
+// Variable and function names must contain only alpha characters and/or underscores
 
-class Symbols
+namespace Symbols
 {
-private:
-	std::string help();
 	std::string random();
 
-public:
-	const std::list<Variable> vars =
+	std::list<Variable> varList =
 	{ // name, value
 		{ "ans", 0 },
 		{ "phi", 1.618033988749894848204586834365638117720309179805762862135 },
@@ -23,9 +21,10 @@ public:
 		{ "g", 9.80665 }
 	};
 
-	const std::list<StrFunction> strFuncs =
+	std::list<StrFunction> strFuncList =
 	{ // name, parameters, string-based function
-		{ "help", { "" }, help() },
+		{ "help", { "" }, "Display info about defined variables and functions" }, // the help and setprecision functions are defined in the Calc object
+		{ "setprecision", { "" }, "Adjust the number of fractional digits displayed in answers" },
 		{ "rand", { "" }, random() },
 
 		{ "csc", { "x" }, "1/sin(x)" },
@@ -37,14 +36,19 @@ public:
 		{ "acsch", { "x" }, "1/asinh(x)" },
 		{ "asech", { "x" }, "1/acosh(x)" },
 		{ "acoth", { "x" }, "1/atanh(x)" },
+
+		{ "cylinder_volume", { "r", "h"}, "pi*r^2*h" },
+		{ "sphere_volume", { "r" }, "(4/3)pi*r^3" },
+		{ "cone_volume", { "r", "h" }, "(h/3)pi*r^2" },
+		{ "pyramid_volume", { "base_area", "h" }, "base_area*h/3" }
 	};
 
-	const std::list<CppFunction> cppFuncs =
+	std::list<CppFunction> cppFuncList =
 	{ // name, function pointer
 		{ "sqrt", &sqrt },
 		{ "cbrt", &cbrt },
 		{ "abs", &abs },
-		{ "ln", &log }, // TODO: implement other log functions
+		{ "log", &log }, // TODO: implement other log functions
 		{ "round", &round },
 		{ "ceil", &ceil },
 		{ "floor", &floor },
@@ -65,5 +69,16 @@ public:
 		{ "asinh", &asinh },
 		{ "acosh", &acosh },
 		{ "atanh", &atanh }
+
+		// TODO: create a function that can display an answer as a fraction instead of a float
 	};
-};
+
+	std::string random()
+	{
+		srand((unsigned)time(0));
+		double r = (rand() % 101) / 100.0;
+		std::stringstream ss;
+		ss << r;
+		return ss.str();
+	}
+}

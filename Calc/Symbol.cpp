@@ -12,9 +12,14 @@ std::string Variable::getName()
 	return name;
 }
 
-double Variable::getValue()
+std::string Variable::getValue()
 {
-	return value;
+	std::stringstream ss;
+	ss << value;
+	std::string val = ss.str();
+	val.insert(0, " ");
+	val.append(" ");
+	return val;
 }
 
 void Variable::setName(std::string newName)
@@ -69,9 +74,12 @@ std::string StrFunction::getFunc()
 	return function;
 }
 
-std::vector<std::string> StrFunction::getParams()
+std::string StrFunction::getParams()
 {
-	return params;
+	std::string paramStr = "";
+	for (int i = 0; i < params.size(); i++)
+		paramStr += params[i] + ",";
+	return paramStr;
 }
 
 void StrFunction::setName(std::string newName)

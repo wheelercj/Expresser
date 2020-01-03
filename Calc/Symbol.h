@@ -11,7 +11,7 @@ private:
 public:
 	Variable(std::string newName, double newValue);
 	std::string getName();
-	double getValue();
+	std::string getValue();
 	void setName(std::string newName);
 	void setValue(std::string newValue);
 };
@@ -27,7 +27,7 @@ public:
 	std::string operator()(std::vector<std::string> args);
 	std::string getName();
 	std::string getFunc();
-	std::vector<std::string> getParams();
+	std::string getParams();
 	void setName(std::string newName);
 	void setFunc(std::string newFunction);
 	void setParams(std::string newParams);

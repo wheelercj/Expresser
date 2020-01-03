@@ -2,8 +2,9 @@
 #include "CppUnitTest.h"
 #include "../Calc/Calc.h"
 #include "../Calc/Calc.cpp"
-#include "../Calc/Symbols.h"
-#include "../Calc/Symbols.cpp"
+#include "../Calc/Symbol.h"
+#include "../Calc/Symbol.cpp"
+#include "../Calc/DefaultSymbols.hpp"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 // The test methods within each test class run in alphabetical order. They can affect each other.
@@ -492,7 +493,7 @@ namespace Tests
 			equal("0", "6%5<1");
 		}
 	};
-	TEST_CLASS(Vars)
+	TEST_CLASS(Symbols)
 	{
 		TEST_METHOD(Ans)
 		{
@@ -525,7 +526,7 @@ namespace Tests
 			equal("0", "e>pi");
 			equal("7.389056099", "e^2");
 		}
-		TEST_METHOD(AssignVars)
+		TEST_METHOD(Vars)
 		{
 			equal("Undefined character", "five");
 			Assert::AreEqual((std::string)"", c.calc(" five = 5"));
@@ -592,7 +593,11 @@ namespace Tests
 			Assert::AreEqual((std::string)"", c.calc("pi = 3.141592653589793238462643383279502884197169399375105820974"));
 			equal("3.141592654", "pi");
 		}
-		TEST_METHOD(CppFunctionCall)
+		TEST_METHOD(StrFunctions)
+		{
+
+		}
+		TEST_METHOD(CppFunctions)
 		{
 
 		}

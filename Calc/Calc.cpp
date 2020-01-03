@@ -1,6 +1,31 @@
 #include "Calc.h"
 #include <vector>
 
+Calc::Calc()
+{
+	using namespace Symbols;
+
+	// add all variables and functions from the default symbols lists to hash tables
+	std::list<Variable>::iterator it;
+	for (it = varList.begin(); it != varList.end(); it++)
+		vars->emplace(it->getName(), *it);
+
+	std::list<StrFunction>::iterator it2;
+	for (it2 = strFuncList.begin(); it2 != strFuncList.end(); it2++)
+		strFuncs->emplace(it2->getName(), *it2);
+
+	std::list<CppFunction>::iterator it3;
+	for (it3 = cppFuncList.begin(); it3 != cppFuncList.end(); it3++)
+		cppFuncs->emplace(it3->getName(), *it3);
+}
+
+Calc::Calc(Calc* other)
+{
+	vars = other->vars;
+	strFuncs = other->strFuncs;
+	cppFuncs = other->cppFuncs;
+}
+
 std::string Calc::calc(std::string input)
 {
 	std::string result;
@@ -20,7 +45,7 @@ std::string Calc::calc(std::string input)
 		while (!varsBeingDefined.empty())
 		{
 			assigning = true;
-			setSymbol(varsBeingDefined.top(), result);
+			setVar(varsBeingDefined.top(), result);
 			varsBeingDefined.pop();
 		}
 
@@ -29,6 +54,10 @@ std::string Calc::calc(std::string input)
 		formatOutput(result);
 	}
 	catch (const char* error)
+	{
+		result = error;
+	}
+	catch (std::string error)
 	{
 		result = error;
 	}
@@ -63,6 +92,35 @@ void Calc::validateInput(std::string& input)
 				throw "Invalid syntax";
 		}
 	}
+}
+
+void Calc::formatOutput(std::string& str)
+{
+	// adjust output precision
+	std::stringstream ss;
+	ss.setf(std::ios::fixed);
+	ss.precision(Precision);
+	ss << stold(str);
+	str = ss.str();
+
+	// remove any trailing zeros
+	for (int i = str.size() - 1; i > 0; i--)
+	{
+		if (str[i] == '0')
+			str.erase(i, 1);
+		else if (str[i] == '.')
+		{
+			str.erase(i, 1);
+			break;
+		}
+		else
+			break;
+	}
+
+	if (str == "inf")
+		str = "Infinity";
+	else if (str == "-0")
+		str = "0";
 }
 
 void Calc::assignmentFormat(std::string& input)
@@ -157,6 +215,8 @@ std::string Calc::evaluate(std::string input)
 		}
 		else if (isOp(input[i]))
 		{
+			// TODO: create a separate function for everything in this scope
+
 			int opSize = getOpSize(input.substr(i, input.size() - i));
 			std::string newOp = input.substr(i, opSize);
 
@@ -280,206 +340,8 @@ std::string Calc::evaluate(std::string input)
 	ss.precision(p); // precision will be reduced by five after this, before printing
 	ss << nums.top();
 	result = ss.str();
-	setSymbol("ans", result);
+	setVar("ans", result);
 	return result;
-}
-
-bool Calc::isNum(char ch)
-{
-	if (ch >= '0' && ch <= '9' || ch == '.')
-		return true;
-	return false;
-}
-
-bool Calc::isAlpha(char ch)
-{
-	ch = tolower(ch);
-	if (ch >= 'a' && ch <= 'z' || ch == '_')
-		return true;
-	return false;
-}
-
-bool Calc::isOp(char ch)
-{
-	std::string validOps = "()^*/+-!%<>=";
-	if (validOps.find(ch) != std::string::npos)
-		return true;
-	return false;
-}
-
-// replace a symbol name with its value
-void Calc::insertVarValue(std::string& input, std::string value, int start)
-{
-	input.erase(start, value.size());
-	value.insert(0, " ");
-	value.append(" ");
-	input.insert(start, value);
-}
-
-void Calc::formatOutput(std::string& str)
-{
-	// adjust output precision // TODO: allow the user to adjust precision
-	std::stringstream ss;
-	ss.setf(std::ios::fixed);
-	ss.precision(Precision);
-	ss << stold(str);
-	str = ss.str();
-
-	// remove any trailing zeros
-	for (int i = str.size() - 1; i > 0; i--)
-	{
-		if (str[i] == '0')
-			str.erase(i, 1);
-		else if (str[i] == '.')
-		{
-			str.erase(i, 1);
-			break;
-		}
-		else
-			break;
-	}
-
-	if (str == "inf")
-		str = "Infinity";
-	else if (str == "-0")
-		str = "0";
-}
-
-int Calc::getNumSize(std::string str)
-{
-	bool periodFound = false;
-	for (int i = 0; i < str.size(); i++)
-	{
-		if (str[i] == '.')
-		{
-			if (periodFound || str.size() == 1)
-				throw "Invalid syntax"; // TODO: make all error messages more specific
-			periodFound = true;
-		}
-		else if (!isNum(str[i]))
-		{
-			if (i == 1 && str[0] == '.')
-				throw "Invalid syntax";
-			return i;
-		}
-	}
-
-	return str.size();
-}
-
-int Calc::getOpSize(std::string str)
-{
-	if (str.size() > 1)
-	{
-		if (str[0] == '!' || str[0] == '=' || str[0] == '>' || str[0] == '<')
-		{
-			if (str[1] == '=' && !(str.size() > 2 && str[2] == '='))
-				return 2;
-		}
-	}
-
-	return 1;
-}
-
-int Calc::getAlphaSize(std::string substr)
-{
-	int i = 1;
-	for (; i < substr.size(); i++)
-	{
-		char ch = tolower(substr[i]);
-		if ((ch < 'a' || ch > 'z') && ch != '_')
-			break;
-	}
-
-	return i;
-}
-
-bool Calc::getSymbolValue(std::string& input, int i, int alphaSize)
-{
-	/*
-		This function finds the name of one defined symbol within a string of alpha characters,
-		and replaces the name with its value. There may be multiple symbols named in the alpha
-		string with no spaces or anything else between them. Precedence is given to symbols
-		with longer names, and to symbols further to the right of the string.
-	*/
-
-	std::list<Symbol>::iterator it;
-
-	// for each defined symbol
-	for (it = symbols.begin(); it != symbols.end(); it++)
-	{
-		int nameSize = it->name.size();
-
-		// for each position the symbol's name can fit into the alpha string, from right to left
-		for (int j = alphaSize - nameSize; j >= 0; j--)
-		{
-			// if the substring matches the symbol's name
-			if (input.substr(i + j, nameSize) == it->name)
-			{
-				int nameLoc = i + j;
-
-				if (it->params.empty()) // the symbol is a variable
-				{
-					insertVarValue(input, it->value, nameLoc);
-					return true;
-				}
-				else // the symbol is a function
-				{
-					// find the function's arguments
-					int start = i + alphaSize;
-					if (input[start] != '(')
-						throw "Invalid syntax";
-					start++;
-					int count = 0;
-					while (start + count < input.size() - 1 && input[start + count] != ')')
-						count++;
-					std::string argStr = input.substr(start, count);
-					input.erase(start - 1, count + 2);
-
-					/*
-					// TODO: To allow arguments to be expressions containing operators, variables, etc.,
-						create a new calculator object to evaluate each argument. The new calculator
-						should be created in a way that does not make a copy of any symbols or
-						settings from the original calculator, but instead has read-only access to
-						those of the original.
-
-						If I create the new calculator without dynamically allocating it, what will
-						happen if the new calculator also creates a new calculator?
-					*/
-
-					// separate the arguments
-					std::vector<std::string> args;
-					Calc c2;
-					for (int i = 0; i < argStr.size(); i++)
-					{
-						if (argStr[i] == ',')
-						{
-							std::string arg = c2.calc(argStr.substr(0, i));
-							args.push_back(arg);
-							argStr.erase(0, i + 1);
-							i = 0;
-						}
-					}
-
-					// call the function
-					if (it->value == "\\") // then the function is expressed in C++
-					{
-						std::string value = callFunction(it->name, args);
-						insertVarValue(input, value, nameLoc);
-						return true;
-					}
-					else // the function is expressed as a string stored in value
-					{
-						// TODO: plug in the found args
-						return true;
-					}
-				}
-			}
-		}
-	}
-
-	// the symbol is undefined
-	return false;
 }
 
 bool Calc::hasPrecedence(std::string op1)
@@ -511,6 +373,7 @@ bool Calc::hasPrecedence(std::string op1)
 	}
 }
 
+// TODO: add a comment explaining each function with a vague name
 void Calc::pop()
 {
 	if (nums.empty())
@@ -619,4 +482,249 @@ void Calc::pop()
 		nums.push(num1 < num2);
 	else
 		throw "Invalid syntax";
+}
+
+bool Calc::isNum(char ch)
+{
+	if (ch >= '0' && ch <= '9' || ch == '.')
+		return true;
+	return false;
+}
+
+bool Calc::isAlpha(char ch)
+{
+	ch = tolower(ch);
+	if (ch >= 'a' && ch <= 'z' || ch == '_')
+		return true;
+	return false;
+}
+
+bool Calc::isOp(char ch)
+{
+	std::string validOps = "()^*/+-!%<>=";
+	if (validOps.find(ch) != std::string::npos)
+		return true;
+	return false;
+}
+
+int Calc::getNumSize(std::string str)
+{
+	bool periodFound = false;
+	for (int i = 0; i < str.size(); i++)
+	{
+		if (str[i] == '.')
+		{
+			if (periodFound || str.size() == 1)
+				throw "Invalid syntax"; // TODO: make all error messages more specific
+			periodFound = true;
+		}
+		else if (!isNum(str[i]))
+		{
+			if (i == 1 && str[0] == '.')
+				throw "Invalid syntax";
+			return i;
+		}
+	}
+
+	return str.size();
+}
+
+int Calc::getAlphaSize(std::string substr)
+{
+	int i = 1;
+	for (; i < substr.size(); i++)
+	{
+		char ch = tolower(substr[i]);
+		if ((ch < 'a' || ch > 'z') && ch != '_')
+			break;
+	}
+
+	return i;
+}
+
+int Calc::getOpSize(std::string str)
+{
+	if (str.size() > 1)
+	{
+		if (str[0] == '!' || str[0] == '=' || str[0] == '>' || str[0] == '<')
+		{
+			if (str[1] == '=' && !(str.size() > 2 && str[2] == '='))
+				return 2;
+		}
+	}
+
+	return 1;
+}
+
+void Calc::setVar(std::string newName, std::string newValue)
+{
+	// first, erase any existing variable or function with the given name
+	vars->erase(newName);
+	strFuncs->erase(newName);
+	cppFuncs->erase(newName);
+
+	vars->emplace(newName, Variable(newName, stold(newValue)));
+}
+
+bool Calc::getSymbolValue(std::string& input, int pos, int alphaSize)
+{
+	/*
+		This function finds the name of one defined symbol within a string of alpha characters
+		in the input string, and replaces the name with its value. There may be multiple symbols
+		named in the alpha string with no spaces or anything else between them. Precedence is
+		given to symbols with longer names, and to symbols further to the left of the string.
+		All functions must be immediately followed by an opening parenthesis.
+	*/
+
+	// for each substring size of the alpha string
+	for (int size = alphaSize; size > 0; size--)
+	{
+		// for each substring position of the alpha string
+		for (; pos + size < alphaSize; pos++)
+		{
+			std::string substr = input.substr(pos, size);
+
+			// Variables
+			std::unordered_map<std::string, Variable>::iterator it = vars->find(substr);
+			if (it != vars->end())
+			{
+				// replace the variable name with its value
+				input.erase(pos, size);
+				input.insert(pos, it->second.getValue());
+				return true;
+			}
+			
+			// String Functions
+			std::unordered_map<std::string, StrFunction>::iterator it2 = strFuncs->find(substr);
+			if (it2 != strFuncs->end())
+			{
+				std::vector<std::string> args = readArgs(input, pos, size);
+
+				if (it2->first == "help")
+				{
+					// call a help function that throws a message
+					if (args.size())
+						help(args[0]);
+					help();
+				}
+				if (it2->first == "setprecision")
+				{
+					// adjust output precision and throw an empty string
+					if (args.size())
+						setprecision(stold(args[0]));
+					else
+						throw "Invalid syntax";
+				}
+
+				// evaluate each argument
+				Calc c2(this);
+				for (int i = 0; i < args.size(); i++)
+					args[i] = c2.calc(args[i]);
+
+				// call the function and insert its return value
+				input.insert(pos, it2->second(args));		
+				return true;
+			}
+
+			// C++ Functions
+			std::unordered_map<std::string, CppFunction>::iterator it3 = cppFuncs->find(substr);
+			if (it3 != cppFuncs->end())
+			{
+				std::vector<std::string> args = readArgs(input, pos, size);
+
+				// evaluate each argument
+				Calc c2(this);
+				for (int i = 0; i < args.size(); i++)
+					args[i] = c2.calc(args[i]);
+
+				// call the function and insert its return value
+				input.insert(pos, it3->second(args));
+				return true;
+			}
+		}
+	}
+
+	// the character(s) are undefined
+	return false;
+}
+
+std::vector<std::string> Calc::readArgs(std::string& input, int pos, int size)
+{
+	if (input[pos + size] != '(')
+		throw "Invalid syntax";
+
+	// get the arguments
+	std::vector<std::string> args;
+	for (int j = pos + size + 1, k = j, m = j; ; j++)
+	{
+		if (j > input.size())
+			throw "Invalid syntax";
+		if (j == input.size() || input[j] == ')')
+		{
+			args.push_back(input.substr(k, j - k));
+			input.erase(pos, size + m);
+			break;
+		}
+		if (input[j] == ',')
+		{
+			args.push_back(input.substr(k, j - k));
+			j++;
+			k = j;
+		}
+	}
+}
+
+// throw info about all variables and functions
+void Calc::help()
+{
+	std::string message = "";
+
+	message += "Variables:";
+	std::unordered_map<std::string, Variable>::iterator it;
+	for (it = vars->begin(); it != vars->end(); it++)
+		message += "\n " + it->first + " = " + it->second.getValue();
+
+	message += "\nFunctions:";
+	std::unordered_map<std::string, StrFunction>::iterator it2;
+	for (it2 = strFuncs->begin(); it2 != strFuncs->end(); it2++)
+		message += "\n " + it2->first + "(" + it2->second.getParams() + ")" + " = " + it2->second.getFunc();
+
+	message += "\nC++ Functions:";
+	std::unordered_map<std::string, CppFunction>::iterator it3;
+	for (it3 = cppFuncs->begin(); it3 != cppFuncs->end(); it3++)
+		message += "\n " + it3->first;
+
+	throw message;
+}
+
+// throw info about one variable or function
+void Calc::help(std::string name)
+{
+	std::string message = "";
+
+	std::unordered_map<std::string, Variable>::iterator it = vars->find(name);
+	if (it != vars->end())
+	{
+		message += "Variable " + it->first + " = " + it->second.getValue();
+		throw message;
+	}
+
+	std::unordered_map<std::string, StrFunction>::iterator it2 = strFuncs->find(name);
+	if (it2 != strFuncs->end())
+	{
+		message += "Function " + it2->first + "(" + it2->second.getParams() + ")" + " = " + it2->second.getFunc();
+		throw message;
+	}
+
+	std::unordered_map<std::string, CppFunction>::iterator it3 = cppFuncs->find(name);
+	if (it3 != cppFuncs->end())
+		throw "C++ Function";
+
+	throw "Undefined character(s)";
+}
+
+void Calc::setprecision(int num)
+{
+	Precision = num;
+	throw "";
 }
