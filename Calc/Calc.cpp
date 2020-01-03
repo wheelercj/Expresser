@@ -3,18 +3,20 @@
 
 Calc::Calc()
 {
-	using namespace Symbols;
+	using Symbols::varList;
+	using Symbols::strFuncList;
+	using Symbols::cppFuncList;
 
 	// add all variables and functions from the default symbols lists to hash tables
-	std::list<Variable>::iterator it;
+	std::list<Variable>::const_iterator it;
 	for (it = varList.begin(); it != varList.end(); it++)
 		vars->emplace(it->getName(), *it);
 
-	std::list<StrFunction>::iterator it2;
+	std::list<StrFunction>::const_iterator it2;
 	for (it2 = strFuncList.begin(); it2 != strFuncList.end(); it2++)
 		strFuncs->emplace(it2->getName(), *it2);
 
-	std::list<CppFunction>::iterator it3;
+	std::list<CppFunction>::const_iterator it3;
 	for (it3 = cppFuncList.begin(); it3 != cppFuncList.end(); it3++)
 		cppFuncs->emplace(it3->getName(), *it3);
 }
@@ -615,6 +617,8 @@ bool Calc::getSymbolValue(std::string& input, int pos, int alphaSize)
 					else
 						throw "Invalid syntax";
 				}
+				if (it2->first == "rand")
+					throw random();
 
 				// evaluate each argument
 				Calc c2(this);
@@ -727,4 +731,13 @@ void Calc::setprecision(int num)
 {
 	Precision = num;
 	throw "";
+}
+
+std::string Calc::random()
+{
+	srand((unsigned)time(0));
+	double r = (rand() % 101) / 100.0;
+	std::stringstream ss;
+	ss << r;
+	return ss.str();
 }

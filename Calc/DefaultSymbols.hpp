@@ -10,9 +10,7 @@
 
 namespace Symbols
 {
-	std::string random();
-
-	std::list<Variable> varList =
+	const std::list<Variable> varList =
 	{ // name, value
 		{ "ans", 0 },
 		{ "phi", 1.618033988749894848204586834365638117720309179805762862135 },
@@ -21,12 +19,8 @@ namespace Symbols
 		{ "g", 9.80665 }
 	};
 
-	std::list<StrFunction> strFuncList =
+	const std::list<StrFunction> strFuncList =
 	{ // name, parameters, string-based function
-		{ "help", { "" }, "Display info about defined variables and functions" }, // the help and setprecision functions are defined in the Calc object
-		{ "setprecision", { "" }, "Adjust the number of fractional digits displayed in answers" },
-		{ "rand", { "" }, random() },
-
 		{ "csc", { "x" }, "1/sin(x)" },
 		{ "sec", { "x" }, "1/cos(x)" },
 		{ "cot", { "x" }, "1/tan(x)" },
@@ -36,14 +30,19 @@ namespace Symbols
 		{ "acsch", { "x" }, "1/asinh(x)" },
 		{ "asech", { "x" }, "1/acosh(x)" },
 		{ "acoth", { "x" }, "1/atanh(x)" },
-
+	  
 		{ "cylinder_volume", { "r", "h"}, "pi*r^2*h" },
 		{ "sphere_volume", { "r" }, "(4/3)pi*r^3" },
 		{ "cone_volume", { "r", "h" }, "(h/3)pi*r^2" },
-		{ "pyramid_volume", { "base_area", "h" }, "base_area*h/3" }
+		{ "pyramid_volume", { "base_area", "h" }, "base_area*h/3" },
+
+		 // functions further defined in the Calc class
+		{ "help", { "" }, "Display info about defined variables and functions" },
+		{ "setprecision", { "" }, "Adjust the number of fractional digits displayed in answers" },
+		{ "rand", { "" }, "Generate a random number" }
 	};
 
-	std::list<CppFunction> cppFuncList =
+	const std::list<CppFunction> cppFuncList =
 	{ // name, function pointer
 		{ "sqrt", &sqrt },
 		{ "cbrt", &cbrt },
@@ -72,13 +71,4 @@ namespace Symbols
 
 		// TODO: create a function that can display an answer as a fraction instead of a float
 	};
-
-	std::string random()
-	{
-		srand((unsigned)time(0));
-		double r = (rand() % 101) / 100.0;
-		std::stringstream ss;
-		ss << r;
-		return ss.str();
-	}
 }

@@ -44,4 +44,5 @@ private:
 	void help();
 	void help(std::string);
 	void setprecision(int);
+	std::string random();
 };

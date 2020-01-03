@@ -10,7 +10,7 @@ private:
 	double value;
 public:
 	Variable(std::string newName, double newValue);
-	std::string getName();
+	std::string getName() const;
 	std::string getValue();
 	void setName(std::string newName);
 	void setValue(std::string newValue);
@@ -25,7 +25,7 @@ private:
 public:
 	StrFunction(std::string newName, std::vector<std::string> newParams, std::string newFunction);
 	std::string operator()(std::vector<std::string> args);
-	std::string getName();
+	std::string getName() const;
 	std::string getFunc();
 	std::string getParams();
 	void setName(std::string newName);
@@ -47,7 +47,7 @@ private:
 public:
 	CppFunction(std::string newName, double(*newFuncPtr)(double));
 	std::string operator()(std::vector<std::string> args);
-	std::string getName();
+	std::string getName() const;
 	void setName(std::string newName);
 	void setFunc(double(*newFuncPtr)(double));
 };

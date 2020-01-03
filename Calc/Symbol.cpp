@@ -7,7 +7,7 @@ Variable::Variable(std::string newName, double newValue)
 	value = newValue;
 }
 
-std::string Variable::getName()
+std::string Variable::getName() const
 {
 	return name;
 }
@@ -64,7 +64,7 @@ std::string StrFunction::operator()(std::vector<std::string> args)
 	return tempFunc;
 }
 
-std::string StrFunction::getName()
+std::string StrFunction::getName() const
 {
 	return name;
 }
@@ -118,7 +118,7 @@ std::string CppFunction::operator()(std::vector<std::string> args)
 	return ss.str();
 }
 
-std::string CppFunction::getName()
+std::string CppFunction::getName() const
 {
 	return name;
 }
