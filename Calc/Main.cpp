@@ -3,7 +3,6 @@
 
 int main()
 {
-	system("cls");
 	std::string input;
 	Calc c;
 
