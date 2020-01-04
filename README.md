@@ -1,7 +1,5 @@
 # Calc
 
-[![Run on Repl.it](https://repl.it/badge/github/wheelercj/Calc)](https://repl.it/github/wheelercj/Calc)
-
 A command-line calculator.
 
 ## Features:
