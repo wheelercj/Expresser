@@ -23,12 +23,12 @@ namespace Symbols
 		{ "csc", {{ "x" }, "1/sin(x)" }},
 		{ "sec", {{ "x" }, "1/cos(x)" }},
 		{ "cot", {{ "x" }, "1/tan(x)" }},
-		{ "acsc", {{ "x" }, "1/asin(x)" }},
-		{ "asec", {{ "x" }, "1/acos(x)" }},
-		{ "acot", {{ "x" }, "1/atan(x)" }},
-		{ "acsch", {{ "x" }, "1/asinh(x)" }},
-		{ "asech", {{ "x" }, "1/acosh(x)" }},
-		{ "acoth", {{ "x" }, "1/atanh(x)" }},
+		{ "acsc", {{ "x" }, "asin(1/x)" }},
+		{ "asec", {{ "x" }, "acos(1/x)" }},
+		{ "acot", {{ "x" }, "atan(1/x)" }},
+		{ "acsch", {{ "x" }, "asinh(1/x)" }},
+		{ "asech", {{ "x" }, "acosh(1/x)" }},
+		{ "acoth", {{ "x" }, "atanh(1/x)" }},
 	  
 		{ "cylinder_volume", {{ "r", "h"}, "pi*r^2*h" }},
 		{ "sphere_volume", {{ "r" }, "(4/3)pi*r^3" }},
@@ -37,7 +37,7 @@ namespace Symbols
 
 		 // functions further defined in the Calc class
 		{ "help", {{ "" }, "Display info about defined variables and functions" }},
-		{ "setprecision", {{ "" }, "Adjust the number of digits displayed in answers" }},
+		{ "setprecision", {{ "int" }, "Adjust the number of digits displayed in answers" }},
 		{ "rand", {{ "" }, "Generate a random number" }}
 	};
 
@@ -69,6 +69,7 @@ namespace Symbols
 		{ "atanh", &atanh }
 
 		/* // TODO: create functions:
+			use functions sinl, cosl, etc. instead of sin, cos, etc. for more precision
 			display an answer as a fraction instead of a float
 			reset all settings to defaults
 			functions such as sin^2(x)

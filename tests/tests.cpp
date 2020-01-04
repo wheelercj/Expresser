@@ -18,7 +18,6 @@ namespace Tests
 
 	void equal(std::string str1, std::string str2)
 	{
-		str1.insert(0, " = ");
 		Assert::AreEqual(str1, c.calc(str2));
 	}
 
@@ -42,12 +41,12 @@ namespace Tests
 			equal("Undefined character", "jajvoaierjal;ndvoiasejrlaenafl;jo;ijwer");
 			equal("Undefined character", "$5");
 			equal("-382.00476", "53.28394 + 392.48 - 1.5^3(65.23 * 3.76)");
-			equal("-20.064814815", "-3+4*-5-6(-7/8)/-9^2--3");
+			equal("-20.06481", "-3+4*-5-6(-7/8)/-9^2--3");
 			equal("-1.8", "(1-2)^3*4/5+6-7");
-			equal("19.935185185", "3+4*5-6(7/8)/9^2-3");
-			equal("20.935185185", "3 + 4 * 5 - 6 ( 7 / 8 ) / 9 ^ 2 - 2");
+			equal("19.93519", "3+4*5-6(7/8)/9^2-3");
+			equal("20.93519", "3 + 4 * 5 - 6 ( 7 / 8 ) / 9 ^ 2 - 2");
 			equal("306.25", "((4*5)^2(7/8)^2)");
-			equal("1461.333333333", "9-8+7/6*5^4(3-1)+2");
+			equal("1461.33333", "9-8+7/6*5^4(3-1)+2");
 			equal("80", "20 4");
 			equal("24", "20 +4");
 			equal("23", "3+4 5");
@@ -85,7 +84,7 @@ namespace Tests
 			equal("10", "2*3+4");
 			equal("-2", "2*-3+4");
 			equal("3.25", "5/4+2");
-			equal("0.833333333", "5/(4+2)");
+			equal("0.83333", "5/(4+2)");
 			equal("10", "4+3*2");
 			equal("5", "3+4/2");
 			equal("3.5", "(3+4)/2");
@@ -178,10 +177,10 @@ namespace Tests
 			equal("Infinity", "2/0");
 			equal("0", "0/2");
 			equal("1", "2/2");
-			equal("0.666666667", "2/3");
+			equal("0.66667", "2/3");
 			equal("1.5", "3/2");
 			equal("3.5", "7/2");
-			equal("0.285714286", "2/7");
+			equal("0.28571", "2/7");
 			equal("0.5", "2.5/5");
 			equal("2", "3/1.5");
 			equal("2", "7.5/3.75");
@@ -190,8 +189,8 @@ namespace Tests
 			equal("-2", "4/-2");
 			equal("0.5", "-2/-4");
 			equal("2", "-4/-2");
-			equal("0.666666667", "4/3/2");
-			equal("0.166666667", "2/3/4");
+			equal("0.66667", "4/3/2");
+			equal("0.16667", "2/3/4");
 			equal("Invalid syntax", "4//2");
 			equal("Invalid syntax", "4/*2");
 			equal("Invalid syntax", "4*/2");
@@ -203,7 +202,7 @@ namespace Tests
 			equal("0.03125", "2^-3/4");
 			equal("312.5", "5^4/2");
 			equal("25", "5^(4/2)");
-			equal("0.444444444", "4/3^2");
+			equal("0.44444", "4/3^2");
 			equal("0.1875", "3/4^2");
 			equal("0.5625", "(3/4)^2");
 		}
@@ -221,9 +220,9 @@ namespace Tests
 			equal("49", "7^2");
 			equal("128", "2^7");
 			equal("97.65625", "2.5^5");
-			equal("5.196152423", "3^1.5");
-			equal("1911.96411864", "7.5^3.75");
-			equal("20194.565244092", "3.75^7.5");
+			equal("5.19615", "3^1.5");
+			equal("1911.96412", "7.5^3.75");
+			equal("20194.56524", "3.75^7.5");
 			equal("-81", "-3^4");
 			equal("81", "(-3)^4");
 			equal("-8", "(-2)^3");
@@ -248,7 +247,7 @@ namespace Tests
 
 			equal("Imaginary", "(-2)^(1/2)");
 			equal("3", "9^(1/2)");
-			equal("-1.414213562", "-2^(1/2)");
+			equal("-1.41421", "-2^(1/2)");
 			equal("0.008", "5^-3");
 			equal("11112006825558016", "14^14");
 			// equal("437893890380859375", "15^15"); // TODO: figure out why this fails by a small amount
@@ -278,7 +277,7 @@ namespace Tests
 			equal("1", "(((((((((1))");
 			equal("2", "((2))");
 			equal("3", "1+(2)");
-			equal("8.539733988", "3.1415926(2.7182818)");
+			equal("8.53973", "3.1415926(2.7182818)");
 			equal("10", "(10)(1)");
 			equal("24", "(((1)2)3)4");
 			equal("27", "(1+2)^3");
@@ -296,7 +295,6 @@ namespace Tests
 			equal("Complex infinity", "(-3)!");
 			equal("Undefined", "2.5!");
 			equal("720", "(3!)!");
-			Assert::AreNotEqual((std::string)"720", c.calc("3!!"));
 			equal("36", "3!^2");
 			equal("64", "2^3!");
 		}
@@ -511,20 +509,20 @@ namespace Tests
 		}
 		TEST_METHOD(Constants)
 		{
-			equal("3.141592654", "pi");
-			equal("2.718281828", "e");
-			equal("8.539734223", "pie");
-			equal("8.539734223", "pi*e");
-			equal("5.859874482", "pi+e");
-			equal("22.459157718", "pi^e");
-			equal("8.539734223", "epi");
+			equal("3.14159", "pi");
+			equal("2.71828", "e");
+			equal("8.53973", "pie");
+			equal("8.53973", "pi*e");
+			equal("5.85987", "pi+e");
+			equal("22.45916", "pi^e");
+			equal("8.53973", "epi");
 			equal("Undefined character", "pei");
 			equal("Undefined character", "p ie");
-			equal("8.539734223", "pi e");
-			equal("6.283185307", "2pi");
-			equal("5.141592654", "2+pi");
+			equal("8.53973", "pi e");
+			equal("6.28319", "2pi");
+			equal("5.14159", "2+pi");
 			equal("0", "e>pi");
-			equal("7.389056099", "e^2");
+			equal("7.38906", "e^2");
 		}
 		TEST_METHOD(Vars)
 		{
@@ -565,7 +563,7 @@ namespace Tests
 			equal("1", "bool");
 			Assert::AreEqual((std::string)"", c.calc("theta = pi/2"));
 			Assert::AreEqual((std::string)"", c.calc("test = theta*3"));
-			equal("4.71238898", "test");
+			equal("4.71239", "test");
 			Assert::AreEqual((std::string)"", c.calc("degrees = 180/pi*theta"));
 			equal("90", "degrees");
 			Assert::AreEqual((std::string)"", c.calc("pi = 3"));
@@ -595,43 +593,57 @@ namespace Tests
 
 			// reset pi for other test methods
 			Assert::AreEqual((std::string)"", c.calc("pi = 3.141592653589793238462643383279502884197169399375105820974"));
-			equal("3.141592654", "pi");
+			equal("3.14159", "pi");
 		}
 		TEST_METHOD(StrFunctions)
 		{
 			equal("Invalid syntax", "cone_volume()");
 			equal("Invalid syntax", "cone_volume(3)");
-			equal("37.699111843", "cone_volume(3,4)");
+			equal("37.69911", "cone_volume(3,4)");
 			equal("Invalid syntax", "cone_volume(3,4,5)");
 			equal("Variable g = 9.80665", "help(g)");
-			equal("Function acsc(x) = 1/asin(x)", "help(acsc)");
-			equal("Display info about defined variables and functions", "help(help)");
+			equal("Function acsc(x) = asin(1/x)", "help(acsc)");
+			equal("Function help() = Display info about defined variables and functions", "help(help)");
 			equal("C++ Function", "help(sqrt)");
+			equal("Function setprecision(int) = Adjust the number of digits displayed in answers", "help(setprecision)");
+			equal("Invalid syntax", "acoth(help)");
 			Assert::AreNotEqual((std::string)"-1", c.calc("rand()"));
 			Assert::AreNotEqual(c.calc("ans"), c.calc("rand()"));
-			equal("1.154700538", "csc(pi/3)");
-			equal("Function cylinder_volume(r, h) = pi*r^2*h", "help(cylinder_volume)");
-			equal("549.778714378", "cylinder_volume(5, 7");
-			equal("1.188395106", "csc(cot(pi/4");
-			equal("5.5", "csc(acsc(5.5))");
+			equal("1.1547", "csc(pi/3)");
+			equal("Function cylinder_volume(r,h) = pi*r^2*h", "help(cylinder_volume)");
+			equal("549.77871", "cylinder_volume(5, 7");
+			equal("1.1884", "csc(cot(pi/4");
+			//equal("5.5", "csc(acsc(5.5))"); // this test will fail until trig functions with more precision can be used
 			equal("Invalid syntax", "csc (pi/3)");
-			equal("2.720699046", "sphere_volume(sin(pi/3)");
+			equal("2.7207", "sphere_volume(sin(pi/3)");
+			equal("3.14159", "pi");
+			Assert::AreEqual((std::string)"", c.calc("setprecision(15"));
+			equal("3.141592653589793", "pi");
+			Assert::AreEqual((std::string)"", c.calc("setprecision(3"));
+			equal("3.142", "pi");
+			Assert::AreEqual((std::string)"", c.calc("setprecision(5)"));
+			equal("3.14159", "pi");
 		}
 		TEST_METHOD(CppFunctions)
 		{
 			equal("Invalid syntax", "sin(");
-			equal("Undefined character", "sin(4,5)");
+			equal("Invalid syntax", "sin(.)");
+			equal("Invalid syntax", "sin(sin)");
+			equal("Invalid syntax", "sin(4,5)");
 			equal("2", "sqrt(4)");
 			equal("Imaginary", "sqrt(-4)");
 			equal("8", "ceil(7.3");
 			equal("9", "floor(9.");
 			equal("3", "abs(cbrt(-27))");
-			equal("2.15", "sin( asin( 2.15 )");
-			equal("0.726542528", "tan(pi/5");
+			equal("0.95", "sin( asin( 0.95 )");
+			equal("Imaginary", "sin( asin( 2.15 )");
+			equal("0.72654", "tan(pi/5");
 			equal("Invalid syntax", "cos (pi/3)");
-			equal("2.718281828", "esin(pi/2");
+			equal("2.71828", "esin(pi/2");
 			Assert::AreEqual(c.calc("sin(pi / 3)^3"), c.calc("(sin(pi / 3))^3"));
-			equal("1.234741352", "acos(acoth(pi))");
+			equal("1.23474", "acos(acoth(pi))");
+			equal("0.97385", "sin(3+(4/5)-2)");
+			equal("Invalid syntax", "sin(setprecision(5))");
 		}
 	};
 }

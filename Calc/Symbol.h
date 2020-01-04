@@ -13,7 +13,8 @@ public:
 	StrFunction(std::vector<std::string> newParams, std::string newFunction);
 	std::string operator()(std::vector<std::string> args);
 	std::string getFunc();
-	std::string getParams();
+	std::string getParamStr();
+	std::vector<std::string> getParamVect();
 	void setFunc(std::string newFunction);
 	void setParams(std::string newParams);
 };

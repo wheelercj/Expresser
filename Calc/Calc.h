@@ -11,17 +11,16 @@ public:
 	Calc(Calc*);
 	std::string calc(std::string input);
 private:
-	int Precision = 9;
+	int Precision = 5;
 
 	void validateInput(std::string& input);
-	void formatOutput(std::string& str);
-	void assignmentFormat(std::string&  input);
+	void formatOutput(std::string& str, int precision);
+	void assignmentFormat(std::string& input);
 	std::string evaluate(std::string str);
-	bool hasPrecedence(std::string op1);
-	void pop();
 
 	std::stack<double> nums;
 	std::stack<std::string> ops;
+	void pop();
 	enum types { NONE, OP, NUM };
 	int lastTypePushed = NONE;
 	bool isNum(char ch);
@@ -30,6 +29,8 @@ private:
 	int getNumSize(std::string str);
 	int getAlphaSize(std::string str);
 	int getOpSize(std::string str);
+	void readOp(std::string input, int& pos);
+	bool hasPrecedence(std::string op1);
 
 	std::unordered_map<std::string, double> vars = Symbols::defaultVars;
 	std::unordered_map<std::string, StrFunction> strFuncs = Symbols::defaultStrFuncs;
@@ -37,12 +38,12 @@ private:
 	std::stack<std::string> varsBeingDefined;
 	void setVar(std::string newName, std::string newValue);
 	// TODO: create a setStrFunc function
-	bool getSymbolValue(std::string& input, int i, int alphaSize);
+	bool getSymbolValue(std::string& input, int alphaPos, int alphaSize);
 	std::vector<std::string> readArgs(std::string& input, int pos, int size);
 
+	// functions for the user to call
 	void help();
 	void help(std::string);
 	void setprecision(int);
 	std::string random();
 };
-

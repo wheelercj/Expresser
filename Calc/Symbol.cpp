@@ -36,12 +36,21 @@ std::string StrFunction::getFunc()
 	return function;
 }
 
-std::string StrFunction::getParams()
+std::string StrFunction::getParamStr()
 {
 	std::string paramStr = "";
 	for (int i = 0; i < params.size(); i++)
-		paramStr += params[i] + ",";
+	{
+		paramStr += params[i];
+		if (i < params.size() - 1)
+			paramStr += ",";
+	}
 	return paramStr;
+}
+
+std::vector<std::string> StrFunction::getParamVect()
+{
+	return params;
 }
 
 void StrFunction::setFunc(std::string newFunction)
