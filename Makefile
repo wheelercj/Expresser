@@ -1,4 +1,4 @@
-OBJS = Calc/Main.cpp Calc/Calc.cpp Calc/Vars.cpp
+OBJS = Calc/Main.cpp Calc/Calc.cpp Calc/Symbol.cpp
 
 CC = g++
 
