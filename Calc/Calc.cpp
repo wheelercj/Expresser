@@ -8,8 +8,8 @@ Calc::Calc()
 Calc::Calc(Calc* other)
 {
 	vars = other->vars;
-	strFuncs = other->strFuncs;
-	cppFuncs = other->cppFuncs;
+	macros = other->macros;
+	funcs = other->funcs;
 	Precision = other->Precision + 5;
 }
 
@@ -544,10 +544,10 @@ bool Calc::hasPrecedence(std::string op1)
 
 void Calc::setVar(std::string newName, std::string newValue)
 {
-	// first, erase any existing variable or function with the given name
+	// erase any existing symbol with the given name
 	vars.erase(newName);
-	strFuncs.erase(newName);
-	cppFuncs.erase(newName);
+	macros.erase(newName);
+	funcs.erase(newName);
 
 	vars.emplace(newName, stold(newValue));
 }
@@ -559,7 +559,7 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 		in the input string, and replaces the name with its value. There may be multiple symbols
 		named in the alpha string with no spaces or anything else between them. Precedence is
 		given to symbols with longer names, and to symbols further to the left of the string.
-		All functions must be immediately followed by an opening parenthesis.
+		All functions and macros must be immediately followed by an opening parenthesis.
 	*/
 
 	// for each substring size of the alpha string
@@ -585,9 +585,9 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 				return true;
 			}
 			
-			// String Functions
-			std::unordered_map<std::string, StrFunction>::iterator it2 = strFuncs.find(substr);
-			if (it2 != strFuncs.end())
+			// Macros
+			std::unordered_map<std::string, Macro>::iterator it2 = macros.find(substr);
+			if (it2 != macros.end())
 			{
 				std::vector<std::string> args = readArgs(input, pos, size);
 
@@ -628,14 +628,14 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 					}
 				}
 
-				// call the function and insert its return value
+				// expand the macro and insert its return value
 				input.insert(pos, " " + it2->second(args) + " ");
 				return true;
 			}
 
-			// C++ Functions
-			std::unordered_map<std::string, CppFunction>::iterator it3 = cppFuncs.find(substr);
-			if (it3 != cppFuncs.end())
+			// Functions
+			std::unordered_map<std::string, Function>::iterator it3 = funcs.find(substr);
+			if (it3 != funcs.end())
 			{
 				std::vector<std::string> args = readArgs(input, pos, size);
 				if (args.size() != 1)
@@ -717,7 +717,7 @@ std::vector<std::string> Calc::readArgs(std::string& input, int pos, int size)
 	return args;
 }
 
-// throw info about all variables and functions
+// throw info about all symbols
 void Calc::help()
 {
 	std::string message = "";
@@ -736,25 +736,25 @@ void Calc::help()
 		message += "\n\t " + it->first + " = " + num;
 	}
 
-	message += "\n C++ Functions:\t";
-	std::unordered_map<std::string, CppFunction>::iterator it3;
+	message += "\n Functions:\t";
+	std::unordered_map<std::string, Function>::iterator it3;
 	int i = 0;
-	for (it3 = cppFuncs.begin(); it3 != cppFuncs.end(); it3++, i++)
+	for (it3 = funcs.begin(); it3 != funcs.end(); it3++, i++)
 	{
 		if (i % 10 == 0)
 			message += "\n\t";
 		message += it3->first + ", ";
 	}
 
-	message += "\n Other Functions:";
-	std::unordered_map<std::string, StrFunction>::iterator it2;
-	for (it2 = strFuncs.begin(); it2 != strFuncs.end(); it2++)
+	message += "\n Macros:";
+	std::unordered_map<std::string, Macro>::iterator it2;
+	for (it2 = macros.begin(); it2 != macros.end(); it2++)
 		message += "\n\t " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFunc();
 
 	throw message;
 }
 
-// throw info about one variable or function
+// throw info about one symbol
 void Calc::help(std::string name)
 {
 	std::string message = "";
@@ -773,15 +773,15 @@ void Calc::help(std::string name)
 		throw message;
 	}
 
-	std::unordered_map<std::string, StrFunction>::iterator it2 = strFuncs.find(name);
-	if (it2 != strFuncs.end())
+	std::unordered_map<std::string, Macro>::iterator it2 = macros.find(name);
+	if (it2 != macros.end())
 	{
-		message += "Function " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFunc();
+		message += "Macro " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFunc();
 		throw message;
 	}
 
-	std::unordered_map<std::string, CppFunction>::iterator it3 = cppFuncs.find(name);
-	if (it3 != cppFuncs.end())
+	std::unordered_map<std::string, Function>::iterator it3 = funcs.find(name);
+	if (it3 != funcs.end())
 		throw "C++ Function";
 
 	throw "Undefined character(s)";

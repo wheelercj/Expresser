@@ -1,12 +1,12 @@
 #include "Symbol.h"
 
-StrFunction::StrFunction(std::vector<std::string> newParams, std::string newFunction)
+Macro::Macro(std::vector<std::string> newParams, std::string newFunction)
 {
 	params = newParams;
 	function = newFunction;
 }
 
-std::string StrFunction::operator()(std::vector<std::string> args)
+std::string Macro::operator()(std::vector<std::string> args)
 {
 	std::string tempFunc = function;
 
@@ -31,12 +31,12 @@ std::string StrFunction::operator()(std::vector<std::string> args)
 	return tempFunc;
 }
 
-std::string StrFunction::getFunc()
+std::string Macro::getFunc()
 {
 	return function;
 }
 
-std::string StrFunction::getParamStr()
+std::string Macro::getParamStr()
 {
 	std::string paramStr = "";
 	for (int i = 0; i < params.size(); i++)
@@ -48,17 +48,17 @@ std::string StrFunction::getParamStr()
 	return paramStr;
 }
 
-std::vector<std::string> StrFunction::getParamVect()
+std::vector<std::string> Macro::getParamVect()
 {
 	return params;
 }
 
-void StrFunction::setFunc(std::string newFunction)
+void Macro::setFunc(std::string newFunction)
 {
 	function = newFunction;
 }
 
-void StrFunction::setParams(std::string newParams)
+void Macro::setParams(std::string newParams)
 {
 	for (int i = 0, j = 0; i < newParams.size(); i++)
 	{
@@ -70,12 +70,12 @@ void StrFunction::setParams(std::string newParams)
 	}
 }
 
-CppFunction::CppFunction(double(*newFuncPtr)(double))
+Function::Function(double(*newFuncPtr)(double))
 {
 	funcPtr = newFuncPtr;
 }
 
-std::string CppFunction::operator()(std::vector<std::string> args)
+std::string Function::operator()(std::vector<std::string> args)
 {
 	double result = funcPtr(stod(args[0]));
 	std::stringstream ss;
@@ -83,7 +83,7 @@ std::string CppFunction::operator()(std::vector<std::string> args)
 	return ss.str();
 }
 
-void CppFunction::setFunc(double(*newFuncPtr)(double))
+void Function::setFunc(double(*newFuncPtr)(double))
 {
 	funcPtr = newFuncPtr;
 }

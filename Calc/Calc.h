@@ -33,11 +33,11 @@ private:
 	bool hasPrecedence(std::string op1);
 
 	std::unordered_map<std::string, double> vars = Symbols::defaultVars;
-	std::unordered_map<std::string, StrFunction> strFuncs = Symbols::defaultStrFuncs;
-	std::unordered_map<std::string, CppFunction> cppFuncs = Symbols::defaultCppFuncs;
+	std::unordered_map<std::string, Macro> macros = Symbols::defaultMacros;
+	std::unordered_map<std::string, Function> funcs = Symbols::defaultFuncs;
 	std::stack<std::string> varsBeingDefined;
 	void setVar(std::string newName, std::string newValue);
-	// TODO: create a setStrFunc function
+	// TODO: create a setMacro function
 	bool getSymbolValue(std::string& input, int alphaPos, int alphaSize);
 	std::vector<std::string> readArgs(std::string& input, int pos, int size);
 

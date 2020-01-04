@@ -595,22 +595,22 @@ namespace Tests
 			Assert::AreEqual((std::string)"", c.calc("pi = 3.141592653589793238462643383279502884197169399375105820974"));
 			equal("3.14159", "pi");
 		}
-		TEST_METHOD(StrFunctions)
+		TEST_METHOD(Macros)
 		{
 			equal("Invalid syntax", "cone_volume()");
 			equal("Invalid syntax", "cone_volume(3)");
 			equal("37.69911", "cone_volume(3,4)");
 			equal("Invalid syntax", "cone_volume(3,4,5)");
 			equal("Variable g = 9.80665", "help(g)");
-			equal("Function acsc(x) = asin(1/x)", "help(acsc)");
-			equal("Function help() = Display info about defined variables and functions", "help(help)");
+			equal("Macro acsc(x) = asin(1/x)", "help(acsc)");
+			equal("Macro help() = Display info about defined variables and functions", "help(help)");
 			equal("C++ Function", "help(sqrt)");
-			equal("Function setprecision(int) = Adjust the number of digits displayed in answers", "help(setprecision)");
+			equal("Macro setprecision(int) = Adjust the number of digits displayed in answers", "help(setprecision)");
 			equal("Invalid syntax", "acoth(help)");
 			Assert::AreNotEqual((std::string)"-1", c.calc("rand()"));
 			Assert::AreNotEqual(c.calc("ans"), c.calc("rand()"));
 			equal("1.1547", "csc(pi/3)");
-			equal("Function cylinder_volume(r,h) = pi*r^2*h", "help(cylinder_volume)");
+			equal("Macro cylinder_volume(r,h) = pi*r^2*h", "help(cylinder_volume)");
 			equal("549.77871", "cylinder_volume(5, 7");
 			equal("1.1884", "csc(cot(pi/4");
 			//equal("5.5", "csc(acsc(5.5))"); // this test will fail until trig functions with more precision can be used
@@ -624,7 +624,7 @@ namespace Tests
 			Assert::AreEqual((std::string)"", c.calc("setprecision(5)"));
 			equal("3.14159", "pi");
 		}
-		TEST_METHOD(CppFunctions)
+		TEST_METHOD(Functions)
 		{
 			equal("Invalid syntax", "sin(");
 			equal("Invalid syntax", "sin(.)");

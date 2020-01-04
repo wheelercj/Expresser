@@ -5,7 +5,7 @@
 #include <cmath>
 #include <unordered_map>
 
-// Variable and function names must contain only alpha characters and/or underscores
+// Symbol names must contain only alpha characters and/or underscores
 
 namespace Symbols
 {
@@ -18,8 +18,8 @@ namespace Symbols
 		{ "g", 9.80665 }
 	};
 
-	const std::unordered_map<std::string, StrFunction> defaultStrFuncs =
-	{ // name, parameters, string-based function
+	const std::unordered_map<std::string, Macro> defaultMacros =
+	{ // name, parameters, function
 		{ "csc", {{ "x" }, "1/sin(x)" }},
 		{ "sec", {{ "x" }, "1/cos(x)" }},
 		{ "cot", {{ "x" }, "1/tan(x)" }},
@@ -41,7 +41,7 @@ namespace Symbols
 		{ "rand", {{ "" }, "Generate a random number" }}
 	};
 
-	const std::unordered_map<std::string, CppFunction> defaultCppFuncs =
+	const std::unordered_map<std::string, Function> defaultFuncs =
 	{ // name, function pointer
 		{ "sqrt", &sqrt },
 		{ "cbrt", &cbrt },

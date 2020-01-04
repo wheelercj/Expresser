@@ -4,13 +4,13 @@
 #include <vector>
 #include <sstream>
 
-class StrFunction
+class Macro
 {
 private:
 	std::string function;
 	std::vector<std::string> params;
 public:
-	StrFunction(std::vector<std::string> newParams, std::string newFunction);
+	Macro(std::vector<std::string> newParams, std::string newFunction);
 	std::string operator()(std::vector<std::string> args);
 	std::string getFunc();
 	std::string getParamStr();
@@ -25,12 +25,12 @@ public:
 //		T(*ptr)(...);
 //	};
 
-class CppFunction
+class Function
 {
 private:
 	double(*funcPtr)(double); // TODO: get this to work with all functions. Maybe use a variadic template class
 public:
-	CppFunction(double(*newFuncPtr)(double));
+	Function(double(*newFuncPtr)(double));
 	std::string operator()(std::vector<std::string> args);
 	void setFunc(double(*newFuncPtr)(double));
 };
