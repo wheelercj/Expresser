@@ -37,7 +37,7 @@ namespace Symbols
 
 		 // functions further defined in the Calc class
 		{ "help", {{ "" }, "Display info about defined variables and functions" }},
-		{ "setprecision", {{ "" }, "Adjust the number of fractional digits displayed in answers" }},
+		{ "setprecision", {{ "" }, "Adjust the number of digits displayed in answers" }},
 		{ "rand", {{ "" }, "Generate a random number" }}
 	};
 
@@ -46,7 +46,7 @@ namespace Symbols
 		{ "sqrt", &sqrt },
 		{ "cbrt", &cbrt },
 		{ "abs", &abs },
-		{ "log", &log }, // TODO: implement other log functions
+		{ "log", &log },
 		{ "round", &round },
 		{ "ceil", &ceil },
 		{ "floor", &floor },
@@ -55,7 +55,7 @@ namespace Symbols
 		{ "tgamma", &tgamma }, // the gamma function
 		{ "lgamma", &lgamma }, // the log-gamma function
 
-		{ "sin", &sin }, // TODO: implement functions such as sin^2(x)
+		{ "sin", &sin },
 		{ "cos", &cos },
 		{ "tan", &tan },
 		{ "asin", &asin },
@@ -68,6 +68,11 @@ namespace Symbols
 		{ "acosh", &acosh },
 		{ "atanh", &atanh }
 
-		// TODO: create a function that can display an answer as a fraction instead of a float
+		/* // TODO: create functions:
+			display an answer as a fraction instead of a float
+			reset all settings to defaults
+			functions such as sin^2(x)
+			log functions with bases other than Euler's number
+		*/
 	};
 }

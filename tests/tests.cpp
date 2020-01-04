@@ -252,7 +252,7 @@ namespace Tests
 			equal("0.008", "5^-3");
 			equal("11112006825558016", "14^14");
 			// equal("437893890380859375", "15^15"); // TODO: figure out why this fails by a small amount
-			equal("1606938044258990275541962092341162602522202993782792835301376", "4^100");
+			equal("1606938044258990275541962092341162602522202993782792835301376", "4^100"); // TODO: use scientific notation here instead
 		}
 		TEST_METHOD(Parentheses)
 		{
@@ -555,6 +555,10 @@ namespace Tests
 			equal("8", "num_B");
 			equal("8", "num_A");
 			equal("8", "num_C");
+			Assert::AreEqual((std::string)"", c.calc("a=b=c=3"));
+			equal("3", "a");
+			equal("3", "b");
+			equal("3", "c");
 			equal("Undefined character", "10 = ten");
 			equal("Invalid syntax", "ten = 5*2 = 5+5");
 			Assert::AreEqual((std::string)"", c.calc("bool = 5 > 2"));
@@ -595,11 +599,39 @@ namespace Tests
 		}
 		TEST_METHOD(StrFunctions)
 		{
-
+			equal("Invalid syntax", "cone_volume()");
+			equal("Invalid syntax", "cone_volume(3)");
+			equal("37.699111843", "cone_volume(3,4)");
+			equal("Invalid syntax", "cone_volume(3,4,5)");
+			equal("Variable g = 9.80665", "help(g)");
+			equal("Function acsc(x) = 1/asin(x)", "help(acsc)");
+			equal("Display info about defined variables and functions", "help(help)");
+			equal("C++ Function", "help(sqrt)");
+			Assert::AreNotEqual((std::string)"-1", c.calc("rand()"));
+			Assert::AreNotEqual(c.calc("ans"), c.calc("rand()"));
+			equal("1.154700538", "csc(pi/3)");
+			equal("Function cylinder_volume(r, h) = pi*r^2*h", "help(cylinder_volume)");
+			equal("549.778714378", "cylinder_volume(5, 7");
+			equal("1.188395106", "csc(cot(pi/4");
+			equal("5.5", "csc(acsc(5.5))");
+			equal("Invalid syntax", "csc (pi/3)");
+			equal("2.720699046", "sphere_volume(sin(pi/3)");
 		}
 		TEST_METHOD(CppFunctions)
 		{
-
+			equal("Invalid syntax", "sin(");
+			equal("Undefined character", "sin(4,5)");
+			equal("2", "sqrt(4)");
+			equal("Imaginary", "sqrt(-4)");
+			equal("8", "ceil(7.3");
+			equal("9", "floor(9.");
+			equal("3", "abs(cbrt(-27))");
+			equal("2.15", "sin( asin( 2.15 )");
+			equal("0.726542528", "tan(pi/5");
+			equal("Invalid syntax", "cos (pi/3)");
+			equal("2.718281828", "esin(pi/2");
+			Assert::AreEqual(c.calc("sin(pi / 3)^3"), c.calc("(sin(pi / 3))^3"));
+			equal("1.234741352", "acos(acoth(pi))");
 		}
 	};
 }
