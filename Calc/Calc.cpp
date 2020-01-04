@@ -1,7 +1,17 @@
 #include "Calc.h"
 #include <vector>
-#include <sstream>
-#include <cmath>
+
+Calc::Calc()
+{
+}
+
+Calc::Calc(Calc* other)
+{
+	vars = other->vars;
+	strFuncs = other->strFuncs;
+	cppFuncs = other->cppFuncs;
+	Precision = other->Precision + 5;
+}
 
 std::string Calc::calc(std::string input)
 {
@@ -28,9 +38,13 @@ std::string Calc::calc(std::string input)
 
 		if (assigning)
 			return "";
-		formatOutput(result);
+		formatOutput(result, Precision);
 	}
 	catch (const char* error)
+	{
+		result = error;
+	}
+	catch (std::string error)
 	{
 		result = error;
 	}
@@ -39,8 +53,6 @@ std::string Calc::calc(std::string input)
 		result = "Insufficient memory";
 	}
 
-	if (result.size())
-		result.insert(0, " = ");
 	return result;
 }
 
@@ -67,6 +79,36 @@ void Calc::validateInput(std::string& input)
 	}
 }
 
+void Calc::formatOutput(std::string& str, int precision)
+{
+	// adjust output precision
+	std::stringstream ss;
+	ss.setf(std::ios::fixed);
+	ss.precision(precision);
+	ss << stold(str);
+	str = ss.str();
+
+	// remove any trailing zeros
+	for (int i = str.size() - 1; i > 0; i--)
+	{
+		if (str[i] == '0')
+			str.erase(i, 1);
+		else if (str[i] == '.')
+		{
+			str.erase(i, 1);
+			break;
+		}
+		else
+			break;
+	}
+
+	if (str == "inf")
+		str = "Infinity";
+	else if (str == "-0")
+		str = "0";
+}
+
+// search for an assignment operator and prepare for assigning if needed
 void Calc::assignmentFormat(std::string& input)
 {
 	bool assigning, alphaFound;
@@ -124,7 +166,7 @@ void Calc::assignmentFormat(std::string& input)
 	}
 }
 
-std::string Calc::evaluate(std::string str)
+std::string Calc::evaluate(std::string input)
 {
 	/*
 		Reads the input string and pushes values onto the appropriate stack. Values are popped off the stacks
@@ -132,140 +174,40 @@ std::string Calc::evaluate(std::string str)
 	 */
 
 	std::string result;
-	lastTypePushed = "";
+	lastTypePushed = NONE;
 
-	for (int i = 0; i < str.size();) // the index is incremented when value(s) are pushed onto a stack
+	for (int i = 0; i < input.size();) // the index is incremented when value(s) are pushed onto a stack
 	{
-		if (isNum(str[i]))
+		if (isNum(input[i]))
 		{
-			if (lastTypePushed == "num")
-				str.insert(i, "*");
+			if (lastTypePushed == NUM)
+				input.insert(i, "*");
 			else
 			{
-				int numSize = getNumSize(str.substr(i, str.size() - i));
-				nums.push(stod(str.substr(i, numSize)));
+				int numSize = getNumSize(input.substr(i, input.size() - i));
+				nums.push(stold(input.substr(i, numSize)));
 				i += numSize;
-				lastTypePushed = "num";
+				lastTypePushed = NUM;
 			}
 		}
-		else if (str[i] == ' ')
+		else if (input[i] == ' ')
 			i++;
-		else if (isAlpha(str[i]))
+		else if (isAlpha(input[i]))
 		{
-			int alphaSize = getAlphaSize(str.substr(i, str.size() - i));
-
-			if (!getVarValue(str, i, alphaSize))
+			int alphaSize = getAlphaSize(input.substr(i, input.size() - i));
+			if (!getSymbolValue(input, i, alphaSize))
 				throw "Undefined character";
 		}
-		else if (isOp(str[i]))
-		{
-			int opSize = getOpSize(str.substr(i, str.size() - i));
-			std::string newOp = str.substr(i, opSize);
-
-			if (ops.empty())
-			{
-				if (newOp == "-")
-				{
-					if (lastTypePushed == "")
-						ops.push("negate");
-					else
-						ops.push("subtract");
-					lastTypePushed = "op";
-				}
-				else if (nums.empty() && newOp == "!")
-					throw "Invalid syntax";
-				else
-				{
-					ops.push(newOp);
-					lastTypePushed = "op";
-				}
-
-				i += opSize;
-			}
-			else
-			{
-				if (newOp == "(")
-				{
-					if (i > 0 && lastTypePushed == "num")
-					{
-						if (ops.top() == "^" || ops.top() == "*" || ops.top() == "/")
-							pop();
-						else
-						{
-							ops.push("*");
-							ops.push(str.substr(i, 1));
-							i++;
-							lastTypePushed = "op";
-						}
-					}
-					else
-					{
-						ops.push(newOp);
-						i++;
-						lastTypePushed = "op";
-					}
-				}
-				else if (newOp == ")")
-				{
-					while (!ops.empty() && ops.top() != "(")
-						pop();
-					if (ops.empty())
-						throw "Invalid syntax";
-					pop();
-					i++;
-				}
-				else if (newOp == "!" || newOp == "*" || newOp == "/" || newOp == "+"
-					|| newOp == "%" || newOp == "==" || newOp == ">=" || newOp == "<="
-					|| newOp == "!=" || newOp == ">" || newOp == "<")
-				{
-					if (hasPrecedence(newOp))
-					{
-						ops.push(newOp);
-						i += opSize;
-						lastTypePushed = "op";
-					}
-					else
-						pop();
-				}
-				else if (newOp == "^")
-				{
-					if (ops.top() == "^" || hasPrecedence(newOp))
-					{
-						ops.push(newOp);
-						i += opSize;
-						lastTypePushed = "op";
-					}
-					else
-						pop();
-				}
-				else if (newOp == "-")
-				{
-					if (lastTypePushed == "" || lastTypePushed == "op")
-						newOp = "negate";
-					else
-						newOp = "subtract";
-
-					if (newOp == "negate" || hasPrecedence(newOp))
-					{
-						ops.push(newOp);
-						i++;
-						lastTypePushed = "op";
-					}
-					else
-						pop();
-				}
-				else
-					throw "Invalid syntax";
-			}
-		}
+		else if (isOp(input[i]))
+			readOp(input, i);
 		else
 			throw "Undefined character";
 	}
 
 	bool emptyString = true;
-	for (int i = 0; i < str.size(); i++)
+	for (int i = 0; i < input.size(); i++)
 	{
-		if (str[i] != ' ')
+		if (input[i] != ' ')
 			emptyString = false;
 	}
 	if (emptyString)
@@ -278,108 +220,15 @@ std::string Calc::evaluate(std::string str)
 
 	std::stringstream ss;
 	ss.setf(std::ios::fixed);
-	int p = Precision + 6;
-	ss.precision(p); // precision will be reduced by six after this, before printing
+	int p = Precision + 5;
+	ss.precision(p);
 	ss << nums.top();
 	result = ss.str();
 	setVar("ans", result);
 	return result;
 }
 
-void Calc::formatOutput(std::string& str)
-{
-	// adjust output precision // TODO: allow the user to adjust precision
-	std::stringstream ss;
-	ss.setf(std::ios::fixed);
-	ss.precision(Precision);
-	ss << stold(str);
-	str = ss.str();
-
-	// remove any trailing zeros
-	for (int i = str.size() - 1; i > 0; i--)
-	{
-		if (str[i] == '0')
-			str.erase(i, 1);
-		else if (str[i] == '.')
-		{
-			str.erase(i, 1);
-			break;
-		}
-		else
-			break;
-	}
-
-	if (str == "inf")
-		str = "Infinity";
-	else if (str == "-0")
-		str = "0";
-}
-
-int Calc::getNumSize(std::string str)
-{
-	bool periodFound = false;
-	for (int i = 0; i < str.size(); i++)
-	{
-		if (str[i] == '.')
-		{
-			if (periodFound || str.size() == 1)
-				throw "Invalid syntax"; // TODO: make all error messages more specific
-			periodFound = true;
-		}
-		else if (!isNum(str[i]))
-		{
-			if (i == 1 && str[0] == '.')
-				throw "Invalid syntax";
-			return i;
-		}
-	}
-
-	return str.size();
-}
-
-int Calc::getOpSize(std::string str)
-{
-	if (str.size() > 1)
-	{
-		if (str[0] == '!' || str[0] == '=' || str[0] == '>' || str[0] == '<')
-		{
-			if (str[1] == '=' && !(str.size() > 2 && str[2] == '='))
-				return 2;
-		}
-	}
-
-	return 1;
-}
-
-bool Calc::hasPrecedence(std::string op1)
-{
-	std::string op2 = ops.top();
-	std::vector<std::string> order = { "!", "^", "negate", "*", "+", "%", "==", "(" };
-
-	// Replace some ops with others locally so that the order vector does not imply
-	// that some ops with the same precedence have different precedences.
-	if (op1 == "/")
-		op1 = "*";
-	else if (op1 == "subtract")
-		op1 = "+";
-	else if (op1 == ">=" || op1 == "<=" || op1 == "!=" || op1 == ">" || op1 == "<")
-		op1 = "==";
-	if (op2 == "/")
-		op2 = "*";
-	else if (op2 == "subtract")
-		op2 = "+";
-	else if (op2 == ">=" || op2 == "<=" || op2 == "!=" || op2 == ">" || op2 == "<")
-		op2 = "==";
-
-	for (int i = 0; i < order.size(); i++)
-	{
-		if (order[i] == op2)
-			return false;
-		if (order[i] == op1)
-			return true;
-	}
-}
-
+// pop and evaluate number(s) and/or operator(s)
 void Calc::pop()
 {
 	if (nums.empty())
@@ -488,4 +337,470 @@ void Calc::pop()
 		nums.push(num1 < num2);
 	else
 		throw "Invalid syntax";
+}
+
+bool Calc::isNum(char ch)
+{
+	if (ch >= '0' && ch <= '9' || ch == '.')
+		return true;
+	return false;
+}
+
+bool Calc::isAlpha(char ch)
+{
+	ch = tolower(ch);
+	if (ch >= 'a' && ch <= 'z' || ch == '_')
+		return true;
+	return false;
+}
+
+bool Calc::isOp(char ch)
+{
+	std::string validOps = "()^*/+-!%<>=";
+	if (validOps.find(ch) != std::string::npos)
+		return true;
+	return false;
+}
+
+int Calc::getNumSize(std::string str)
+{
+	bool periodFound = false;
+	for (int i = 0; i < str.size(); i++)
+	{
+		if (str[i] == '.')
+		{
+			if (periodFound || str.size() == 1)
+				throw "Invalid syntax"; // TODO: make all error messages more specific
+			periodFound = true;
+		}
+		else if (!isNum(str[i]))
+		{
+			if (i == 1 && str[0] == '.')
+				throw "Invalid syntax";
+			return i;
+		}
+	}
+
+	return str.size();
+}
+
+int Calc::getAlphaSize(std::string substr)
+{
+	int i = 1;
+	for (; i < substr.size(); i++)
+	{
+		char ch = tolower(substr[i]);
+		if ((ch < 'a' || ch > 'z') && ch != '_')
+			break;
+	}
+
+	return i;
+}
+
+int Calc::getOpSize(std::string str)
+{
+	if (str.size() > 1)
+	{
+		if (str[0] == '!' || str[0] == '=' || str[0] == '>' || str[0] == '<')
+		{
+			if (str[1] == '=' && !(str.size() > 2 && str[2] == '='))
+				return 2;
+		}
+	}
+
+	return 1;
+}
+
+void Calc::readOp(std::string input, int& pos)
+{
+	int opSize = getOpSize(input.substr(pos, input.size() - pos));
+	std::string newOp = input.substr(pos, opSize);
+
+	if (ops.empty())
+	{
+		if (newOp == "-")
+		{
+			if (lastTypePushed == NONE)
+				ops.push("negate");
+			else
+				ops.push("subtract");
+			lastTypePushed = OP;
+		}
+		else if (nums.empty() && newOp == "!")
+			throw "Invalid syntax";
+		else
+		{
+			ops.push(newOp);
+			lastTypePushed = OP;
+		}
+
+		pos += opSize;
+	}
+	else
+	{
+		if (newOp == "(")
+		{
+			if (pos > 0 && lastTypePushed == NUM)
+			{
+				if (ops.top() == "^" || ops.top() == "*" || ops.top() == "/")
+					pop();
+				else
+				{
+					ops.push("*");
+					ops.push(input.substr(pos, 1));
+					pos++;
+					lastTypePushed = OP;
+				}
+			}
+			else
+			{
+				ops.push(newOp);
+				pos++;
+				lastTypePushed = OP;
+			}
+		}
+		else if (newOp == ")")
+		{
+			while (!ops.empty() && ops.top() != "(")
+				pop();
+			if (ops.empty())
+				throw "Invalid syntax";
+			pop();
+			pos++;
+		}
+		else if (newOp == "!" || newOp == "*" || newOp == "/" || newOp == "+"
+			|| newOp == "%" || newOp == "==" || newOp == ">=" || newOp == "<="
+			|| newOp == "!=" || newOp == ">" || newOp == "<")
+		{
+			if (hasPrecedence(newOp))
+			{
+				ops.push(newOp);
+				pos += opSize;
+				lastTypePushed = OP;
+			}
+			else
+				pop();
+		}
+		else if (newOp == "^")
+		{
+			if (ops.top() == "^" || hasPrecedence(newOp))
+			{
+				ops.push(newOp);
+				pos += opSize;
+				lastTypePushed = OP;
+			}
+			else
+				pop();
+		}
+		else if (newOp == "-")
+		{
+			if (lastTypePushed == NONE || lastTypePushed == OP)
+				newOp = "negate";
+			else
+				newOp = "subtract";
+
+			if (newOp == "negate" || hasPrecedence(newOp))
+			{
+				ops.push(newOp);
+				pos++;
+				lastTypePushed = OP;
+			}
+			else
+				pop();
+		}
+		else
+			throw "Invalid syntax";
+	}
+}
+
+bool Calc::hasPrecedence(std::string op1)
+{
+	std::string op2 = ops.top();
+	std::vector<std::string> order = { "!", "^", "negate", "*", "+", "%", "==", "(" };
+
+	// Replace some ops with others locally so that the order vector does not imply
+	// that some ops with the same precedence have different precedences.
+	if (op1 == "/")
+		op1 = "*";
+	else if (op1 == "subtract")
+		op1 = "+";
+	else if (op1 == ">=" || op1 == "<=" || op1 == "!=" || op1 == ">" || op1 == "<")
+		op1 = "==";
+	if (op2 == "/")
+		op2 = "*";
+	else if (op2 == "subtract")
+		op2 = "+";
+	else if (op2 == ">=" || op2 == "<=" || op2 == "!=" || op2 == ">" || op2 == "<")
+		op2 = "==";
+
+	for (int i = 0; i < order.size(); i++)
+	{
+		if (order[i] == op2)
+			return false;
+		if (order[i] == op1)
+			return true;
+	}
+}
+
+void Calc::setVar(std::string newName, std::string newValue)
+{
+	// first, erase any existing variable or function with the given name
+	vars.erase(newName);
+	strFuncs.erase(newName);
+	cppFuncs.erase(newName);
+
+	vars.emplace(newName, stold(newValue));
+}
+
+bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
+{
+	/*
+		This function finds the name of one defined symbol within a string of alpha characters
+		in the input string, and replaces the name with its value. There may be multiple symbols
+		named in the alpha string with no spaces or anything else between them. Precedence is
+		given to symbols with longer names, and to symbols further to the left of the string.
+		All functions must be immediately followed by an opening parenthesis.
+	*/
+
+	// for each substring size of the alpha string
+	for (int size = alphaSize; size > 0; size--)
+	{
+		// for each substring position of the alpha string
+		for (int pos = alphaPos; pos + size <= alphaPos + alphaSize; pos++)
+		{
+			std::string substr = input.substr(pos, size);
+
+			// Variables
+			std::unordered_map<std::string, double>::iterator it = vars.find(substr);
+			if (it != vars.end())
+			{
+				// replace the variable name with its value
+				input.erase(pos, size);
+				std::stringstream ss;
+				ss.setf(std::ios::fixed);
+				int p = Precision + 5;
+				ss.precision(p);
+				ss << " " << it->second << " ";
+				input.insert(pos, ss.str());
+				return true;
+			}
+			
+			// String Functions
+			std::unordered_map<std::string, StrFunction>::iterator it2 = strFuncs.find(substr);
+			if (it2 != strFuncs.end())
+			{
+				std::vector<std::string> args = readArgs(input, pos, size);
+
+				if (it2->first == "help")
+				{
+					// call a help function that throws a message
+					if (args.size() && args[0] != "")
+						help(args[0]);
+					help();
+				}
+				if (it2->first == "setprecision")
+				{
+					// adjust output precision and throw an empty string
+					if (args.size())
+						setprecision(stold(args[0]));
+					else
+						throw "Invalid syntax";
+				}
+				if (it2->first == "rand")
+					throw random();
+
+				if (args.size() != it2->second.getParamVect().size())
+					throw "Invalid syntax";
+
+				// evaluate each argument
+				Calc c2(this);
+				for (int i = 0; i < args.size(); i++)
+				{
+					args[i] = c2.calc(args[i]);
+
+					// rethrow messages
+					if (args[i] == "")
+						throw "Invalid syntax";
+					for (int j = 0; j < args[i].size(); j++)
+					{
+						if (isAlpha(args[i][j]))
+							throw args[i];
+					}
+				}
+
+				// call the function and insert its return value
+				input.insert(pos, " " + it2->second(args) + " ");
+				return true;
+			}
+
+			// C++ Functions
+			std::unordered_map<std::string, CppFunction>::iterator it3 = cppFuncs.find(substr);
+			if (it3 != cppFuncs.end())
+			{
+				std::vector<std::string> args = readArgs(input, pos, size);
+				if (args.size() != 1)
+					throw "Invalid syntax";
+
+				// evaluate each argument
+				Calc c2(this);
+				for (int i = 0; i < args.size(); i++)
+				{
+					args[i] = c2.calc(args[i]);
+					
+					// rethrow messages
+					if (args[i] == "")
+						throw "Invalid syntax";
+					for (int j = 0; j < args[i].size(); j++)
+					{
+						if (isAlpha(args[i][j]))
+							throw args[i];
+					}
+				}
+
+				// call the function and insert its return value
+				std::string result = it3->second(args);
+				if (result == "-nan(ind)")
+					throw "Imaginary";
+				input.insert(pos, " " + result + " ");
+				return true;
+			}
+		}
+	}
+
+	// the character(s) are undefined
+	return false;
+}
+
+std::vector<std::string> Calc::readArgs(std::string& input, int pos, int size)
+{
+	int parentheses = 0;
+
+	if (input[pos + size] != '(')
+		throw "Invalid syntax";
+
+	// get the arguments
+	std::vector<std::string> args;
+	for (int j = pos + size + 1, k = j, m = j; ; j++)
+	{
+		if (j > input.size())
+			throw "Invalid syntax";
+		if (j == input.size())
+		{
+			if (j == pos + size + 1)
+				throw "Invalid syntax";
+			args.push_back(input.substr(k, j - k));
+			input.erase(pos, size + j - m + 1);
+			break;
+		}
+		if (input[j] == '(')
+			parentheses++;
+		if (input[j] == ')')
+		{
+			if (parentheses)
+				parentheses--;
+			else
+			{
+				input.erase(j, 1);
+				args.push_back(input.substr(k, j - k));
+				input.erase(pos, size + j);
+				break;
+			}
+		}
+		if (input[j] == ',')
+		{
+			args.push_back(input.substr(k, j - k));
+			j++;
+			k = j;
+		}
+	}
+
+	return args;
+}
+
+// throw info about all variables and functions
+void Calc::help()
+{
+	std::string message = "";
+
+	message += "\n Variables:";
+	std::unordered_map<std::string, double>::iterator it;
+	for (it = vars.begin(); it != vars.end(); it++)
+	{
+		std::stringstream ss;
+		ss.setf(std::ios::fixed);
+		int p = Precision + 5;
+		ss.precision(p);
+		ss << it->second;
+		std::string num = ss.str();
+		formatOutput(num, Precision + 5);
+		message += "\n\t " + it->first + " = " + num;
+	}
+
+	message += "\n C++ Functions:\t";
+	std::unordered_map<std::string, CppFunction>::iterator it3;
+	int i = 0;
+	for (it3 = cppFuncs.begin(); it3 != cppFuncs.end(); it3++, i++)
+	{
+		if (i % 10 == 0)
+			message += "\n\t";
+		message += it3->first + ", ";
+	}
+
+	message += "\n Other Functions:";
+	std::unordered_map<std::string, StrFunction>::iterator it2;
+	for (it2 = strFuncs.begin(); it2 != strFuncs.end(); it2++)
+		message += "\n\t " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFunc();
+
+	throw message;
+}
+
+// throw info about one variable or function
+void Calc::help(std::string name)
+{
+	std::string message = "";
+
+	std::unordered_map<std::string, double>::iterator it = vars.find(name);
+	if (it != vars.end())
+	{
+		std::stringstream ss;
+		ss.setf(std::ios::fixed);
+		int p = Precision + 5;
+		ss.precision(p);
+		ss << it->second;
+		std::string num = ss.str();
+		formatOutput(num, Precision + 5);
+		message += "Variable " + it->first + " = " + num;
+		throw message;
+	}
+
+	std::unordered_map<std::string, StrFunction>::iterator it2 = strFuncs.find(name);
+	if (it2 != strFuncs.end())
+	{
+		message += "Function " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFunc();
+		throw message;
+	}
+
+	std::unordered_map<std::string, CppFunction>::iterator it3 = cppFuncs.find(name);
+	if (it3 != cppFuncs.end())
+		throw "C++ Function";
+
+	throw "Undefined character(s)";
+}
+
+void Calc::setprecision(int num)
+{
+	Precision = num;
+	throw "";
+}
+
+std::string Calc::random()
+{
+	srand((unsigned)time(0));
+	double r = (rand() % 101) / 100.0;
+	std::stringstream ss;
+	ss.setf(std::ios::fixed);
+	int p = Precision + 5;
+	ss.precision(p);
+	ss << r;
+	return ss.str();
 }

@@ -1,25 +1,49 @@
-#ifndef CALC_H
-#define CALC_H
-#include "Vars.h"
+#pragma once
+
+#include "DefaultSymbols.hpp"
+#include <string>
 #include <stack>
 
-class Calc : public Vars
+class Calc
 {
 public:
-	std::string calc(std::string);
+	Calc();
+	Calc(Calc*);
+	std::string calc(std::string input);
 private:
-	int Precision = 9;
+	int Precision = 5;
+
+	void validateInput(std::string& input);
+	void formatOutput(std::string& str, int precision);
+	void assignmentFormat(std::string& input);
+	std::string evaluate(std::string str);
+
 	std::stack<double> nums;
 	std::stack<std::string> ops;
-	std::string lastTypePushed = ""; // can be "", "op", or "num"
-	void validateInput(std::string&);
-	void assignmentFormat(std::string&);
-	std::string evaluate(std::string);
-	void formatOutput(std::string&);
-	int getNumSize(std::string);
-	int getOpSize(std::string);
-	bool hasPrecedence(std::string);
 	void pop();
-};
+	enum types { NONE, OP, NUM };
+	int lastTypePushed = NONE;
+	bool isNum(char ch);
+	bool isAlpha(char ch);
+	bool isOp(char ch);
+	int getNumSize(std::string str);
+	int getAlphaSize(std::string str);
+	int getOpSize(std::string str);
+	void readOp(std::string input, int& pos);
+	bool hasPrecedence(std::string op1);
 
-#endif // !CALC_H
+	std::unordered_map<std::string, double> vars = Symbols::defaultVars;
+	std::unordered_map<std::string, StrFunction> strFuncs = Symbols::defaultStrFuncs;
+	std::unordered_map<std::string, CppFunction> cppFuncs = Symbols::defaultCppFuncs;
+	std::stack<std::string> varsBeingDefined;
+	void setVar(std::string newName, std::string newValue);
+	// TODO: create a setStrFunc function
+	bool getSymbolValue(std::string& input, int alphaPos, int alphaSize);
+	std::vector<std::string> readArgs(std::string& input, int pos, int size);
+
+	// functions for the user to call
+	void help();
+	void help(std::string);
+	void setprecision(int);
+	std::string random();
+};

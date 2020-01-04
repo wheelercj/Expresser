@@ -3,7 +3,6 @@
 
 int main()
 {
-	system("clear");
 	std::string input;
 	Calc c;
 
@@ -15,6 +14,9 @@ int main()
 		if (input == "exit" || input == "quit" || input == "EXIT" || input == "QUIT")
 			return 0;
 
-		std::cout << c.calc(input);
+		std::string result = c.calc(input);
+		if (result.size())
+			std::cout << " = ";
+		std:: cout << result;
 	}
 }
