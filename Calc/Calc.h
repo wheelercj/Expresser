@@ -1,7 +1,6 @@
 #pragma once
 
 #include "DefaultSymbols.hpp"
-#include <string>
 #include <stack>
 
 class Calc
@@ -36,8 +35,7 @@ private:
 	std::unordered_map<std::string, Macro> macros = Symbols::defaultMacros;
 	std::unordered_map<std::string, Function> funcs = Symbols::defaultFuncs;
 	std::stack<std::string> varsBeingDefined;
-	void setVar(std::string newName, std::string newValue);
-	// TODO: create a setMacro function
+	template<class T> void setSymbol(std::unordered_map<std::string, T>& hashTable, std::string newName, T newSymbol);
 	bool getSymbolValue(std::string& input, int alphaPos, int alphaSize);
 	std::vector<std::string> readArgs(std::string& input, int pos, int size);
 

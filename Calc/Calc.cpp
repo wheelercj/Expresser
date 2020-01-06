@@ -32,7 +32,7 @@ std::string Calc::calc(std::string input)
 		while (!varsBeingDefined.empty())
 		{
 			assigning = true;
-			setVar(varsBeingDefined.top(), result);
+			setSymbol<double>(vars, varsBeingDefined.top(), stold(result));
 			varsBeingDefined.pop();
 		}
 
@@ -224,7 +224,7 @@ std::string Calc::evaluate(std::string input)
 	ss.precision(p);
 	ss << nums.top();
 	result = ss.str();
-	setVar("ans", result);
+	setSymbol<double>(vars, "ans", stold(result));
 	return result;
 }
 
@@ -542,14 +542,15 @@ bool Calc::hasPrecedence(std::string op1)
 	}
 }
 
-void Calc::setVar(std::string newName, std::string newValue)
+template<class T>
+void Calc::setSymbol(std::unordered_map<std::string, T>& hashTable, std::string newName, T newSymbol)
 {
 	// erase any existing symbol with the given name
 	vars.erase(newName);
 	macros.erase(newName);
 	funcs.erase(newName);
-
-	vars.emplace(newName, stold(newValue));
+	
+	hashTable.emplace(newName, newSymbol);
 }
 
 bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
