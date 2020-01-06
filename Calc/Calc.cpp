@@ -122,8 +122,11 @@ void Calc::assignmentFormat(std::string& input)
 		int i = 0;
 		for (; i < input.size(); i++)
 		{
-			if (input[i] == '=') // either this is an assignment operator or there isn't a valid one
+			if (input[i] == '=')
 			{
+				// either input[i] is an assignment operator or there isn't a valid one
+				if (i == input.size() - 1 || input[i + 1] == '=')
+					return;
 				assigning = true;
 				break;
 			}
@@ -132,37 +135,31 @@ void Calc::assignmentFormat(std::string& input)
 		if (!assigning)
 			return;
 
-		// verify whether input[i] is an assignment operator
-		if (i < input.size() - 1 && input[i + 1] != '=')
+		bool spaceAfterAlpha = false;
+		for (int j = 0; j < i; j++)
 		{
-			bool spaceAfterAlpha = false;
-			for (int j = 0; j < i; j++)
-			{
-				if (isAlpha(input[j]))
-					alphaFound = true;
-				else if (alphaFound && input[j] == ' ')
-					spaceAfterAlpha = true;
-				if (spaceAfterAlpha && isAlpha(input[j]) || !(isAlpha(input[j]) || input[j] == ' '))
-					return;
-			}
-
-			if (!alphaFound)
+			if (isAlpha(input[j]))
+				alphaFound = true;
+			else if (alphaFound && input[j] == ' ')
+				spaceAfterAlpha = true;
+			if (spaceAfterAlpha && isAlpha(input[j]) || !(isAlpha(input[j]) || input[j] == ' '))
 				return;
-
-			std::string varName = input.substr(0, i);
-			input.erase(0, i + 1);
-
-			// remove all preceding and succeeding spaces
-			for (int j = 0; j < varName.size(); j++)
-			{
-				if (varName[j] == ' ')
-					varName.erase(j--, 1);
-			}
-
-			varsBeingDefined.push(varName);
 		}
-		else
+
+		if (!alphaFound)
 			return;
+
+		std::string varName = input.substr(0, i);
+		input.erase(0, i + 1);
+
+		// remove all spaces
+		for (int j = 0; j < varName.size(); j++)
+		{
+			if (varName[j] == ' ')
+				varName.erase(j--, 1);
+		}
+
+		varsBeingDefined.push(varName);
 	}
 }
 
