@@ -7,16 +7,14 @@
 class Macro
 {
 private:
-	std::string function;
 	std::vector<std::string> params;
+	std::string formula;
 public:
-	Macro(std::vector<std::string> newParams, std::string newFunction);
+	Macro(std::vector<std::string> newParams, std::string newFormula);
 	std::string operator()(std::vector<std::string> args);
-	std::string getFunc();
+	std::string getFormula();
 	std::string getParamStr();
 	std::vector<std::string> getParamVect();
-	void setFunc(std::string newFunction);
-	void setParams(std::string newParams);
 };
 
 //	template<class ...T>
@@ -32,5 +30,4 @@ private:
 public:
 	Function(double(*newFuncPtr)(double));
 	std::string operator()(std::vector<std::string> args);
-	void setFunc(double(*newFuncPtr)(double));
 };

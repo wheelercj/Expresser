@@ -56,9 +56,9 @@ std::string Calc::calc(std::string input)
 	return result;
 }
 
+// check for invalid syntax: multiple operators next to each other
 void Calc::validateInput(std::string& input)
 {
-	// check for invalid syntax: multiple operators next to each other
 	for (int i = 1, j = 0; i < input.size() && j < input.size(); i++, j++)
 	{
 		// skip over spaces
@@ -108,25 +108,29 @@ void Calc::formatOutput(std::string& str, int precision)
 		str = "0";
 }
 
-// search for an assignment operator and prepare for assigning if needed
+// search for and handle any assignment operator(s)
 void Calc::assignmentFormat(std::string& input)
 {
-	bool assigning, alphaFound;
-
-	while (true)
+	while (true) // multiple simultaneous variable assignments allowed, e.g. "a=b=c=5"
 	{
-		assigning = false;
-		alphaFound = false;
-
-		// search for an assignment operator
-		int i = 0;
-		for (; i < input.size(); i++)
+		bool assigning = false;
+		int eqPos = 0;
+		for (; eqPos < input.size(); eqPos++)
 		{
-			if (input[i] == '=')
+			if (input[eqPos] == '=')
 			{
-				// either input[i] is an assignment operator or there isn't a valid one
-				if (i == input.size() - 1 || input[i + 1] == '=')
+				// either input[eqPos] is an assignment operator or there isn't a valid one
+				if (eqPos == 0)
 					return;
+				if (eqPos == input.size() - 1 || input[eqPos + 1] == '=')
+					return;
+				if (eqPos >= 1)
+				{
+					char ch = input[eqPos - 1];
+					if (ch == '>' || ch == '<' || ch == '!')
+						return;
+				}
+
 				assigning = true;
 				break;
 			}
@@ -135,32 +139,118 @@ void Calc::assignmentFormat(std::string& input)
 		if (!assigning)
 			return;
 
-		bool spaceAfterAlpha = false;
-		for (int j = 0; j < i; j++)
+		int macroNameSize = findMacroNameSize(input, eqPos); // returns zero if the symbol is a variable
+		readSymbolDefinition(input, eqPos, macroNameSize);
+	}
+}
+
+int Calc::findMacroNameSize(std::string& input, int eqPos)
+{
+	bool alphaFound = false;
+	bool spaceAfterAlpha = false;
+
+	for (int i = 0; i < eqPos; i++)
+	{
+		if (isAlpha(input[i]))
 		{
-			if (isAlpha(input[j]))
-				alphaFound = true;
-			else if (alphaFound && input[j] == ' ')
+			alphaFound = true;
+			if (spaceAfterAlpha)
+				throw "Invalid syntax";
+		}
+		else if (input[i] == ' ')
+		{
+			if (alphaFound)
 				spaceAfterAlpha = true;
-			if (spaceAfterAlpha && isAlpha(input[j]) || !(isAlpha(input[j]) || input[j] == ' '))
-				return;
 		}
-
-		if (!alphaFound)
-			return;
-
-		std::string varName = input.substr(0, i);
-		input.erase(0, i + 1);
-
-		// remove all spaces
-		for (int j = 0; j < varName.size(); j++)
+		else if (input[i] == '(')
 		{
-			if (varName[j] == ' ')
-				varName.erase(j--, 1);
+			if (!alphaFound)
+				throw "Invalid syntax";
+			return i;
+			break;
 		}
+		else
+			throw "Invalid syntax";
+	}
 
+	if (!alphaFound)
+		throw "Invalid syntax";
+
+	return 0;
+}
+
+void Calc::readSymbolDefinition(std::string& input, int eqPos, int macroNameSize)
+{
+	if (!macroNameSize) // then a variable is being defined
+	{
+		std::string varName = input.substr(0, eqPos);
+		input.erase(0, eqPos + 1);
+		removeEdgeSpaces(varName);
 		varsBeingDefined.push(varName);
 	}
+	else // then a macro is being defined
+	{
+		if (varsBeingDefined.size())
+			throw "Invalid syntax";
+
+		std::string macroName = input.substr(0, macroNameSize);
+		removeEdgeSpaces(macroName);
+
+		std::string paramStr = input.substr(macroNameSize, eqPos - macroNameSize + 1);
+		std::vector<std::string> params = readParams(paramStr);
+		for (int i = 0; i < params.size(); i++)
+			removeEdgeSpaces(params[i]);
+
+		std::string formula = input.substr(eqPos + 1, input.size() - eqPos);
+		removeEdgeSpaces(formula);
+
+		setSymbol<Macro>(macros, macroName, { params, formula });
+		throw "";
+	}
+}
+
+std::vector<std::string> Calc::readParams(std::string str)
+{
+	std::vector<std::string> params;
+	bool alphaFound = false;
+	bool spaceAfterAlpha = false;
+	for (int i = 0, j = 1; i < str.size(); i++)
+	{
+		if (isAlpha(str[i]))
+		{
+			alphaFound = true;
+			if (spaceAfterAlpha)
+				return;
+		}
+		else if (str[i] == ' ')
+		{
+			if (alphaFound)
+				spaceAfterAlpha = true;
+		}
+		else if (str[i] == ',' || str[i] == ')')
+		{
+			std::string param = str.substr(j, i - j);
+			if (param == "")
+				throw "Invalid syntax";
+			params.push_back(param);
+			j = i + 1;
+			alphaFound = false;
+			spaceAfterAlpha = false;
+
+			if (str[i] == ')')
+				break;
+		}
+	}
+
+	return params;
+}
+
+void Calc::removeEdgeSpaces(std::string& str)
+{
+	while (str[0] == ' ')
+		str.erase(0, 1);
+	while (str[str.size() - 1] == ' ')
+		str.erase(str.size() - 1, 1);
 }
 
 std::string Calc::evaluate(std::string input)
@@ -381,13 +471,12 @@ int Calc::getNumSize(std::string str)
 	return str.size();
 }
 
-int Calc::getAlphaSize(std::string substr)
+int Calc::getAlphaSize(std::string str)
 {
 	int i = 1;
-	for (; i < substr.size(); i++)
+	for (; i < str.size(); i++)
 	{
-		char ch = tolower(substr[i]);
-		if ((ch < 'a' || ch > 'z') && ch != '_')
+		if (!isAlpha(str[i]))
 			break;
 	}
 
@@ -747,7 +836,7 @@ void Calc::help()
 	message += "\n Macros:";
 	std::unordered_map<std::string, Macro>::iterator it2;
 	for (it2 = macros.begin(); it2 != macros.end(); it2++)
-		message += "\n\t " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFunc();
+		message += "\n\t " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFormula();
 
 	throw message;
 }
@@ -774,7 +863,7 @@ void Calc::help(std::string name)
 	std::unordered_map<std::string, Macro>::iterator it2 = macros.find(name);
 	if (it2 != macros.end())
 	{
-		message += "Macro " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFunc();
+		message += "Macro " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFormula();
 		throw message;
 	}
 

@@ -1,39 +1,39 @@
 #include "Symbol.h"
 
-Macro::Macro(std::vector<std::string> newParams, std::string newFunction)
+Macro::Macro(std::vector<std::string> newParams, std::string newFormula)
 {
 	params = newParams;
-	function = newFunction;
+	formula = newFormula;
 }
 
 std::string Macro::operator()(std::vector<std::string> args)
 {
-	std::string tempFunc = function;
+	std::string tempFormula = formula;
 
 	// for each parameter
 	for (int i = 0; i < params.size(); i++)
 	{
 		// for each substring of the function with the same size as params[i]
-		for (int j = 0; j < tempFunc.size(); j++)
+		for (int j = 0; j < tempFormula.size(); j++)
 		{
-			std::string substr = tempFunc.substr(j, params[i].size());
+			std::string substr = tempFormula.substr(j, params[i].size());
 
 			// if the substring is the parameter
 			if (params[i] == substr)
 			{
 				// replace the parameter with the corresponding argument
-				tempFunc.erase(j, params[i].size());
-				tempFunc.insert(j, args[i]);
+				tempFormula.erase(j, params[i].size());
+				tempFormula.insert(j, args[i]);
 			}
 		}
 	}
 
-	return tempFunc;
+	return tempFormula;
 }
 
-std::string Macro::getFunc()
+std::string Macro::getFormula()
 {
-	return function;
+	return formula;
 }
 
 std::string Macro::getParamStr()
@@ -53,23 +53,6 @@ std::vector<std::string> Macro::getParamVect()
 	return params;
 }
 
-void Macro::setFunc(std::string newFunction)
-{
-	function = newFunction;
-}
-
-void Macro::setParams(std::string newParams)
-{
-	for (int i = 0, j = 0; i < newParams.size(); i++)
-	{
-		if (newParams[i] == ',')
-		{
-			params.push_back(newParams.substr(j, i - j));
-			j = i + 1;
-		}
-	}
-}
-
 Function::Function(double(*newFuncPtr)(double))
 {
 	funcPtr = newFuncPtr;
@@ -81,9 +64,4 @@ std::string Function::operator()(std::vector<std::string> args)
 	std::stringstream ss;
 	ss << result;
 	return ss.str();
-}
-
-void Function::setFunc(double(*newFuncPtr)(double))
-{
-	funcPtr = newFuncPtr;
 }

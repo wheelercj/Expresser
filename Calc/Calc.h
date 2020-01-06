@@ -15,6 +15,10 @@ private:
 	void validateInput(std::string& input);
 	void formatOutput(std::string& str, int precision);
 	void assignmentFormat(std::string& input);
+	int findMacroNameSize(std::string& input, int eqPos);
+	void readSymbolDefinition(std::string& input, int eqPos, int nameSize);
+	std::vector<std::string> readParams(std::string str);
+	void removeEdgeSpaces(std::string& str);
 	std::string evaluate(std::string str);
 
 	std::stack<double> nums;

@@ -19,7 +19,7 @@ namespace Symbols
 	};
 
 	const std::unordered_map<std::string, Macro> defaultMacros =
-	{ // name, parameters, function
+	{ // name, parameters, formula
 		{ "csc", {{ "x" }, "1/sin(x)" }},
 		{ "sec", {{ "x" }, "1/cos(x)" }},
 		{ "cot", {{ "x" }, "1/tan(x)" }},
