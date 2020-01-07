@@ -9,9 +9,6 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 // The test methods within each test class run in alphabetical order. They can affect each other.
 
-// TODO: figure out how to know whether these tests cover all possibilities
-// TODO: figure out how to find the largest numbers the calculator can handle
-
 namespace Tests
 {
 	Calc c;
@@ -42,9 +39,9 @@ namespace Tests
 			equal("Invalid syntax", "+/");
 			noReturn(" ");
 			noReturn("");
-			equal("Undefined character", "a");
-			equal("Undefined character", "jajvoaierjal;ndvoiasejrlaenafl;jo;ijwer");
-			equal("Undefined character", "$5");
+			equal("Undefined character(s)", "a");
+			equal("Undefined character(s)", "jajvoaierjal;ndvoiasejrlaenafl;jo;ijwer");
+			equal("Undefined character(s)", "$5");
 			equal("-382.00476", "53.28394 + 392.48 - 1.5^3(65.23 * 3.76)");
 			equal("-20.06481", "-3+4*-5-6(-7/8)/-9^2--3");
 			equal("-1.8", "(1-2)^3*4/5+6-7");
@@ -521,8 +518,8 @@ namespace Tests
 			equal("5.85987", "pi+e");
 			equal("22.45916", "pi^e");
 			equal("8.53973", "epi");
-			equal("Undefined character", "pei");
-			equal("Undefined character", "p ie");
+			equal("Undefined character(s)", "pei");
+			equal("Undefined character(s)", "p ie");
 			equal("8.53973", "pi e");
 			equal("6.28319", "2pi");
 			equal("5.14159", "2+pi");
@@ -531,7 +528,7 @@ namespace Tests
 		}
 		TEST_METHOD(UserVars)
 		{
-			equal("Undefined character", "five");
+			equal("Undefined character(s)", "five");
 			noReturn(" five = 5");
 			noReturn("four=4");
 			noReturn("three = 3.0000");
@@ -542,8 +539,8 @@ namespace Tests
 			equal("3", "three");
 			equal("20", "fivefour");
 			equal("9", "five+four");
-			equal("Undefined character", "fi ve");
-			equal("Undefined character", "Five");
+			equal("Undefined character(s)", "fi ve");
+			equal("Undefined character(s)", "Five");
 			noReturn("seven = 5^2*2-43");
 			noReturn("nine = five + four");
 			equal("7", "seven");
@@ -562,7 +559,7 @@ namespace Tests
 			equal("3", "a");
 			equal("3", "b");
 			equal("3", "c");
-			equal("Undefined character", "10 = ten");
+			equal("Invalid syntax", "10 = ten");
 			equal("Invalid syntax", "ten = 5*2 = 5+5");
 			noReturn("bool = 5 > 2");
 			equal("1", "bool");
@@ -583,7 +580,7 @@ namespace Tests
 			equal("-4", "pI");
 			equal("-3.1415", "_pi");
 			equal("3.1415", "-_pi");
-			equal("Undefined character", "y = 5x");
+			equal("Undefined character(s)", "y = 5x");
 			equal("Invalid syntax", "y = 2four = 8");
 			noReturn("ans = 7");
 			equal("7", "ans");
@@ -596,9 +593,7 @@ namespace Tests
 			noReturn("num = num + 2");
 			equal("5", "num");
 
-			// reset pi for other test methods
-			noReturn("pi = 3.141592653589793238462643383279502884197169399375105820974");
-			equal("3.14159", "pi");
+			c.resetSymbols();
 		}
 		TEST_METHOD(DefaultMacros)
 		{
@@ -648,7 +643,6 @@ namespace Tests
 			equal("26", "h(1,2)");
 			equal("21.56637", "g(pi)");
 			equal("Invalid syntax", "g");
-			equal("Invalid syntax", "g(x) = var = 5x");
 			equal("Invalid syntax", "var = g(x) = 5x");
 			equal("Invalid syntax", "g(x) = f(x) = 5x");
 			noReturn("a=9999");
@@ -667,7 +661,7 @@ namespace Tests
 			equal("60", "f(3,4,5)");
 			equal("Macro f(vjoieuor,joiavjoa,iozuboie) = joiavjoavjoieuoriozuboie", "help(f)");
 			noReturn("h(x,y)=8sin(2x)+7tan(sqrt(y))");
-			equal("2.05033", "h(2,16)");
+			equal("2.05032", "h(2,16)");
 			noReturn("f(x)=jobiajweojfalkfsdjvoiajsejf");
 			equal("Macro f(x) = jobiajweojfalkfsdjvoiajsejf", "help(f)");
 			equal("Undefined character(s)", "f(5)");
@@ -676,8 +670,8 @@ namespace Tests
 			noReturn("f(x)=38973");
 			equal("38973", "f(738684272873)");
 			equal("Undefined character(s)", "f(x)==4x");
-			equal("Invalid syntax", "f(x)=");
-			equal("Invalid syntax", "=f(x)");
+			equal("Undefined character(s)", "f(x)=");
+			equal("Undefined character(s)", "=f(x)");
 			equal("Invalid syntax", "f()");
 			equal("Invalid syntax", "f() = 3");
 			equal("Invalid syntax", "func tion(x) = 4x");
@@ -693,6 +687,8 @@ namespace Tests
 			noReturn("f(pi,y) = pi^2+y");
 			equal("5", "f(1,4)");
 			equal("3.14159", "pi");
+
+			c.resetSymbols();
 		}
 		TEST_METHOD(Functions)
 		{

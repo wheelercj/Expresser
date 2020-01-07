@@ -23,11 +23,13 @@ std::string Macro::operator()(std::vector<std::string> args)
 			{
 				// replace the parameter with the corresponding argument
 				tempFormula.erase(j, params[i].size());
-				tempFormula.insert(j, args[i]);
+				tempFormula.insert(j, " " + args[i] + " ");
 			}
 		}
 	}
 
+	tempFormula.insert(0, "(");
+	tempFormula.append(")");
 	return tempFormula;
 }
 

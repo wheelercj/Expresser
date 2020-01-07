@@ -56,6 +56,13 @@ std::string Calc::calc(std::string input)
 	return result;
 }
 
+void Calc::resetSymbols()
+{
+	vars = Symbols::defaultVars;
+	macros = Symbols::defaultMacros;
+	funcs = Symbols::defaultFuncs;
+}
+
 // check for invalid syntax: multiple operators next to each other
 void Calc::validateInput(std::string& input)
 {
@@ -139,11 +146,12 @@ void Calc::assignmentFormat(std::string& input)
 		if (!assigning)
 			return;
 
-		int macroNameSize = findMacroNameSize(input, eqPos); // returns zero if the symbol is a variable
+		int macroNameSize = findMacroNameSize(input, eqPos);
 		readSymbolDefinition(input, eqPos, macroNameSize);
 	}
 }
 
+// returns zero if the symbol is a variable
 int Calc::findMacroNameSize(std::string& input, int eqPos)
 {
 	bool alphaFound = false;
@@ -164,7 +172,7 @@ int Calc::findMacroNameSize(std::string& input, int eqPos)
 		}
 		else if (input[i] == '(')
 		{
-			if (!alphaFound)
+			if (!alphaFound || spaceAfterAlpha)
 				throw "Invalid syntax";
 			return i;
 			break;
@@ -220,7 +228,7 @@ std::vector<std::string> Calc::readParams(std::string str)
 		{
 			alphaFound = true;
 			if (spaceAfterAlpha)
-				return;
+				throw "Invalid syntax";
 		}
 		else if (str[i] == ' ')
 		{
@@ -240,6 +248,13 @@ std::vector<std::string> Calc::readParams(std::string str)
 			if (str[i] == ')')
 				break;
 		}
+		else if (isOp(str[i]))
+		{
+			if (str[i] != '(' || i > 0)
+				throw "Invalid syntax";
+		}
+		else
+			throw "Invalid syntax";
 	}
 
 	return params;
@@ -283,12 +298,12 @@ std::string Calc::evaluate(std::string input)
 		{
 			int alphaSize = getAlphaSize(input.substr(i, input.size() - i));
 			if (!getSymbolValue(input, i, alphaSize))
-				throw "Undefined character";
+				throw "Undefined character(s)";
 		}
 		else if (isOp(input[i]))
 			readOp(input, i);
 		else
-			throw "Undefined character";
+			throw "Undefined character(s)";
 	}
 
 	bool emptyString = true;
@@ -676,7 +691,8 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 			std::unordered_map<std::string, Macro>::iterator it2 = macros.find(substr);
 			if (it2 != macros.end())
 			{
-				std::vector<std::string> args = readArgs(input, pos, size);
+				input.erase(pos, size);
+				std::vector<std::string> args = readArgs(input, pos);
 
 				if (it2->first == "help")
 				{
@@ -724,7 +740,8 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 			std::unordered_map<std::string, Function>::iterator it3 = funcs.find(substr);
 			if (it3 != funcs.end())
 			{
-				std::vector<std::string> args = readArgs(input, pos, size);
+				input.erase(pos, size);
+				std::vector<std::string> args = readArgs(input, pos);
 				if (args.size() != 1)
 					throw "Invalid syntax";
 
@@ -748,7 +765,7 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 				std::string result = it3->second(args);
 				if (result == "-nan(ind)")
 					throw "Imaginary";
-				input.insert(pos, " " + result + " ");
+				input.insert(pos, "(" + result + ")");
 				return true;
 			}
 		}
@@ -758,25 +775,25 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 	return false;
 }
 
-std::vector<std::string> Calc::readArgs(std::string& input, int pos, int size)
+std::vector<std::string> Calc::readArgs(std::string& input, int pos)
 {
 	int parentheses = 0;
 
-	if (input[pos + size] != '(')
+	if (input[pos] != '(')
 		throw "Invalid syntax";
 
 	// get the arguments
 	std::vector<std::string> args;
-	for (int j = pos + size + 1, k = j, m = j; ; j++)
+	for (int j = pos + 1, k = j, m = j - 1; ; j++)
 	{
 		if (j > input.size())
 			throw "Invalid syntax";
 		if (j == input.size())
 		{
-			if (j == pos + size + 1)
+			if (j == pos + 1)
 				throw "Invalid syntax";
 			args.push_back(input.substr(k, j - k));
-			input.erase(pos, size + j - m + 1);
+			input.erase(pos, j - m + 1);
 			break;
 		}
 		if (input[j] == '(')
@@ -787,9 +804,8 @@ std::vector<std::string> Calc::readArgs(std::string& input, int pos, int size)
 				parentheses--;
 			else
 			{
-				input.erase(j, 1);
 				args.push_back(input.substr(k, j - k));
-				input.erase(pos, size + j);
+				input.erase(pos, j - m + 1);
 				break;
 			}
 		}

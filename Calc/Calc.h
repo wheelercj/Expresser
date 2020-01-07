@@ -9,6 +9,7 @@ public:
 	Calc();
 	Calc(Calc*);
 	std::string calc(std::string input);
+	void resetSymbols();
 private:
 	int Precision = 5;
 
@@ -41,7 +42,7 @@ private:
 	std::stack<std::string> varsBeingDefined;
 	template<class T> void setSymbol(std::unordered_map<std::string, T>& hashTable, std::string newName, T newSymbol);
 	bool getSymbolValue(std::string& input, int alphaPos, int alphaSize);
-	std::vector<std::string> readArgs(std::string& input, int pos, int size);
+	std::vector<std::string> readArgs(std::string& input, int pos);
 
 	// functions for the user to call
 	void help();
