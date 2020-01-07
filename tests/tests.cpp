@@ -21,6 +21,11 @@ namespace Tests
 		Assert::AreEqual(str1, c.calc(str2));
 	}
 
+	void noReturn(std::string input)
+	{
+		Assert::AreEqual((std::string)"", c.calc(input));
+	}
+
 	TEST_CLASS(Ops)
 	{
 	public:
@@ -35,8 +40,8 @@ namespace Tests
 			equal("Invalid syntax", "3+.");
 			equal("Invalid syntax", "192.168.0.1");
 			equal("Invalid syntax", "+/");
-			Assert::AreEqual((std::string)"", c.calc(" "));
-			Assert::AreEqual((std::string)"", c.calc(""));
+			noReturn(" ");
+			noReturn("");
 			equal("Undefined character", "a");
 			equal("Undefined character", "jajvoaierjal;ndvoiasejrlaenafl;jo;ijwer");
 			equal("Undefined character", "$5");
@@ -507,7 +512,7 @@ namespace Tests
 			equal("Infinity", "1/0");
 			equal("100", "ans"); // ans ignores error messages
 		}
-		TEST_METHOD(Constants)
+		TEST_METHOD(DefaultVars)
 		{
 			equal("3.14159", "pi");
 			equal("2.71828", "e");
@@ -524,13 +529,13 @@ namespace Tests
 			equal("0", "e>pi");
 			equal("7.38906", "e^2");
 		}
-		TEST_METHOD(Vars)
+		TEST_METHOD(UserVars)
 		{
 			equal("Undefined character", "five");
-			Assert::AreEqual((std::string)"", c.calc(" five = 5"));
-			Assert::AreEqual((std::string)"", c.calc("four=4"));
-			Assert::AreEqual((std::string)"", c.calc("three = 3.0000"));
-			Assert::AreEqual((std::string)"", c.calc("num = 5"));
+			noReturn(" five = 5");
+			noReturn("four=4");
+			noReturn("three = 3.0000");
+			noReturn("num = 5");
 			equal("5", "five");
 			equal("4", "four");
 			equal("5", "num");
@@ -539,38 +544,38 @@ namespace Tests
 			equal("9", "five+four");
 			equal("Undefined character", "fi ve");
 			equal("Undefined character", "Five");
-			Assert::AreEqual((std::string)"", c.calc("seven = 5^2*2-43"));
-			Assert::AreEqual((std::string)"", c.calc("nine = five + four"));
+			noReturn("seven = 5^2*2-43");
+			noReturn("nine = five + four");
 			equal("7", "seven");
 			equal("9", "nine");
-			Assert::AreEqual((std::string)"", c.calc("num = three"));
+			noReturn("num = three");
 			equal("3", " num ");
-			Assert::AreEqual((std::string)"", c.calc("eight = 2four"));
+			noReturn("eight = 2four");
 			equal("8", "eight");
-			Assert::AreEqual((std::string)"", c.calc("num_A = num"));
+			noReturn("num_A = num");
 			equal("3", "num_A");
-			Assert::AreEqual((std::string)"", c.calc("num_C = num_B = num_A = eight"));
+			noReturn("num_C = num_B = num_A = eight");
 			equal("8", "num_B");
 			equal("8", "num_A");
 			equal("8", "num_C");
-			Assert::AreEqual((std::string)"", c.calc("a=b=c=3"));
+			noReturn("a=b=c=3");
 			equal("3", "a");
 			equal("3", "b");
 			equal("3", "c");
 			equal("Undefined character", "10 = ten");
 			equal("Invalid syntax", "ten = 5*2 = 5+5");
-			Assert::AreEqual((std::string)"", c.calc("bool = 5 > 2"));
+			noReturn("bool = 5 > 2");
 			equal("1", "bool");
-			Assert::AreEqual((std::string)"", c.calc("theta = pi/2"));
-			Assert::AreEqual((std::string)"", c.calc("test = theta*3"));
+			noReturn("theta = pi/2");
+			noReturn("test = theta*3");
 			equal("4.71239", "test");
-			Assert::AreEqual((std::string)"", c.calc("degrees = 180/pi*theta"));
+			noReturn("degrees = 180/pi*theta");
 			equal("90", "degrees");
-			Assert::AreEqual((std::string)"", c.calc("pi = 3"));
-			Assert::AreEqual((std::string)"", c.calc("Pi = 4"));
-			Assert::AreEqual((std::string)"", c.calc("PI = 10"));
-			Assert::AreEqual((std::string)"", c.calc("pI = -4"));
-			Assert::AreEqual((std::string)"", c.calc("_pi = -3.1415"));
+			noReturn("pi = 3");
+			noReturn("Pi = 4");
+			noReturn("PI = 10");
+			noReturn("pI = -4");
+			noReturn("_pi = -3.1415");
 			equal("Invalid syntax", "-pi = -3.14");
 			equal("3", "pi");
 			equal("4", "Pi");
@@ -580,22 +585,22 @@ namespace Tests
 			equal("3.1415", "-_pi");
 			equal("Undefined character", "y = 5x");
 			equal("Invalid syntax", "y = 2four = 8");
-			Assert::AreEqual((std::string)"", c.calc("ans = 7"));
+			noReturn("ans = 7");
 			equal("7", "ans");
 			equal("1", "ans == 7");
-			Assert::AreEqual((std::string)"", c.calc("ans = ans == 7"));
+			noReturn("ans = ans == 7");
 			equal("0", "ans");
-			Assert::AreEqual((std::string)"", c.calc("eight = eight"));
+			noReturn("eight = eight");
 			equal("8", "eight");
-			Assert::AreEqual((std::string)"", c.calc("num = 3"));
-			Assert::AreEqual((std::string)"", c.calc("num = num + 2"));
+			noReturn("num = 3");
+			noReturn("num = num + 2");
 			equal("5", "num");
 
 			// reset pi for other test methods
-			Assert::AreEqual((std::string)"", c.calc("pi = 3.141592653589793238462643383279502884197169399375105820974"));
+			noReturn("pi = 3.141592653589793238462643383279502884197169399375105820974");
 			equal("3.14159", "pi");
 		}
-		TEST_METHOD(Macros)
+		TEST_METHOD(DefaultMacros)
 		{
 			equal("Invalid syntax", "cone_volume()");
 			equal("Invalid syntax", "cone_volume(3)");
@@ -608,7 +613,7 @@ namespace Tests
 			equal("Macro setprecision(int) = Adjust the number of digits displayed in answers", "help(setprecision)");
 			equal("Invalid syntax", "acoth(help)");
 			Assert::AreNotEqual((std::string)"-1", c.calc("rand()"));
-			Assert::AreNotEqual(c.calc("ans"), c.calc("rand()"));
+			Assert::AreNotEqual(c.calc("ans"), c.calc("rand()")); // this test has a low chance of failing when the program is working correctly
 			equal("1.1547", "csc(pi/3)");
 			equal("Macro cylinder_volume(r,h) = pi*r^2*h", "help(cylinder_volume)");
 			equal("549.77871", "cylinder_volume(5, 7");
@@ -617,11 +622,76 @@ namespace Tests
 			equal("Invalid syntax", "csc (pi/3)");
 			equal("2.7207", "sphere_volume(sin(pi/3)");
 			equal("3.14159", "pi");
-			Assert::AreEqual((std::string)"", c.calc("setprecision(15"));
+			noReturn("setprecision(15");
 			equal("3.141592653589793", "pi");
-			Assert::AreEqual((std::string)"", c.calc("setprecision(3"));
+			noReturn("setprecision(3");
 			equal("3.142", "pi");
-			Assert::AreEqual((std::string)"", c.calc("setprecision(5)"));
+			noReturn("setprecision(5)");
+			equal("3.14159", "pi");
+		}
+		TEST_METHOD(UserMacros)
+		{
+			noReturn("f(x)=4x^2+3x+2");
+			equal("164", "f(6)");
+			equal("219", "f(7)");
+			noReturn("g(x)=5x+9");
+			equal("14", "g(1)");
+			equal("53", "f(2)+g(4)");
+			equal("2088", "f(2)g(4)(3)");
+			equal("828", "f(g(1))");
+			equal("54", "g(f(1))");
+			equal("353", "f(f(1");
+			noReturn("h(x,y) = f(x)+g(y)");
+			equal("Macro h(x,y) = f(x)+g(y)", "help(h)");
+			equal("28", "h(1,2)");
+			noReturn("g(x)=4x+9");
+			equal("26", "h(1,2)");
+			equal("21.56637", "g(pi)");
+			equal("Invalid syntax", "g");
+			equal("Invalid syntax", "g(x) = var = 5x");
+			equal("Invalid syntax", "var = g(x) = 5x");
+			equal("Invalid syntax", "g(x) = f(x) = 5x");
+			noReturn("a=9999");
+			equal("Invalid syntax", "add (a,b)=a+b");
+			noReturn(" add( a , b ) = a + b ");
+			equal("60", "add(25,35");
+			equal("Invalid syntax", "add(25,35,40)");
+			equal("Macro add(a,b) = a + b", "help(add)");
+			noReturn("add(a,b,c)=a+b+c");
+			equal("6", "add(1,2,3)");
+			equal("Invalid syntax", "add(4,5)");
+			noReturn("divide(numerator,denominator) = numerator/denominator");
+			equal("Invalid syntax", "divide(3/6)");
+			equal("0.5", "divide(3,6)");
+			noReturn("f(vjoieuor,joiavjoa,iozuboie)=joiavjoavjoieuoriozuboie");
+			equal("60", "f(3,4,5)");
+			equal("Macro f(vjoieuor,joiavjoa,iozuboie) = joiavjoavjoieuoriozuboie", "help(f)");
+			noReturn("h(x,y)=8sin(2x)+7tan(sqrt(y))");
+			equal("2.05033", "h(2,16)");
+			noReturn("f(x)=jobiajweojfalkfsdjvoiajsejf");
+			equal("Macro f(x) = jobiajweojfalkfsdjvoiajsejf", "help(f)");
+			equal("Undefined character(s)", "f(5)");
+			noReturn("f(x,y) = x + y + z");
+			equal("Undefined character(s)", "f(2,4)");
+			noReturn("f(x)=38973");
+			equal("38973", "f(738684272873)");
+			equal("Undefined character(s)", "f(x)==4x");
+			equal("Invalid syntax", "f(x)=");
+			equal("Invalid syntax", "=f(x)");
+			equal("Invalid syntax", "f()");
+			equal("Invalid syntax", "f() = 3");
+			equal("Invalid syntax", "func tion(x) = 4x");
+			equal("Invalid syntax", "f(parame ter)=4 * parame ter");
+			equal("Invalid syntax", "f(x,,y) = x + y");
+			equal("Invalid syntax", "f(,x,y) = x + y");
+			equal("Invalid syntax", "f(x,y,) = x + y");
+			equal("Invalid syntax", "f(g(x),y) = x + y");
+			equal("Invalid syntax", "f(x,x+y) = x + y");
+			equal("Invalid syntax", "f((x,y)) = x + y");
+			equal("Invalid syntax", "f(3x,y) = x + y");
+			equal("3.14159", "pi");
+			noReturn("f(pi,y) = pi^2+y");
+			equal("5", "f(1,4)");
 			equal("3.14159", "pi");
 		}
 		TEST_METHOD(Functions)
