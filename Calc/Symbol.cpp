@@ -54,16 +54,3 @@ std::vector<std::string> Macro::getParamVect()
 {
 	return params;
 }
-
-Function::Function(double(*newFuncPtr)(double))
-{
-	funcPtr = newFuncPtr;
-}
-
-std::string Function::operator()(std::vector<std::string> args)
-{
-	double result = funcPtr(stod(args[0]));
-	std::stringstream ss;
-	ss << result;
-	return ss.str();
-}

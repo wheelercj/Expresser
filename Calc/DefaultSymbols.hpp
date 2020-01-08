@@ -41,32 +41,35 @@ namespace Symbols
 		{ "rand", {{ "" }, "Generate a random number" }}
 	};
 
-	const std::unordered_map<std::string, Function> defaultFuncs =
+	const std::unordered_map<std::string, Function*> defaultFuncs =
 	{ // name, function pointer
-		{ "sqrt", &sqrt },
-		{ "cbrt", &cbrt },
-		{ "abs", &abs },
-		{ "log", &log },
-		{ "round", &round },
-		{ "ceil", &ceil },
-		{ "floor", &floor },
-		{ "erf", &erf }, // the error function
-		{ "erfc", &erfc }, // the complementary error function
-		{ "tgamma", &tgamma }, // the gamma function
-		{ "lgamma", &lgamma }, // the log-gamma function
+		{ "sqrt", &Func<double, double>(&sqrt) },
+		{ "cbrt", &Func<double, double>(&cbrt) },
+		{ "abs", &Func<double, double>(&abs) },
+		{ "log", &Func<double, double>(&log) },
+		{ "round", &Func<double, double>(&round) },
+		{ "ceil", &Func<double, double>(&ceil) },
+		{ "floor", &Func<double, double>(&floor) },
+		{ "erf", &Func<double, double>(&erf) }, // the error function
+		{ "erfc", &Func<double, double>(&erfc) }, // the complementary error function
+		{ "tgamma", &Func<double, double>(&tgamma) }, // the gamma function
+		{ "lgamma", &Func<double, double>(&lgamma) }, // the log-gamma function
 
-		{ "sin", &sin },
-		{ "cos", &cos },
-		{ "tan", &tan },
-		{ "asin", &asin },
-		{ "acos", &acos },
-		{ "atan", &atan },
-		{ "sinh", &sinh },
-		{ "cosh", &cosh },
-		{ "tanh", &tanh },
-		{ "asinh", &asinh },
-		{ "acosh", &acosh },
-		{ "atanh", &atanh }
+		{ "sin", &Func<long double, long double>(&sinl) },
+		{ "cos", &Func<double, double>(&cos) },
+		{ "tan", &Func<double, double>(&tan) },
+		{ "asin", &Func<double, double>(&asin) },
+		{ "acos", &Func<double, double>(&acos) },
+		{ "atan", &Func<double, double>(&atan) },
+		{ "sinh", &Func<double, double>(&sinh) },
+		{ "cosh", &Func<double, double>(&cosh) },
+		{ "tanh", &Func<double, double>(&tanh) },
+		{ "asinh", &Func<double, double>(&asinh) },
+		{ "acosh", &Func<double, double>(&acosh) },
+		{ "atanh", &Func<double, double>(&atanh) },
+
+		{ "help", &Func<std::string, std::string>(&help) },
+		{ "help", &Func<std::string, void>(&help) }
 
 		/* // TODO: create functions:
 			use functions sinl, cosl, etc. instead of sin, cos, etc. for more precision
