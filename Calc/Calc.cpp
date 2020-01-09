@@ -1,4 +1,5 @@
 #include "Calc.h"
+#include "Debug.hpp"
 #include <vector>
 
 Calc::Calc()
@@ -81,7 +82,10 @@ void Calc::validateInput(std::string& input)
 		if (isOp(ch2) && ch2 != '-' && ch2 != '(' && ch2 != ')' && ch2 != '=')
 		{
 			if (isOp(ch1) && ch1 != ')' && (ch1 != '!' || ch1 == '!' && ch2 == '!' && i < input.size() - 1 && input[i + 1] != '='))
+			{
+				LOG("Invalid syntax");
 				throw "Invalid syntax";
+			}
 		}
 	}
 }
@@ -163,7 +167,10 @@ int Calc::findMacroNameSize(std::string& input, int eqPos)
 		{
 			alphaFound = true;
 			if (spaceAfterAlpha)
+			{
+				LOG("Invalid syntax");
 				throw "Invalid syntax";
+			}
 		}
 		else if (input[i] == ' ')
 		{
@@ -173,16 +180,25 @@ int Calc::findMacroNameSize(std::string& input, int eqPos)
 		else if (input[i] == '(')
 		{
 			if (!alphaFound || spaceAfterAlpha)
+			{
+				LOG("Invalid syntax");
 				throw "Invalid syntax";
+			}
 			return i;
 			break;
 		}
 		else
+		{
+			LOG("Invalid syntax");
 			throw "Invalid syntax";
+		}
 	}
 
 	if (!alphaFound)
+	{
+		LOG("Invalid syntax");
 		throw "Invalid syntax";
+	}
 
 	return 0;
 }
@@ -199,7 +215,10 @@ void Calc::readSymbolDefinition(std::string& input, int eqPos, int macroNameSize
 	else // then a macro is being defined
 	{
 		if (varsBeingDefined.size())
+		{
+			LOG("Invalid syntax");
 			throw "Invalid syntax";
+		}
 
 		std::string macroName = input.substr(0, macroNameSize);
 		removeEdgeSpaces(macroName);
@@ -228,7 +247,10 @@ std::vector<std::string> Calc::readParams(std::string str)
 		{
 			alphaFound = true;
 			if (spaceAfterAlpha)
+			{
+				LOG("Invalid syntax");
 				throw "Invalid syntax";
+			}
 		}
 		else if (str[i] == ' ')
 		{
@@ -239,7 +261,10 @@ std::vector<std::string> Calc::readParams(std::string str)
 		{
 			std::string param = str.substr(j, i - j);
 			if (param == "")
+			{
+				LOG("Invalid syntax");
 				throw "Invalid syntax";
+			}
 			params.push_back(param);
 			j = i + 1;
 			alphaFound = false;
@@ -251,10 +276,16 @@ std::vector<std::string> Calc::readParams(std::string str)
 		else if (isOp(str[i]))
 		{
 			if (str[i] != '(' || i > 0)
+			{
+				LOG("Invalid syntax");
 				throw "Invalid syntax";
+			}
 		}
 		else
+		{
+			LOG("Invalid syntax");
 			throw "Invalid syntax";
+		}
 	}
 
 	return params;
@@ -275,7 +306,8 @@ std::string Calc::evaluate(std::string input)
 		and evaluated whenever an operator of lower precedence is found following one of higher precedence.
 	 */
 
-	std::string result;
+	std::string result,
+		temp = "";
 	lastTypePushed = NONE;
 
 	for (int i = 0; i < input.size();) // the index is incremented when value(s) are pushed onto a stack
@@ -298,12 +330,18 @@ std::string Calc::evaluate(std::string input)
 		{
 			int alphaSize = getAlphaSize(input.substr(i, input.size() - i));
 			if (!getSymbolValue(input, i, alphaSize))
+			{
+				LOG("Undefined character(s)");
 				throw "Undefined character(s)";
+			}
 		}
 		else if (isOp(input[i]))
 			readOp(input, i);
 		else
+		{
+			LOG("Undefined character(s)");
 			throw "Undefined character(s)";
+		}
 	}
 
 	bool emptyString = true;
@@ -334,7 +372,10 @@ std::string Calc::evaluate(std::string input)
 void Calc::pop()
 {
 	if (nums.empty())
+	{
+		LOG("Invalid syntax");
 		throw "Invalid syntax";
+	}
 
 	std::string op;
 	if (ops.empty())
@@ -388,7 +429,10 @@ void Calc::pop()
 	}
 
 	if (nums.size() == 1)
+	{
+		LOG("Invalid syntax");
 		throw "Invalid syntax";
+	}
 
 	double num2 = nums.top();
 	nums.pop();
@@ -438,7 +482,10 @@ void Calc::pop()
 	else if (op == "<")
 		nums.push(num1 < num2);
 	else
+	{
+		LOG("Invalid syntax");
 		throw "Invalid syntax";
+	}
 }
 
 bool Calc::isNum(char ch)
@@ -472,13 +519,20 @@ int Calc::getNumSize(std::string str)
 		if (str[i] == '.')
 		{
 			if (periodFound || str.size() == 1)
+			{
+				LOG("Invalid syntax");
 				throw "Invalid syntax"; // TODO: make all error messages more specific
+			}
 			periodFound = true;
 		}
 		else if (!isNum(str[i]))
 		{
 			if (i == 1 && str[0] == '.')
+			{
+				LOG("Invalid syntax");
 				throw "Invalid syntax";
+			}
+
 			return i;
 		}
 	}
@@ -528,7 +582,10 @@ void Calc::readOp(std::string input, int& pos)
 			lastTypePushed = OP;
 		}
 		else if (nums.empty() && newOp == "!")
+		{
+			LOG("Invalid syntax");
 			throw "Invalid syntax";
+		}
 		else
 		{
 			ops.push(newOp);
@@ -565,7 +622,10 @@ void Calc::readOp(std::string input, int& pos)
 			while (!ops.empty() && ops.top() != "(")
 				pop();
 			if (ops.empty())
+			{
+				LOG("Invalid syntax");
 				throw "Invalid syntax";
+			}
 			pop();
 			pos++;
 		}
@@ -610,7 +670,10 @@ void Calc::readOp(std::string input, int& pos)
 				pop();
 		}
 		else
+		{
+			LOG("Invalid syntax");
 			throw "Invalid syntax";
+		}
 	}
 }
 
@@ -707,13 +770,19 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 					if (args.size())
 						setprecision(stold(args[0]));
 					else
+					{
+						LOG("Invalid syntax");
 						throw "Invalid syntax";
+					}
 				}
 				if (it2->first == "rand")
 					throw random();
 
 				if (args.size() != it2->second.getParamVect().size())
+				{
+					LOG("Invalid syntax");
 					throw "Invalid syntax";
+				}
 
 				// evaluate each argument
 				Calc c2(this);
@@ -723,11 +792,17 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 
 					// rethrow messages
 					if (args[i] == "")
+					{
+						LOG("Invalid syntax");
 						throw "Invalid syntax";
+					}
 					for (int j = 0; j < args[i].size(); j++)
 					{
 						if (isAlpha(args[i][j]))
+						{
+							LOG(args[i]);
 							throw args[i];
+						}
 					}
 				}
 
@@ -743,7 +818,10 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 				input.erase(pos, size);
 				std::vector<std::string> args = readArgs(input, pos);
 				if (args.size() != 1)
+				{
+					LOG("Invalid syntax");
 					throw "Invalid syntax";
+				}
 
 				// evaluate each argument
 				Calc c2(this);
@@ -753,11 +831,17 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 					
 					// rethrow messages
 					if (args[i] == "")
+					{
+						LOG("Invalid syntax");
 						throw "Invalid syntax";
+					}
 					for (int j = 0; j < args[i].size(); j++)
 					{
 						if (isAlpha(args[i][j]))
+						{
+							LOG(args[i]);
 							throw args[i];
+						}
 					}
 				}
 
@@ -780,18 +864,27 @@ std::vector<std::string> Calc::readArgs(std::string& input, int pos)
 	int parentheses = 0;
 
 	if (input[pos] != '(')
+	{
+		LOG("Invalid syntax");
 		throw "Invalid syntax";
+	}
 
 	// get the arguments
 	std::vector<std::string> args;
 	for (int j = pos + 1, k = j, m = j - 1; ; j++)
 	{
 		if (j > input.size())
+		{
+			LOG("Invalid syntax");
 			throw "Invalid syntax";
+		}
 		if (j == input.size())
 		{
 			if (j == pos + 1)
+			{
+				LOG("Invalid syntax");
 				throw "Invalid syntax";
+			}
 			args.push_back(input.substr(k, j - k));
 			input.erase(pos, j - m + 1);
 			break;
@@ -887,6 +980,7 @@ void Calc::help(std::string name)
 	if (it3 != funcs.end())
 		throw "C++ Function";
 
+	LOG("Undefined character(s)");
 	throw "Undefined character(s)";
 }
 
