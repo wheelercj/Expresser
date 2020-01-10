@@ -45,8 +45,8 @@ private:
 	std::vector<std::string> readArgs(std::string& input, int pos);
 
 	// functions for the user to call
-	void help();
-	void help(std::string);
+	std::string help();
+	std::string help(std::string);
 	void setprecision(int);
 	std::string random();
 };
