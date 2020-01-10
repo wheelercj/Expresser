@@ -7,7 +7,9 @@ class Calc
 {
 public:
 	Calc();
+	Calc(int);
 	Calc(Calc*);
+	~Calc();
 	std::string calc(std::string input);
 	void resetSymbols();
 private:
@@ -36,13 +38,14 @@ private:
 	void readOp(std::string input, int& pos);
 	bool hasPrecedence(std::string op1);
 
-	std::unordered_map<std::string, double> vars = Symbols::defaultVars;
-	std::unordered_map<std::string, Macro> macros = Symbols::defaultMacros;
-	std::unordered_map<std::string, Function> funcs = Symbols::defaultFuncs;
+	std::unordered_map<std::string, double> vars;
+	std::unordered_map<std::string, Macro> macros;
+	std::unordered_map<std::string, Function> funcs;
 	std::stack<std::string> varsBeingDefined;
 	template<class T> void setSymbol(std::unordered_map<std::string, T>& hashTable, std::string newName, T newSymbol);
 	bool getSymbolValue(std::string& input, int alphaPos, int alphaSize);
 	std::vector<std::string> readArgs(std::string& input, int pos);
+	std::string get_Vars_and_Macros();
 
 	// functions for the user to call
 	std::string help();

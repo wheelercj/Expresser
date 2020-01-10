@@ -1,9 +1,44 @@
 #include "Calc.h"
 #include "Debug.hpp"
 #include <vector>
+#include <fstream>
+#include <iostream>
 
 Calc::Calc()
 {
+	funcs = Symbols::defaultFuncs;
+
+	// load any saved symbols from a file
+	std::ifstream file("saved_symbols.txt");
+	if (!file)
+	{
+		LOG("No file with saved symbols found.");
+		std::cout << "No file with saved symbols found.";
+		vars = Symbols::defaultVars;
+		macros = Symbols::defaultMacros;
+	}
+	else
+	{
+		for (std::string line; std::getline(file, line);)
+		{
+			std::cout << "\n\n>>" << line;
+			std::string result = calc(line);
+			if (result.size())
+				std::cout << " = ";
+			std::cout << result;
+		}
+
+		file.close();
+		LOG("Loaded saved symbols from a file.");
+	}
+}
+
+// for loading only the default symbols
+Calc::Calc(int x)
+{
+	vars = Symbols::defaultVars;
+	macros = Symbols::defaultMacros;
+	funcs = Symbols::defaultFuncs;
 }
 
 Calc::Calc(Calc* other)
@@ -12,6 +47,15 @@ Calc::Calc(Calc* other)
 	macros = other->macros;
 	funcs = other->funcs;
 	Precision = other->Precision + 5;
+}
+
+Calc::~Calc()
+{
+	// save all symbols to a file
+	std::ofstream file("saved_symbols.txt", std::ios::trunc);
+	Precision += 5;
+	file << get_Vars_and_Macros();
+	file.close();
 }
 
 std::string Calc::calc(std::string input)
@@ -816,6 +860,13 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 				}
 				if (it2->first == "rand")
 					throw random();
+				if (it2->first == "delete")
+				{
+					vars.erase(args[0]);
+					macros.erase(args[0]);
+					funcs.erase(args[0]);
+					throw "";
+				}
 
 				if (args.size() != it2->second.getParamVect().size())
 				{
@@ -959,12 +1010,16 @@ std::vector<std::string> Calc::readArgs(std::string& input, int pos)
 	return args;
 }
 
-// throw info about all symbols
-std::string Calc::help()
+std::string Calc::get_Vars_and_Macros()
 {
 	std::string message = "";
 
-	message += "\n Variables:";
+	// Macros
+	std::unordered_map<std::string, Macro>::iterator it2;
+	for (it2 = macros.begin(); it2 != macros.end(); it2++)
+		message += "\n " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFormula();
+
+	// Variables
 	std::unordered_map<std::string, double>::iterator it;
 	for (it = vars.begin(); it != vars.end(); it++)
 	{
@@ -975,25 +1030,28 @@ std::string Calc::help()
 		ss << it->second;
 		std::string num = ss.str();
 		formatOutput(num, Precision + 5);
-		message += "\n\t " + it->first + " = " + num;
+		message += "\n " + it->first + " = " + num;
 	}
 
-	message += "\n Functions:\t";
+	return message;
+}
+
+// throw info about all symbols
+std::string Calc::help()
+{
+	std::string message = "";
+
+	// Functions
 	std::unordered_map<std::string, Function>::iterator it3;
 	int i = 0;
 	for (it3 = funcs.begin(); it3 != funcs.end(); it3++, i++)
 	{
 		if (i % 10 == 0)
-			message += "\n\t";
+			message += "\n";
 		message += it3->first + ", ";
 	}
-
-	message += "\n Macros:";
-	std::unordered_map<std::string, Macro>::iterator it2;
-	for (it2 = macros.begin(); it2 != macros.end(); it2++)
-		message += "\n\t " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFormula();
-
-	return message;
+	
+	return message += get_Vars_and_Macros();
 }
 
 // throw info about one symbol

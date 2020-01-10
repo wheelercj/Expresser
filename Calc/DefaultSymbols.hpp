@@ -36,9 +36,10 @@ namespace Symbols
 		{ "pyramid_volume", {{ "base_area", "h" }, "base_area*h/3" }},
 
 		 // functions further defined in the Calc class
-		{ "help", {{ "" }, "Display info about defined variables and functions" }},
+		{ "help", {{ "optional_name" }, "Display info about defined variables and functions" }},
 		{ "setprecision", {{ "int" }, "Adjust the number of digits displayed in answers" }},
-		{ "rand", {{ "" }, "Generate a random number" }}
+		{ "rand", {{ "_" }, "Generate a random number" }},
+		{ "delete", {{ "name" }, "Delete a variable or function" }}
 	};
 
 	const std::unordered_map<std::string, Function> defaultFuncs =

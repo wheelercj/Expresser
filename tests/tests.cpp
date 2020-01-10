@@ -11,7 +11,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace Tests
 {
-	Calc c;
+	Calc c(0);
 
 	void equal(std::string str1, std::string str2)
 	{
@@ -39,7 +39,6 @@ namespace Tests
 			equal("Invalid syntax: +/", "+/");
 			noReturn(" ");
 			noReturn("");
-			equal("Undefined alpha character(s)", "a");
 			equal("Undefined alpha character(s)", "jajvoaierjal;ndvoiasejrlaenafl;jo;ijwer");
 			equal("Undefined character: $", "$5");
 			equal("-382.00476", "53.28394 + 392.48 - 1.5^3(65.23 * 3.76)");
@@ -601,9 +600,9 @@ namespace Tests
 			equal("Error: 2 argument(s) expected for cone_volume", "cone_volume(3)");
 			equal("37.69911", "cone_volume(3,4)");
 			equal("Error: 2 argument(s) expected for cone_volume", "cone_volume(3,4,5)");
-			equal("Variable g = 9.80665", "help(g)");
+			equal("Variable e = 2.7182818285", "help(e)");
 			equal("Macro acsc(x) = asin(1/x)", "help(acsc)");
-			equal("Macro help() = Display info about defined variables and functions", "help(help)");
+			equal("Macro help(optional_name) = Display info about defined variables and functions", "help(help)");
 			equal("C++ Function", "help(sqrt)");
 			equal("Macro setprecision(int) = Adjust the number of digits displayed in answers", "help(setprecision)");
 			equal("Error: expected '(' after function name", "acoth(help)");
