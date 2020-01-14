@@ -15,7 +15,7 @@
 void logError(int line, const char* fileName, const std::string& message)
 {
 	std::ofstream logFile;
-	logFile.open("debug_log.txt", std::ios::app);
+	logFile.open("debug_log.txt", std::ios::trunc);
 	logFile << "\n- " << __TIME__ << " \"" << message << "\" from line " << line << " in file " << fileName;
 	logFile.close();
 }
