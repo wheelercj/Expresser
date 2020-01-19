@@ -1,4 +1,4 @@
-#include "Symbol.h"
+#include "Macro.h"
 
 Macro::Macro(std::vector<std::string> newParams, std::string newFormula)
 {

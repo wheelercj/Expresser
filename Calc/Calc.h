@@ -38,11 +38,18 @@ private:
 
 	std::unordered_map<std::string, double> vars = Symbols::defaultVars;
 	std::unordered_map<std::string, Macro> macros = Symbols::defaultMacros;
-	std::unordered_map<std::string, Function> funcs = Symbols::defaultFuncs;
+	std::unordered_map<std::string, long double(*)(long double)> funcs = Symbols::defaultFuncs;
 	std::stack<std::string> varsBeingDefined;
 	template<class T> void setSymbol(std::unordered_map<std::string, T>& hashTable, std::string newName, T newSymbol);
 	bool getSymbolValue(std::string& input, int alphaPos, int alphaSize);
+	bool getVarValue(std::string& input, int pos, int size);
+	bool callMacro(std::string& input, int pos, int size);
+	bool findFunction(std::string& input, int pos, int size);
 	std::vector<std::string> readArgs(std::string& input, int pos);
+	void evalArgs(std::vector<std::string>& args);
+	void insertFunctionResult(std::string& input, int pos, std::string result);
+	template <class T, class ...Ts> void handleFunction(std::string& input, int pos, int size, std::string name, T(*funcPtr)(Ts...), std::string(*funcCaller)(T(*)(Ts...), std::string...));
+	std::string callLongDoubleFunction(long double(*funcPtr)(long double), std::string num);
 
 	// functions for the user to call
 	std::string help();

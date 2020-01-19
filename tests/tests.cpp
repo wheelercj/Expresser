@@ -2,8 +2,8 @@
 #include "CppUnitTest.h"
 #include "../Calc/Calc.h"
 #include "../Calc/Calc.cpp"
-#include "../Calc/Symbol.h"
-#include "../Calc/Symbol.cpp"
+#include "../Calc/Macro.h"
+#include "../Calc/Macro.cpp"
 #include "../Calc/DefaultSymbols.hpp"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -597,10 +597,10 @@ namespace Tests
 		}
 		TEST_METHOD(DefaultMacros)
 		{
-			equal("Error: 2 argument(s) expected for cone_volume", "cone_volume()");
-			equal("Error: 2 argument(s) expected for cone_volume", "cone_volume(3)");
+			equal("Error: 2 arguments expected for function cone_volume", "cone_volume()");
+			equal("Error: 2 arguments expected for function cone_volume", "cone_volume(3)");
 			equal("37.69911", "cone_volume(3,4)");
-			equal("Error: 2 argument(s) expected for cone_volume", "cone_volume(3,4,5)");
+			equal("Error: 2 arguments expected for function cone_volume", "cone_volume(3,4,5)");
 			equal("Variable g = 9.80665", "help(g)");
 			equal("Macro acsc(x) = asin(1/x)", "help(acsc)");
 			equal("Macro help() = Display info about defined variables and functions", "help(help)");
@@ -649,13 +649,13 @@ namespace Tests
 			equal("Invalid space before parameter(s)", "add (a,b)=a+b");
 			noReturn(" add( a , b ) = a + b ");
 			equal("60", "add(25,35");
-			equal("Error: 2 argument(s) expected for add", "add(25,35,40)");
+			equal("Error: 2 arguments expected for function add", "add(25,35,40)");
 			equal("Macro add(a,b) = a + b", "help(add)");
 			noReturn("add(a,b,c)=a+b+c");
 			equal("6", "add(1,2,3)");
-			equal("Error: 3 argument(s) expected for add", "add(4,5)");
+			equal("Error: 3 arguments expected for function add", "add(4,5)");
 			noReturn("divide(numerator,denominator) = numerator/denominator");
-			equal("Error: 2 argument(s) expected for divide", "divide(3/6)");
+			equal("Error: 2 arguments expected for function divide", "divide(3/6)");
 			equal("0.5", "divide(3,6)");
 			noReturn("f(vjoieuor,joiavjoa,iozuboie)=joiavjoavjoieuoriozuboie");
 			equal("60", "f(3,4,5)");
@@ -695,7 +695,8 @@ namespace Tests
 			equal("Invalid syntax", "sin(");
 			equal("Invalid use of a period", "sin(.)");
 			equal("Error: expected '(' after function name", "sin(sin)");
-			equal("Error: expected one argument for sin", "sin(4,5)");
+			equal("Error: expected 1 argument for function sin", "sin(4,5)");
+			equal("0", "sin(pi)");
 			equal("2", "sqrt(4)");
 			equal("Imaginary", "sqrt(-4)");
 			equal("8", "ceil(7.3");
