@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Macro.h"
+#include "CustomFunctions.hpp"
 #include <ctime>
 #include <cmath>
 #include <unordered_map>

@@ -176,7 +176,7 @@ namespace Tests
 			equal("Error: not enough operands for the given operators", "2/");
 			equal("Error: not enough operands for the given operators", "/2");
 			equal("Indeterminate: 0/0", "0/0");
-			equal("Infinity: n/0", "2/0");
+			equal("Infinity", "2/0");
 			equal("0", "0/2");
 			equal("1", "2/2");
 			equal("0.66667", "2/3");
@@ -506,7 +506,7 @@ namespace Tests
 			equal("5", "ans+2");
 			equal("50", "10*ans");
 			equal("100", "ans+ans");
-			equal("Infinity: n/0", "1/0");
+			equal("Infinity", "1/0");
 			equal("100", "ans"); // ans ignores error messages
 		}
 		TEST_METHOD(DefaultVars)
@@ -597,10 +597,10 @@ namespace Tests
 		}
 		TEST_METHOD(DefaultMacros)
 		{
-			equal("Error: 2 arguments expected for function cone_volume", "cone_volume()");
-			equal("Error: 2 arguments expected for function cone_volume", "cone_volume(3)");
+			equal("Error: expected 2 arguments for function cone_volume", "cone_volume()");
+			equal("Error: expected 2 arguments for function cone_volume", "cone_volume(3)");
 			equal("37.69911", "cone_volume(3,4)");
-			equal("Error: 2 arguments expected for function cone_volume", "cone_volume(3,4,5)");
+			equal("Error: expected 2 arguments for function cone_volume", "cone_volume(3,4,5)");
 			equal("Variable g = 9.80665", "help(g)");
 			equal("Macro acsc(x) = asin(1/x)", "help(acsc)");
 			equal("Macro help() = Display info about defined variables and functions", "help(help)");
@@ -649,13 +649,13 @@ namespace Tests
 			equal("Invalid space before parameter(s)", "add (a,b)=a+b");
 			noReturn(" add( a , b ) = a + b ");
 			equal("60", "add(25,35");
-			equal("Error: 2 arguments expected for function add", "add(25,35,40)");
+			equal("Error: expected 2 arguments for function add", "add(25,35,40)");
 			equal("Macro add(a,b) = a + b", "help(add)");
 			noReturn("add(a,b,c)=a+b+c");
 			equal("6", "add(1,2,3)");
-			equal("Error: 3 arguments expected for function add", "add(4,5)");
+			equal("Error: expected 3 arguments for function add", "add(4,5)");
 			noReturn("divide(numerator,denominator) = numerator/denominator");
-			equal("Error: 2 arguments expected for function divide", "divide(3/6)");
+			equal("Error: expected 2 arguments for function divide", "divide(3/6)");
 			equal("0.5", "divide(3,6)");
 			noReturn("f(vjoieuor,joiavjoa,iozuboie)=joiavjoavjoieuoriozuboie");
 			equal("60", "f(3,4,5)");

@@ -13,7 +13,7 @@ std::string Macro::operator()(std::vector<std::string> args)
 	// for each parameter
 	for (int i = 0; i < params.size(); i++)
 	{
-		// for each substring of the function with the same size as params[i]
+		// for each substring of the formula with the same size as params[i]
 		for (int j = 0; j < tempFormula.size(); j++)
 		{
 			std::string substr = tempFormula.substr(j, params[i].size());

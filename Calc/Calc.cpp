@@ -1,5 +1,6 @@
 #include "Calc.h"
 #include "Debug.hpp"
+#include "FunctionAdapters.hpp"
 #include <vector>
 #include <sstream>
 
@@ -7,19 +8,33 @@ Calc::Calc()
 {
 }
 
+Calc::Calc(int newPrecision)
+{
+	finalPrecision = newPrecision;
+	Precision = finalPrecision + 5;
+}
+
 Calc::Calc(Calc* other)
 {
 	vars = other->vars;
 	macros = other->macros;
 	funcs = other->funcs;
-	Precision = other->Precision + 5;
+	finalPrecision = other->finalPrecision;
+	Precision = other->Precision;
 }
 
 std::string Calc::calc(std::string input)
 {
+	std::string result = _calc(input);
+	formatOutput(result, finalPrecision);
+	return result;
+}
+
+std::string Calc::_calc(std::string input)
+{
 	std::string result;
 	bool assigning = false;
-	
+
 	while (!nums.empty())
 		nums.pop();
 	while (!ops.empty())
@@ -40,7 +55,6 @@ std::string Calc::calc(std::string input)
 
 		if (assigning)
 			return "";
-		formatOutput(result, Precision);
 	}
 	catch (const char* error)
 	{
@@ -63,6 +77,29 @@ void Calc::resetSymbols()
 	vars = Symbols::defaultVars;
 	macros = Symbols::defaultMacros;
 	funcs = Symbols::defaultFuncs;
+}
+
+bool Calc::isNum(char ch)
+{
+	if (ch >= '0' && ch <= '9' || ch == '.')
+		return true;
+	return false;
+}
+
+bool Calc::isAlpha(char ch)
+{
+	ch = tolower(ch);
+	if (ch >= 'a' && ch <= 'z' || ch == '_')
+		return true;
+	return false;
+}
+
+bool Calc::isOp(char ch)
+{
+	std::string validOps = "()^*/+-!%<>=";
+	if (validOps.find(ch) != std::string::npos)
+		return true;
+	return false;
 }
 
 // check for multiple operators or periods next to each other
@@ -94,25 +131,33 @@ void Calc::formatOutput(std::string& str, int precision)
 	std::stringstream ss;
 	ss.setf(std::ios::fixed);
 	ss.precision(precision);
-	ss << stold(str);
-	str = ss.str();
 
-	// remove any trailing zeros
-	for (int i = str.size() - 1; i > 0; i--)
+	try
 	{
-		if (str[i] == '0')
-			str.erase(i, 1);
-		else if (str[i] == '.')
+		ss << stold(str);
+		str = ss.str();
+
+		// remove any trailing zeros
+		for (int i = str.size() - 1; i > 0; i--)
 		{
-			str.erase(i, 1);
-			break;
+			if (str[i] == '0')
+				str.erase(i, 1);
+			else if (str[i] == '.')
+			{
+				str.erase(i, 1);
+				break;
+			}
+			else
+				break;
 		}
-		else
-			break;
+	}
+	catch (std::invalid_argument)
+	{
+		LOG("Caught an invalid argument error");
 	}
 
 	if (str == "inf")
-		str = "Infinity";
+		str = LOG("Infinity");
 	else if (str == "-0")
 		str = "0";
 }
@@ -340,8 +385,7 @@ std::string Calc::evaluate(std::string input)
 
 	std::stringstream ss;
 	ss.setf(std::ios::fixed);
-	int p = Precision + 5;
-	ss.precision(p);
+	ss.precision(Precision);
 	ss << nums.top();
 	result = ss.str();
 	setSymbol<double>(vars, "ans", stold(result));
@@ -461,29 +505,6 @@ void Calc::pop() // TODO: break this function up
 		message += op;
 		throw LOG(message);
 	}
-}
-
-bool Calc::isNum(char ch)
-{
-	if (ch >= '0' && ch <= '9' || ch == '.')
-		return true;
-	return false;
-}
-
-bool Calc::isAlpha(char ch)
-{
-	ch = tolower(ch);
-	if (ch >= 'a' && ch <= 'z' || ch == '_')
-		return true;
-	return false;
-}
-
-bool Calc::isOp(char ch)
-{
-	std::string validOps = "()^*/+-!%<>=";
-	if (validOps.find(ch) != std::string::npos)
-		return true;
-	return false;
 }
 
 int Calc::getNumSize(std::string str)
@@ -724,8 +745,7 @@ bool Calc::getVarValue(std::string& input, int pos, int size)
 		input.erase(pos, size);
 		std::stringstream ss;
 		ss.setf(std::ios::fixed);
-		int p = Precision + 5;
-		ss.precision(p);
+		ss.precision(Precision);
 		ss << " " << it->second << " ";
 		input.insert(pos, ss.str());
 		return true;
@@ -736,13 +756,13 @@ bool Calc::getVarValue(std::string& input, int pos, int size)
 
 bool Calc::callMacro(std::string& input, int pos, int size)
 {
-	std::string substr = input.substr(pos, size);
+	std::string name = input.substr(pos, size);
 
-	std::unordered_map<std::string, Macro>::iterator it = macros.find(substr);
+	std::unordered_map<std::string, Macro>::iterator it = macros.find(name);
 	if (it != macros.end())
 	{
+		std::vector<std::string> args = splitStrArgs(input, pos + size);
 		input.erase(pos, size);
-		std::vector<std::string> args = readArgs(input, pos);
 
 		if (it->first == "help")
 		{
@@ -765,12 +785,12 @@ bool Calc::callMacro(std::string& input, int pos, int size)
 
 		if (args.size() != it->second.getParamVect().size())
 		{
-			std::string message = "Error: "
+			std::string message = "Error: expected "
 				+ std::to_string(it->second.getParamVect().size())
 				+ " argument";
 			if (it->second.getParamVect().size() != 1)
 				message += "s";
-			message += " expected for function " + it->first;
+			message += " for function " + it->first;
 			throw LOG(message);
 		}
 
@@ -778,7 +798,7 @@ bool Calc::callMacro(std::string& input, int pos, int size)
 		Calc c2(this);
 		for (int i = 0; i < args.size(); i++)
 		{
-			args[i] = c2.calc(args[i]);
+			args[i] = c2._calc(args[i]);
 
 			// rethrow messages
 			if (args[i] == "")
@@ -805,137 +825,11 @@ bool Calc::findFunction(std::string& input, int pos, int size)
 	std::unordered_map<std::string, long double(*)(long double)>::iterator it = funcs.find(name);
 	if (it != funcs.end())
 	{
-		input.erase(pos, size);
-		std::vector<std::string> args = readArgs(input, pos);
-
-		if (args.size() != 1)
-		{
-			std::string message = "Error: expected 1 argument for function " + name;
-			throw LOG(message);
-		}
-
-		evalArgs(args);
-
-		std::stringstream ss;
-		ss << it->second(stold(args[0]));
-		int p = Precision + 5;
-		ss.precision(p);
-		std::string result = ss.str();
-
-		insertFunctionResult(input, pos, result);
+		call_longDouble_longDouble(it->second, input, pos, size);
 		return true;
 	}
 
 	return false;
-}
-
-template <class T, class ...Ts>
-void Calc::handleFunction(std::string& input, int pos, int size, std::string name, T(*funcPtr)(Ts...), std::string(*funcCaller)(T(*)(Ts...), std::string...))
-{
-	input.erase(pos, size);
-	std::vector<std::string> args = readArgs(input, pos);
-
-	if (args.size() != 1)
-	{
-		std::string message = "Error: expected 1 argument for function " + name;
-		throw LOG(message);
-	}
-
-	evalArgs(args);
-	int i = 0;
-	std::string result = funcCaller(T(*funcPtr)(Ts...), args[i++]...);
-	insertFunctionResult(input, pos, result);
-}
-
-std::string Calc::callLongDoubleFunction(long double(*funcPtr)(long double), std::string num)
-{
-	std::stringstream ss;
-	ss << funcPtr(stold(num));
-	int p = Precision + 5;
-	ss.precision(p);
-	return ss.str();
-}
-
-std::vector<std::string> Calc::readArgs(std::string& input, int pos)
-{
-	int parentheses = 0;
-
-	if (input[pos] != '(')
-		throw LOG("Error: expected '(' after function name");
-
-	// get the arguments
-	std::vector<std::string> args;
-	for (int j = pos + 1, k = j, m = j - 1; ; j++)
-	{
-		if (j > input.size())
-			throw LOG("Invalid syntax");
-		if (j == input.size())
-		{
-			args.push_back(input.substr(k, j - k));
-			input.erase(pos, j - m + 1);
-			break;
-		}
-		if (input[j] == '(')
-			parentheses++;
-		if (input[j] == ')')
-		{
-			if (parentheses)
-				parentheses--;
-			else
-			{
-				args.push_back(input.substr(k, j - k));
-				input.erase(pos, j - m + 1);
-				break;
-			}
-		}
-		if (input[j] == ',')
-		{
-			args.push_back(input.substr(k, j - k));
-			j++;
-			k = j;
-		}
-	}
-
-	return args;
-}
-
-void Calc::evalArgs(std::vector<std::string>& args)
-{
-	// evaluate each argument
-	Calc c2(this);
-	for (int i = 0; i < args.size(); i++)
-	{
-		args[i] = c2.calc(args[i]);
-
-		// rethrow messages
-		if (args[i] == "")
-			throw LOG("Invalid syntax");
-		for (int j = 0; j < args[i].size(); j++)
-		{
-			if (isAlpha(args[i][j]))
-				throw LOG(args[i]);
-		}
-	}
-}
-
-void Calc::insertFunctionResult(std::string& input, int pos, std::string result)
-{
-	// if the result is in scientific notation with a negative exponent,
-	// it's probably supposed to equal zero
-	for (int i = 0; i < result.size(); i++)
-	{
-		if (result[i] == 'e')
-		{
-			if (i < result.size() - 1 && result[i + 1] == '-')
-				result = "0";
-			else
-				throw LOG("Not equipped for scientific notation");
-		}
-	}
-
-	if (result == "-nan(ind)")
-		throw "Imaginary";
-	input.insert(pos, "(" + result + ")");
 }
 
 // throw info about all symbols
@@ -949,11 +843,11 @@ std::string Calc::help()
 	{
 		std::stringstream ss;
 		ss.setf(std::ios::fixed);
-		int p = Precision + 5;
-		ss.precision(p);
+		ss.precision(finalPrecision);
 		ss << it->second;
 		std::string num = ss.str();
-		formatOutput(num, Precision + 5);
+
+		formatOutput(num, finalPrecision);
 		message += "\n\t " + it->first + " = " + num;
 	}
 
@@ -972,7 +866,7 @@ std::string Calc::help()
 	for (it2 = macros.begin(); it2 != macros.end(); it2++)
 		message += "\n\t " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFormula();
 
-	return message;
+	throw message;
 }
 
 // throw info about one symbol
@@ -985,32 +879,33 @@ std::string Calc::help(std::string name)
 	{
 		std::stringstream ss;
 		ss.setf(std::ios::fixed);
-		int p = Precision + 5;
-		ss.precision(p);
+		ss.precision(finalPrecision);
 		ss << it->second;
 		std::string num = ss.str();
-		formatOutput(num, Precision + 5);
+
+		formatOutput(num, finalPrecision);
 		message += "Variable " + it->first + " = " + num;
-		return message;
+		throw message;
 	}
 
 	std::unordered_map<std::string, Macro>::iterator it2 = macros.find(name);
 	if (it2 != macros.end())
 	{
 		message += "Macro " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFormula();
-		return message;
+		throw message;
 	}
 
 	std::unordered_map<std::string, long double(*)(long double)>::iterator it3 = funcs.find(name);
 	if (it3 != funcs.end())
-		return "C++ Function";
+		throw "C++ Function";
 
 	throw LOG("Undefined character(s)");
 }
 
 void Calc::setprecision(int num)
 {
-	Precision = num;
+	finalPrecision = num;
+	Precision = finalPrecision + 5;
 }
 
 std::string Calc::random()
@@ -1019,8 +914,7 @@ std::string Calc::random()
 	double r = (rand() % 101) / 100.0;
 	std::stringstream ss;
 	ss.setf(std::ios::fixed);
-	int p = Precision + 5;
-	ss.precision(p);
+	ss.precision(Precision);
 	ss << r;
 	return ss.str();
 }

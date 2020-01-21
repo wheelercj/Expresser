@@ -7,11 +7,17 @@ class Calc
 {
 public:
 	Calc();
+	Calc(int newPrecision);
 	Calc(Calc*);
 	std::string calc(std::string input);
+	std::string _calc(std::string input);
 	void resetSymbols();
+	bool isNum(char ch);
+	bool isAlpha(char ch);
+	bool isOp(char ch);
 private:
-	int Precision = 5;
+	int finalPrecision = 5;
+	int Precision = finalPrecision + 5;
 
 	void validateInput(std::string& input);
 	void formatOutput(std::string& str, int precision);
@@ -27,9 +33,6 @@ private:
 	void pop();
 	enum types { NONE, OP, NUM };
 	int lastTypePushed = NONE;
-	bool isNum(char ch);
-	bool isAlpha(char ch);
-	bool isOp(char ch);
 	int getNumSize(std::string str);
 	int getAlphaSize(std::string str);
 	int getOpSize(std::string str);
@@ -45,11 +48,8 @@ private:
 	bool getVarValue(std::string& input, int pos, int size);
 	bool callMacro(std::string& input, int pos, int size);
 	bool findFunction(std::string& input, int pos, int size);
-	std::vector<std::string> readArgs(std::string& input, int pos);
-	void evalArgs(std::vector<std::string>& args);
-	void insertFunctionResult(std::string& input, int pos, std::string result);
-	template <class T, class ...Ts> void handleFunction(std::string& input, int pos, int size, std::string name, T(*funcPtr)(Ts...), std::string(*funcCaller)(T(*)(Ts...), std::string...));
-	std::string callLongDoubleFunction(long double(*funcPtr)(long double), std::string num);
+
+	//friend int getPrecision();
 
 	// functions for the user to call
 	std::string help();
