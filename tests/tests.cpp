@@ -1,26 +1,25 @@
 #include "pch.h"
 #include "CppUnitTest.h"
-#include "../Calc/Calc.h"
 #include "../Calc/Calc.cpp"
-#include "../Calc/Symbol.h"
-#include "../Calc/Symbol.cpp"
-#include "../Calc/DefaultSymbols.hpp"
+#include "../Calc/Macro.cpp"
+#include "../Calc/DefaultSymbols.cpp"
+#include "../Calc/Common.cpp"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 // The test methods within each test class run in alphabetical order. They can affect each other.
 
 namespace Tests
 {
-	Calc c(0);
+	Calc calc(5);
 
 	void equal(std::string str1, std::string str2)
 	{
-		Assert::AreEqual(str1, c.calc(str2));
+		Assert::AreEqual(str1, calc(str2));
 	}
 
 	void noReturn(std::string input)
 	{
-		Assert::AreEqual((std::string)"", c.calc(input));
+		Assert::AreEqual((std::string)"", calc(input));
 	}
 
 	TEST_CLASS(Ops)
@@ -39,7 +38,8 @@ namespace Tests
 			equal("Invalid syntax: +/", "+/");
 			noReturn(" ");
 			noReturn("");
-			equal("Undefined alpha character(s)", "jajvoaierjal;ndvoiasejrlaenafl;jo;ijwer");
+			equal("Undefined character: a", "a");
+			equal("Undefined characters: jajvoai", "jajvoaierjal;ndvoiasejrlaenafl;jo;ijwer");
 			equal("Undefined character: $", "$5");
 			equal("-382.00476", "53.28394 + 392.48 - 1.5^3(65.23 * 3.76)");
 			equal("-20.06481", "-3+4*-5-6(-7/8)/-9^2--3");
@@ -230,7 +230,7 @@ namespace Tests
 			equal("0.0625", "4^-2");
 			equal("-0.0625", "-2^-4");
 			equal("-0.0625", "-4^-2");
-			Assert::AreEqual(c.calc("4^(3^2)"), c.calc("4^3^2"));
+			Assert::AreEqual(calc("4^(3^2)"), calc("4^3^2"));
 			equal("Invalid syntax: ^^", "4^^2");
 			equal("Invalid syntax: ^*", "4^*2");
 			equal("Invalid syntax: *^", "4*^2");
@@ -257,9 +257,9 @@ namespace Tests
 		TEST_METHOD(Parentheses)
 		{
 			equal("Error: not enough operands for the given operators", "(");
-			equal("Error: not enough operands for the given operators", ")");
-			equal("Error: not enough operands for the given operators", "2)");
-			equal("Error: not enough operands for the given operators", ")2");
+			equal("Error: missing an opening parenthesis", ")");
+			equal("Error: missing an opening parenthesis", "2)");
+			equal("Error: missing an opening parenthesis", ")2");
 			equal("3", "3(");
 			equal("2", "(2");
 			equal("0", "0(0");
@@ -282,12 +282,12 @@ namespace Tests
 			equal("10", "(10)(1)");
 			equal("24", "(((1)2)3)4");
 			equal("27", "(1+2)^3");
-			equal("Error: not enough operands for the given operators", "(3+5/(2*4)))");
+			equal("Error: missing an opening parenthesis", "(3+5/(2*4)))");
 		}
 		TEST_METHOD(Factorial)
 		{
-			equal("Error: not enough operands for the given operators", "!");
-			equal("Error: not enough operands for the given operators", "!2");
+			equal("Error: expected an operand before the factorial operator", "!");
+			equal("Error: expected an operand before the factorial operator", "!2");
 			equal("1", "0!");
 			equal("1", "1!");
 			equal("2", "2!");
@@ -321,7 +321,7 @@ namespace Tests
 			equal("-2", "-2%-4");
 			equal("0", "-4%-2");
 			equal("1", "4%3%2");
-			Assert::AreNotEqual((std::string)"0", c.calc("4%3%2"));
+			Assert::AreNotEqual((std::string)"0", calc("4%3%2"));
 			equal("2", "2%3%4");
 			equal("Invalid syntax: %%", "4%%2");
 			equal("Invalid syntax: %+", "4%+2");
@@ -517,8 +517,8 @@ namespace Tests
 			equal("5.85987", "pi+e");
 			equal("22.45916", "pi^e");
 			equal("8.53973", "epi");
-			equal("Undefined alpha character(s)", "pei");
-			equal("Undefined alpha character(s)", "p ie");
+			equal("Undefined character: p", "pei");
+			equal("Undefined character: p", "p ie");
 			equal("8.53973", "pi e");
 			equal("6.28319", "2pi");
 			equal("5.14159", "2+pi");
@@ -527,7 +527,7 @@ namespace Tests
 		}
 		TEST_METHOD(UserVars)
 		{
-			equal("Undefined alpha character(s)", "five");
+			equal("Undefined characters: fiv", "five");
 			noReturn(" five = 5");
 			noReturn("four=4");
 			noReturn("three = 3.0000");
@@ -538,8 +538,8 @@ namespace Tests
 			equal("3", "three");
 			equal("20", "fivefour");
 			equal("9", "five+four");
-			equal("Undefined alpha character(s)", "fi ve");
-			equal("Undefined alpha character(s)", "Five");
+			equal("Undefined characters: fi", "fi ve");
+			equal("Undefined characters: Fiv", "Five");
 			noReturn("seven = 5^2*2-43");
 			noReturn("nine = five + four");
 			equal("7", "seven");
@@ -579,7 +579,7 @@ namespace Tests
 			equal("-4", "pI");
 			equal("-3.1415", "_pi");
 			equal("3.1415", "-_pi");
-			equal("Undefined alpha character(s)", "y = 5x");
+			equal("Undefined character: x", "y = 5x");
 			equal("Invalid character before assignment operator: 2", "y = 2four = 8");
 			noReturn("ans = 7");
 			equal("7", "ans");
@@ -592,24 +592,24 @@ namespace Tests
 			noReturn("num = num + 2");
 			equal("5", "num");
 
-			c.resetSymbols();
+			calc.resetSymbols();
 		}
 		TEST_METHOD(DefaultMacros)
 		{
-			equal("Error: 2 argument(s) expected for cone_volume", "cone_volume()");
-			equal("Error: 2 argument(s) expected for cone_volume", "cone_volume(3)");
+			equal("1", "logb(10,10");
+			equal("0.69897", "logb(10,5");
+			equal("Error: expected 2 arguments for function cone_volume", "cone_volume()");
+			equal("Error: expected 2 arguments for function cone_volume", "cone_volume(3)");
 			equal("37.69911", "cone_volume(3,4)");
-			equal("Error: 2 argument(s) expected for cone_volume", "cone_volume(3,4,5)");
-			equal("Variable e = 2.7182818285", "help(e)");
-			equal("Macro acsc(x) = asin(1/x)", "help(acsc)");
-			equal("Macro help(optional_name) = Display info about defined variables and functions", "help(help)");
+			equal("Error: expected 2 arguments for function cone_volume", "cone_volume(3,4,5)");
+			equal("Variable g = 9.80665", "help(g)");
+			equal("Function acsc(x) = asin(1/x)", "help(acsc)");
+			equal("Function help() = Display info about defined variables and functions", "help(help)");
 			equal("C++ Function", "help(sqrt)");
-			equal("Macro setprecision(int) = Adjust the number of digits displayed in answers", "help(setprecision)");
+			equal("Function setprecision(int) = Adjust the number of digits displayed in answers", "help(setprecision)");
 			equal("Error: expected '(' after function name", "acoth(help)");
-			Assert::AreNotEqual((std::string)"-1", c.calc("rand()"));
-			Assert::AreNotEqual(c.calc("ans"), c.calc("rand()")); // this test has a low chance of failing when the program is working correctly
 			equal("1.1547", "csc(pi/3)");
-			equal("Macro cylinder_volume(r,h) = pi*r^2*h", "help(cylinder_volume)");
+			equal("Function cylinder_volume(r,h) = pi*r^2*h", "help(cylinder_volume)");
 			equal("549.77871", "cylinder_volume(5, 7");
 			equal("1.1884", "csc(cot(pi/4");
 			//equal("5.5", "csc(acsc(5.5))"); // this test will fail until trig functions with more precision can be used
@@ -636,7 +636,7 @@ namespace Tests
 			equal("54", "g(f(1))");
 			equal("353", "f(f(1");
 			noReturn("h(x,y) = f(x)+g(y)");
-			equal("Macro h(x,y) = f(x)+g(y)", "help(h)");
+			equal("Function h(x,y) = f(x)+g(y)", "help(h)");
 			equal("28", "h(1,2)");
 			noReturn("g(x)=4x+9");
 			equal("26", "h(1,2)");
@@ -648,29 +648,29 @@ namespace Tests
 			equal("Invalid space before parameter(s)", "add (a,b)=a+b");
 			noReturn(" add( a , b ) = a + b ");
 			equal("60", "add(25,35");
-			equal("Error: 2 argument(s) expected for add", "add(25,35,40)");
-			equal("Macro add(a,b) = a + b", "help(add)");
+			equal("Error: expected 2 arguments for function add", "add(25,35,40)");
+			equal("Function add(a,b) = a + b", "help(add)");
 			noReturn("add(a,b,c)=a+b+c");
 			equal("6", "add(1,2,3)");
-			equal("Error: 3 argument(s) expected for add", "add(4,5)");
+			equal("Error: expected 3 arguments for function add", "add(4,5)");
 			noReturn("divide(numerator,denominator) = numerator/denominator");
-			equal("Error: 2 argument(s) expected for divide", "divide(3/6)");
+			equal("Error: expected 2 arguments for function divide", "divide(3/6)");
 			equal("0.5", "divide(3,6)");
 			noReturn("f(vjoieuor,joiavjoa,iozuboie)=joiavjoavjoieuoriozuboie");
 			equal("60", "f(3,4,5)");
-			equal("Macro f(vjoieuor,joiavjoa,iozuboie) = joiavjoavjoieuoriozuboie", "help(f)");
+			equal("Function f(vjoieuor,joiavjoa,iozuboie) = joiavjoavjoieuoriozuboie", "help(f)");
 			noReturn("h(x,y)=8sin(2x)+7tan(sqrt(y))");
 			equal("2.05032", "h(2,16)");
 			noReturn("f(x)=jobiajweojfalkfsdjvoiajsejf");
-			equal("Macro f(x) = jobiajweojfalkfsdjvoiajsejf", "help(f)");
-			equal("Undefined alpha character(s)", "f(5)");
+			equal("Function f(x) = jobiajweojfalkfsdjvoiajsejf", "help(f)");
+			equal("Undefined characters: jobi", "f(5)"); // ends at 'a' because 'a' was defined earlier
 			noReturn("f(x,y) = x + y + z");
-			equal("Undefined alpha character(s)", "f(2,4)");
+			equal("Undefined character: z", "f(2,4)");
 			noReturn("f(x)=38973");
 			equal("38973", "f(738684272873)");
-			equal("Undefined alpha character(s)", "f(x)==4x");
-			equal("Undefined alpha character(s)", "f(x)=");
-			equal("Undefined alpha character(s)", "=f(x)");
+			equal("Undefined character: x", "f(x)==4x");
+			equal("Undefined character: x", "f(x)=");
+			equal("Undefined character: x", "=f(x)");
 			equal("Invalid syntax", "f()");
 			equal("Invalid syntax: unnamed parameter", "f() = 3");
 			equal("Invalid space before assignment operator", "func tion(x) = 4x");
@@ -687,16 +687,20 @@ namespace Tests
 			equal("5", "f(1,4)");
 			equal("3.14159", "pi");
 
-			c.resetSymbols();
+			calc.resetSymbols();
 		}
 		TEST_METHOD(Functions)
 		{
 			equal("Invalid syntax", "sin(");
+			equal("Invalid syntax", "sin()");
 			equal("Invalid use of a period", "sin(.)");
 			equal("Error: expected '(' after function name", "sin(sin)");
-			equal("Error: expected one argument for sin", "sin(4,5)");
+			equal("Error: expected 1 argument for function sin", "sin(4,5)");
+			equal("0", "sin(pi)");
 			equal("2", "sqrt(4)");
 			equal("Imaginary", "sqrt(-4)");
+			equal("1", "log(e)");
+			equal("1.60944", "log(5");
 			equal("8", "ceil(7.3");
 			equal("9", "floor(9.");
 			equal("3", "abs(cbrt(-27))");
@@ -705,10 +709,16 @@ namespace Tests
 			equal("0.72654", "tan(pi/5");
 			equal("Error: expected '(' after function name", "cos (pi/3)");
 			equal("2.71828", "esin(pi/2");
-			Assert::AreEqual(c.calc("sin(pi / 3)^3"), c.calc("(sin(pi / 3))^3"));
+			Assert::AreEqual(calc("sin(pi / 3)^3"), calc("(sin(pi / 3))^3"));
 			equal("1.23474", "acos(acoth(pi))");
 			equal("0.97385", "sin(3+(4/5)-2)");
 			equal("Invalid syntax", "sin(setprecision(5))");
+			Assert::AreNotEqual((std::string)"Error: missing an opening parenthesis", calc("rand()+1"));
+			Assert::AreNotEqual((std::string)"Error: not enough operands for the given operators", calc("1+rand()"));
+			equal("Error: expected 0 arguments for function rand", "rand(8)");
+			equal("Imaginary", "quad(1,2,3)");
+			equal("-4.791288 or -0.208712", "quad(1,5,1)");
+			equal("1.236068 or -3.236068", "quad(-1,-2,4)");
 		}
 	};
 }

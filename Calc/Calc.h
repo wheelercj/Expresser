@@ -1,55 +1,68 @@
 #pragma once
 
-#include "DefaultSymbols.hpp"
+#include "DefaultSymbols.h"
 #include <stack>
 
 class Calc
 {
 public:
 	Calc();
-	Calc(int);
-	Calc(Calc*);
 	~Calc();
+	Calc(int newPrecision);
+	Calc(Calc*);
+	std::string operator()(std::string input);
 	std::string calc(std::string input);
 	void resetSymbols();
 private:
-	int Precision = 5;
+	int finalPrecision = 5;
+	int precision = finalPrecision + 5;
 
-	void validateInput(std::string& input);
-	void formatOutput(std::string& str, int precision);
 	void assignmentFormat(std::string& input);
-	int findMacroNameSize(std::string& input, int eqPos);
 	void readSymbolDefinition(std::string& input, int eqPos, int nameSize);
-	std::vector<std::string> readParams(std::string str);
-	void removeEdgeSpaces(std::string& str);
 	std::string evaluate(std::string str);
 
 	std::stack<double> nums;
 	std::stack<std::string> ops;
-	void pop();
+	void readNum(std::string& input, int& pos);
+	void readAlpha(std::string& input, int& pos);
+	void readOp(std::string& input, int& pos);
 	enum types { NONE, OP, NUM };
 	int lastTypePushed = NONE;
-	bool isNum(char ch);
-	bool isAlpha(char ch);
-	bool isOp(char ch);
-	int getNumSize(std::string str);
-	int getAlphaSize(std::string str);
-	int getOpSize(std::string str);
-	void readOp(std::string input, int& pos);
-	bool hasPrecedence(std::string op1);
+	void pushFirstOperator(int& pos, std::string newOp, int opSize);
+	void pushOperator(std::string input, int& pos, std::string newOp, int opSize);
+	void pushOpenParenthesis(std::string input, int& pos);
+	void pushMinus(int& pos);
+	void pop();
+	bool handleUnaryOp();
+	void handleBinaryOp(std::string op);
 
-	std::unordered_map<std::string, double> vars;
-	std::unordered_map<std::string, Macro> macros;
-	std::unordered_map<std::string, Function> funcs;
+	std::map<std::string, double> vars = defaultVars;
+	std::map<std::string, Macro> macros = defaultMacros;
+	std::map<std::string, long double(*)(long double)> funcs_longDouble_longDouble = defaultFuncs_longDouble_longDouble;
+	std::map<std::string, std::string(*)()> funcs_string_void = defaultFuncs_string_void;
+	std::map<std::string, void(*)(int, int, int)> funcs_void_int3 = defaultFuncs_void_int3;
+
 	std::stack<std::string> varsBeingDefined;
-	template<class T> void setSymbol(std::unordered_map<std::string, T>& hashTable, std::string newName, T newSymbol);
+	template<class T> void setSymbol(std::map<std::string, T>& hashTable, std::string newName, T newSymbol);
 	bool getSymbolValue(std::string& input, int alphaPos, int alphaSize);
-	std::vector<std::string> readArgs(std::string& input, int pos);
-	std::string get_Vars_and_Macros();
-
-	// functions for the user to call
-	std::string help();
+	bool getVarValue(std::string& input, int pos, int size);
+	bool callMacro(std::string& input, int pos, int size);
+	bool callFunction(std::string& input, int pos, int size);
+	
+	std::string help_varsAndMacros();
+	std::string helpAll();
 	std::string help(std::string);
 	void setprecision(int);
-	std::string random();
+
+	// function adapters // TODO: move these to a different file after creating a Functions class?
+	void call(long double(*funcPtr)(long double), std::string& input, int pos, int size);
+	void call(std::string(*funcPtr)(), std::string& input, int pos, int size);
+	void call(void(*funcPtr)(int, int, int), std::string& input, int pos, int size);
+
+	// adapter library // TODO: move these to a different file after creating a Functions class?
+	void cleanForNoArgs(std::string& input, std::string name, int argPos);
+	std::vector<std::string> splitArgString(std::string& input, int argPos);
+	template <class T, class ...Ts> std::vector<std::string> splitArgs(std::string& input, int pos, int size);
+	void evalArgs(std::vector<std::string>& args);
+	void insertFunctionResult(std::string& input, int pos, int size, std::string result);
 };
