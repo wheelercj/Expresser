@@ -1,8 +1,4 @@
 #include "Calc.h"
-#include "Debug.hpp"
-#include "FunctionAdapters.hpp"
-#include <vector>
-#include <sstream>
 
 Calc::Calc()
 {
@@ -11,26 +7,27 @@ Calc::Calc()
 Calc::Calc(int newPrecision)
 {
 	finalPrecision = newPrecision;
-	Precision = finalPrecision + 5;
+	precision = finalPrecision + 5;
 }
 
 Calc::Calc(Calc* other)
 {
+	finalPrecision = other->finalPrecision + 5;
+	precision = other->precision + 5;
 	vars = other->vars;
 	macros = other->macros;
-	funcs = other->funcs;
-	finalPrecision = other->finalPrecision;
-	Precision = other->Precision;
+	funcs_longDouble_longDouble = other->funcs_longDouble_longDouble;
+	funcs_string_void = other->funcs_string_void;
 }
 
-std::string Calc::calc(std::string input)
+std::string Calc::operator()(std::string input)
 {
-	std::string result = _calc(input);
+	std::string result = calc(input);
 	formatOutput(result, finalPrecision);
 	return result;
 }
 
-std::string Calc::_calc(std::string input)
+std::string Calc::calc(std::string input)
 {
 	std::string result;
 	bool assigning = false;
@@ -55,6 +52,7 @@ std::string Calc::_calc(std::string input)
 
 		if (assigning)
 			return "";
+		setSymbol<double>(vars, "ans", stold(result));
 	}
 	catch (const char* error)
 	{
@@ -74,92 +72,10 @@ std::string Calc::_calc(std::string input)
 
 void Calc::resetSymbols()
 {
-	vars = Symbols::defaultVars;
-	macros = Symbols::defaultMacros;
-	funcs = Symbols::defaultFuncs;
-}
-
-bool Calc::isNum(char ch)
-{
-	if (ch >= '0' && ch <= '9' || ch == '.')
-		return true;
-	return false;
-}
-
-bool Calc::isAlpha(char ch)
-{
-	ch = tolower(ch);
-	if (ch >= 'a' && ch <= 'z' || ch == '_')
-		return true;
-	return false;
-}
-
-bool Calc::isOp(char ch)
-{
-	std::string validOps = "()^*/+-!%<>=";
-	if (validOps.find(ch) != std::string::npos)
-		return true;
-	return false;
-}
-
-// check for multiple operators or periods next to each other
-void Calc::validateInput(std::string& input)
-{
-	for (int i = 1; i < input.size(); i++)
-	{
-		char ch1 = input[i - 1],
-			ch2 = input[i];
-
-		if (ch1 == '.' && ch2 == '.')
-			throw LOG("Invalid syntax: periods next to each other");
-		else if (isOp(ch2) && ch2 != '-' && ch2 != '(' && ch2 != ')' && ch2 != '=')
-		{
-			if (isOp(ch1) && ch1 != ')' && (ch1 != '!' || ch1 == '!' && ch2 == '!' && i < input.size() - 1 && input[i + 1] != '='))
-			{
-				std::string message = "Invalid syntax: ";
-				message += ch1;
-				message += ch2;
-				throw LOG(message);
-			}
-		}
-	}
-}
-
-void Calc::formatOutput(std::string& str, int precision)
-{
-	// adjust output precision
-	std::stringstream ss;
-	ss.setf(std::ios::fixed);
-	ss.precision(precision);
-
-	try
-	{
-		ss << stold(str);
-		str = ss.str();
-
-		// remove any trailing zeros
-		for (int i = str.size() - 1; i > 0; i--)
-		{
-			if (str[i] == '0')
-				str.erase(i, 1);
-			else if (str[i] == '.')
-			{
-				str.erase(i, 1);
-				break;
-			}
-			else
-				break;
-		}
-	}
-	catch (std::invalid_argument)
-	{
-		LOG("Caught an invalid argument error");
-	}
-
-	if (str == "inf")
-		str = LOG("Infinity");
-	else if (str == "-0")
-		str = "0";
+	vars = defaultVars;
+	macros = defaultMacros;
+	funcs_longDouble_longDouble = defaultFuncs_longDouble_longDouble;
+	funcs_string_void = defaultFuncs_string_void;
 }
 
 // search for and handle any assignment operator(s)
@@ -198,49 +114,6 @@ void Calc::assignmentFormat(std::string& input)
 	}
 }
 
-// returns zero if the symbol is a variable
-int Calc::findMacroNameSize(std::string& input, int eqPos)
-{
-	bool alphaFound = false;
-	bool spaceAfterAlpha = false;
-
-	for (int i = 0; i < eqPos; i++)
-	{
-		if (isAlpha(input[i]))
-		{
-			alphaFound = true;
-			if (spaceAfterAlpha)
-				throw LOG("Invalid space before assignment operator");
-		}
-		else if (input[i] == ' ')
-		{
-			if (alphaFound)
-				spaceAfterAlpha = true;
-		}
-		else if (input[i] == '(')
-		{
-			if (spaceAfterAlpha)
-				throw LOG("Invalid space before parameter(s)");
-			if (!alphaFound)
-				throw LOG("Missing symbol name before assignment operator");
-
-			return i;
-			break;
-		}
-		else
-		{
-			std::string message = "Invalid character before assignment operator: ";
-			message += input[i];
-			throw LOG(message);
-		}
-	}
-
-	if (!alphaFound)
-		throw LOG("Missing symbol name before assignment operator");
-
-	return 0;
-}
-
 void Calc::readSymbolDefinition(std::string& input, int eqPos, int macroNameSize)
 {
 	if (!macroNameSize) // then a variable is being defined
@@ -271,65 +144,6 @@ void Calc::readSymbolDefinition(std::string& input, int eqPos, int macroNameSize
 	}
 }
 
-std::vector<std::string> Calc::readParams(std::string str)
-{
-	std::vector<std::string> params;
-	bool alphaFound = false;
-	bool spaceAfterAlpha = false;
-	for (int i = 0, j = 1; i < str.size(); i++)
-	{
-		if (isAlpha(str[i]))
-		{
-			alphaFound = true;
-			if (spaceAfterAlpha)
-				throw LOG("Invalid space in parameter name");
-		}
-		else if (str[i] == ' ')
-		{
-			if (alphaFound)
-				spaceAfterAlpha = true;
-		}
-		else if (str[i] == ',' || str[i] == ')')
-		{
-			std::string param = str.substr(j, i - j);
-			if (param == "")
-				throw LOG("Invalid syntax: unnamed parameter");
-			params.push_back(param);
-			j = i + 1;
-			alphaFound = false;
-			spaceAfterAlpha = false;
-
-			if (str[i] == ')')
-				break;
-		}
-		else if (isOp(str[i]))
-		{
-			if (str[i] != '(' || i > 0)
-			{
-				std::string message = "Invalid character in parameter list: ";
-				message += str[i];
-				throw LOG(message);
-			}
-		}
-		else
-		{
-			std::string message = "Invalid character in parameter list: ";
-			message += str[i];
-			throw LOG(message);
-		}
-	}
-
-	return params;
-}
-
-void Calc::removeEdgeSpaces(std::string& str)
-{
-	while (str[0] == ' ')
-		str.erase(0, 1);
-	while (str[str.size() - 1] == ' ')
-		str.erase(str.size() - 1, 1);
-}
-
 // read the input string and determine what to do with each part of it
 std::string Calc::evaluate(std::string input)
 {
@@ -337,28 +151,14 @@ std::string Calc::evaluate(std::string input)
 		temp = "";
 	lastTypePushed = NONE;
 
-	for (int i = 0; i < input.size();) // the index is incremented when value(s) are pushed onto a stack
+	for (int i = 0; i < input.size();)
 	{
 		if (isNum(input[i]))
-		{
-			if (lastTypePushed == NUM)
-				input.insert(i, "*");
-			else
-			{
-				int numSize = getNumSize(input.substr(i, input.size() - i));
-				nums.push(stold(input.substr(i, numSize)));
-				i += numSize;
-				lastTypePushed = NUM;
-			}
-		}
+			readNum(input, i);
 		else if (input[i] == ' ')
 			i++;
 		else if (isAlpha(input[i]))
-		{
-			int alphaSize = getAlphaSize(input.substr(i, input.size() - i));
-			if (!getSymbolValue(input, i, alphaSize))
-				throw LOG("Undefined alpha character(s)");
-		}
+			readAlpha(input, i);
 		else if (isOp(input[i]))
 			readOp(input, i);
 		else
@@ -380,20 +180,166 @@ std::string Calc::evaluate(std::string input)
 
 	while (!ops.empty())
 		pop();
-	while (nums.size() > 1) // remaining numbers will be multiplied together
+	while (nums.size() > 1) // remaining numbers are multiplied together
 		pop();
 
 	std::stringstream ss;
 	ss.setf(std::ios::fixed);
-	ss.precision(Precision);
+	ss.precision(precision);
 	ss << nums.top();
 	result = ss.str();
-	setSymbol<double>(vars, "ans", stold(result));
 	return result;
 }
 
-// pop and evaluate number(s) and/or operator(s)
-void Calc::pop() // TODO: break this function up
+void Calc::readNum(std::string& input, int& pos)
+{
+	if (lastTypePushed == NUM)
+		input.insert(pos, "*");
+	else
+	{
+		int numSize = getNumSize(input.substr(pos, input.size() - pos));
+		nums.push(stold(input.substr(pos, numSize)));
+		pos += numSize;
+		lastTypePushed = NUM;
+	}
+}
+
+void Calc::readAlpha(std::string& input, int& pos)
+{
+	int alphaSize = getAlphaSize(input.substr(pos, input.size() - pos));
+	if (!getSymbolValue(input, pos, alphaSize))
+	{
+		std::string message = "Undefined character";
+		if (alphaSize != 1)
+			message += "s";
+		message += ": ";
+		message += input.substr(pos, alphaSize);
+		throw LOG(message);
+	}
+}
+
+void Calc::readOp(std::string& input, int& pos)
+{
+	int opSize = getOpSize(input.substr(pos, input.size() - pos));
+	std::string newOp = input.substr(pos, opSize);
+
+	if (ops.empty() && newOp != ")")
+		pushFirstOperator(pos, newOp, opSize);
+	else
+		pushOperator(input, pos, newOp, opSize);
+}
+
+void Calc::pushFirstOperator(int& pos, std::string newOp, int opSize)
+{
+	if (newOp == "-")
+	{
+		if (lastTypePushed == NONE)
+			ops.push("negate");
+		else
+			ops.push("subtract");
+		lastTypePushed = OP;
+	}
+	else if (nums.empty() && newOp == "!")
+		throw LOG("Error: expected an operand before the factorial operator");
+	else
+	{
+		ops.push(newOp);
+		lastTypePushed = OP;
+	}
+
+	pos += opSize;
+}
+
+void Calc::pushOperator(std::string input, int& pos, std::string newOp, int opSize)
+{
+	if (newOp == "(")
+		pushOpenParenthesis(input, pos);
+	else if (newOp == ")")
+	{
+		while (!ops.empty() && ops.top() != "(")
+			pop();
+		if (ops.empty())
+			throw LOG("Error: missing an opening parenthesis");
+		pop();
+		pos++;
+	}
+	else if (newOp == "!" || newOp == "*" || newOp == "/" || newOp == "+"
+		|| newOp == "%" || newOp == "==" || newOp == ">=" || newOp == "<="
+		|| newOp == "!=" || newOp == ">" || newOp == "<")
+	{
+		if (hasPrecedence(newOp, ops.top()))
+		{
+			ops.push(newOp);
+			pos += opSize;
+			lastTypePushed = OP;
+		}
+		else
+			pop();
+	}
+	else if (newOp == "^")
+	{
+		if (ops.top() == "^" || hasPrecedence(newOp, ops.top()))
+		{
+			ops.push(newOp);
+			pos += opSize;
+			lastTypePushed = OP;
+		}
+		else
+			pop();
+	}
+	else if (newOp == "-")
+		pushMinus(pos);
+	else
+	{
+		std::string message = "Undefined operator: ";
+		message += newOp;
+		throw LOG(message);
+	}
+}
+
+void Calc::pushOpenParenthesis(std::string input, int& pos)
+{
+	if (pos > 0 && lastTypePushed == NUM)
+	{
+		if (ops.top() == "^" || ops.top() == "*" || ops.top() == "/")
+			pop();
+		else
+		{
+			ops.push("*");
+			ops.push(input.substr(pos, 1));
+			pos++;
+			lastTypePushed = OP;
+		}
+	}
+	else
+	{
+		ops.push("(");
+		pos++;
+		lastTypePushed = OP;
+	}
+}
+
+void Calc::pushMinus(int& pos)
+{
+	std::string newOp;
+
+	if (lastTypePushed == NONE || lastTypePushed == OP)
+		newOp = "negate";
+	else
+		newOp = "subtract";
+
+	if (newOp == "negate" || hasPrecedence(newOp, ops.top()))
+	{
+		ops.push(newOp);
+		pos++;
+		lastTypePushed = OP;
+	}
+	else
+		pop();
+}
+
+// pop and evaluate numbers and operators
+void Calc::pop()
 {
 	if (nums.empty())
 		throw LOG("Error: not enough operands for the given operators");
@@ -403,52 +349,60 @@ void Calc::pop() // TODO: break this function up
 		op = "*";
 	else
 	{
-		if (ops.top() == "(")
-		{
-			ops.pop();
+		if (handleUnaryOp())
 			return;
-		}
-		else if (ops.top() == "negate")
-		{
-			double temp = nums.top();
-			nums.pop();
-			temp *= -1;
-			nums.push(temp);
-			ops.pop();
-			return;
-		}
-		else if (ops.top() == "!")
-		{
-			double n = nums.top(),
-				total = 1,
-				temp = n;
-			nums.pop();
-
-			if (n < 0)
-				throw "Complex infinity";
-			while (temp > 1)
-				temp -= 1;
-			if (temp < 1 && temp > 0)
-				throw "Undefined";
-			else if (n == 0)
-				total = 1; // 0!=1 by convention
-			else
-			{
-				for (int i = n; i > 1; i--)
-					total *= i;
-			}
-
-			nums.push(total);
-			ops.pop();
-			return;
-		}
-		else
-		{
-			op = ops.top();
-			ops.pop();
-		}
+		op = ops.top();
+		ops.pop();
 	}
 
+	handleBinaryOp(op);
+}
+
+bool Calc::handleUnaryOp()
+{
+	if (ops.top() == "(")
+	{
+		ops.pop();
+		return true;
+	}
+	else if (ops.top() == "negate")
+	{
+		double temp = nums.top();
+		nums.pop();
+		temp *= -1;
+		nums.push(temp);
+		ops.pop();
+		return true;
+	}
+	else if (ops.top() == "!")
+	{
+		double n = nums.top(),
+			total = 1,
+			temp = n;
+		nums.pop();
+
+		if (n < 0)
+			throw "Complex infinity";
+		while (temp > 1)
+			temp -= 1;
+		if (temp < 1 && temp > 0)
+			throw "Undefined";
+		else if (n == 0)
+			total = 1; // 0!=1 by convention
+		else
+		{
+			for (int i = n; i > 1; i--)
+				total *= i;
+		}
+
+		nums.push(total);
+		ops.pop();
+		return true;
+	}
+}
+
+void Calc::handleBinaryOp(std::string op)
+{
 	if (nums.size() == 1)
 		throw LOG("Error: not enough operands for the given operators");
 
@@ -507,200 +461,14 @@ void Calc::pop() // TODO: break this function up
 	}
 }
 
-int Calc::getNumSize(std::string str)
-{
-	bool periodFound = false;
-	for (int i = 0; i < str.size(); i++)
-	{
-		if (str[i] == '.')
-		{
-			if (periodFound)
-				throw LOG("Error: multiple periods in one number");
-			if (str.size() == 1)
-				throw LOG("Invalid use of a period");
-
-			periodFound = true;
-		}
-		else if (!isNum(str[i]))
-		{
-			if (i == 1 && str[0] == '.')
-				throw LOG("Invalid use of a period");
-
-			return i;
-		}
-	}
-
-	return str.size();
-}
-
-int Calc::getAlphaSize(std::string str)
-{
-	int i = 1;
-	for (; i < str.size(); i++)
-	{
-		if (!isAlpha(str[i]))
-			break;
-	}
-
-	return i;
-}
-
-int Calc::getOpSize(std::string str)
-{
-	if (str.size() > 1)
-	{
-		if (str[0] == '!' || str[0] == '=' || str[0] == '>' || str[0] == '<')
-		{
-			if (str[1] == '=' && !(str.size() > 2 && str[2] == '='))
-				return 2;
-		}
-	}
-
-	return 1;
-}
-
-void Calc::readOp(std::string input, int& pos) // TODO: break this function up
-{
-	int opSize = getOpSize(input.substr(pos, input.size() - pos));
-	std::string newOp = input.substr(pos, opSize);
-
-	if (ops.empty())
-	{
-		if (newOp == "-")
-		{
-			if (lastTypePushed == NONE)
-				ops.push("negate");
-			else
-				ops.push("subtract");
-			lastTypePushed = OP;
-		}
-		else if (nums.empty() && newOp == "!")
-			throw LOG("Error: not enough operands for the given operators");
-		else
-		{
-			ops.push(newOp);
-			lastTypePushed = OP;
-		}
-
-		pos += opSize;
-	}
-	else // if (!ops.empty())
-	{
-		if (newOp == "(")
-		{
-			if (pos > 0 && lastTypePushed == NUM)
-			{
-				if (ops.top() == "^" || ops.top() == "*" || ops.top() == "/")
-					pop();
-				else
-				{
-					ops.push("*");
-					ops.push(input.substr(pos, 1));
-					pos++;
-					lastTypePushed = OP;
-				}
-			}
-			else
-			{
-				ops.push(newOp);
-				pos++;
-				lastTypePushed = OP;
-			}
-		}
-		else if (newOp == ")")
-		{
-			while (!ops.empty() && ops.top() != "(")
-				pop();
-			if (ops.empty())
-				throw LOG("Error: missing opening parenthesis");
-			pop();
-			pos++;
-		}
-		else if (newOp == "!" || newOp == "*" || newOp == "/" || newOp == "+"
-			|| newOp == "%" || newOp == "==" || newOp == ">=" || newOp == "<="
-			|| newOp == "!=" || newOp == ">" || newOp == "<")
-		{
-			if (hasPrecedence(newOp))
-			{
-				ops.push(newOp);
-				pos += opSize;
-				lastTypePushed = OP;
-			}
-			else
-				pop();
-		}
-		else if (newOp == "^")
-		{
-			if (ops.top() == "^" || hasPrecedence(newOp))
-			{
-				ops.push(newOp);
-				pos += opSize;
-				lastTypePushed = OP;
-			}
-			else
-				pop();
-		}
-		else if (newOp == "-")
-		{
-			if (lastTypePushed == NONE || lastTypePushed == OP)
-				newOp = "negate";
-			else
-				newOp = "subtract";
-
-			if (newOp == "negate" || hasPrecedence(newOp))
-			{
-				ops.push(newOp);
-				pos++;
-				lastTypePushed = OP;
-			}
-			else
-				pop();
-		}
-		else
-		{
-			std::string message = "Undefined operator: ";
-			message += newOp;
-			throw LOG(message);
-		}
-	}
-}
-
-bool Calc::hasPrecedence(std::string op1)
-{
-	std::string op2 = ops.top();
-	std::vector<std::string> order = { "!", "^", "negate", "*", "+", "%", "==", "(" };
-
-	// Replace some ops with others locally so that the order vector does not imply
-	// that some ops with the same precedence have different precedences.
-	if (op1 == "/")
-		op1 = "*";
-	else if (op1 == "subtract")
-		op1 = "+";
-	else if (op1 == ">=" || op1 == "<=" || op1 == "!=" || op1 == ">" || op1 == "<")
-		op1 = "==";
-	if (op2 == "/")
-		op2 = "*";
-	else if (op2 == "subtract")
-		op2 = "+";
-	else if (op2 == ">=" || op2 == "<=" || op2 == "!=" || op2 == ">" || op2 == "<")
-		op2 = "==";
-
-	for (int i = 0; i < order.size(); i++)
-	{
-		if (order[i] == op2)
-			return false;
-		if (order[i] == op1)
-			return true;
-	}
-}
-
 template<class T>
-void Calc::setSymbol(std::unordered_map<std::string, T>& hashTable, std::string newName, T newSymbol)
+void Calc::setSymbol(std::map<std::string, T>& hashTable, std::string newName, T newSymbol)
 {
 	// erase any existing symbol with the given name
 	vars.erase(newName);
 	macros.erase(newName);
-	funcs.erase(newName);
+	funcs_longDouble_longDouble.erase(newName);
+	funcs_string_void.erase(newName);
 	
 	hashTable.emplace(newName, newSymbol);
 }
@@ -725,7 +493,7 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 				return true;
 			if (callMacro(input, pos, size))
 				return true;
-			if (findFunction(input, pos, size))
+			if (callFunction(input, pos, size))
 				return true;
 		}
 	}
@@ -738,14 +506,14 @@ bool Calc::getVarValue(std::string& input, int pos, int size)
 {
 	std::string substr = input.substr(pos, size);
 
-	std::unordered_map<std::string, double>::iterator it = vars.find(substr);
+	std::map<std::string, double>::iterator it = vars.find(substr);
 	if (it != vars.end())
 	{
 		// replace the variable name with its value
 		input.erase(pos, size);
 		std::stringstream ss;
 		ss.setf(std::ios::fixed);
-		ss.precision(Precision);
+		ss.precision(precision);
 		ss << " " << it->second << " ";
 		input.insert(pos, ss.str());
 		return true;
@@ -758,17 +526,17 @@ bool Calc::callMacro(std::string& input, int pos, int size)
 {
 	std::string name = input.substr(pos, size);
 
-	std::unordered_map<std::string, Macro>::iterator it = macros.find(name);
+	std::map<std::string, Macro>::iterator it = macros.find(name);
 	if (it != macros.end())
 	{
-		std::vector<std::string> args = splitStrArgs(input, pos + size);
+		std::vector<std::string> args = splitArgString(input, pos + size);
 		input.erase(pos, size);
 
 		if (it->first == "help")
 		{
 			if (args.size() && args[0] != "")
 				throw help(args[0]);
-			throw help();
+			throw helpAll();
 		}
 		if (it->first == "setprecision")
 		{
@@ -778,10 +546,8 @@ bool Calc::callMacro(std::string& input, int pos, int size)
 				throw "";
 			}
 			else
-				throw LOG("setprecision requires one argument");
+				throw LOG("Function setprecision requires one argument");
 		}
-		if (it->first == "rand")
-			throw random();
 
 		if (args.size() != it->second.getParamVect().size())
 		{
@@ -794,21 +560,7 @@ bool Calc::callMacro(std::string& input, int pos, int size)
 			throw LOG(message);
 		}
 
-		// evaluate each argument
-		Calc c2(this);
-		for (int i = 0; i < args.size(); i++)
-		{
-			args[i] = c2._calc(args[i]);
-
-			// rethrow messages
-			if (args[i] == "")
-				throw LOG("Invalid syntax");
-			for (int j = 0; j < args[i].size(); j++)
-			{
-				if (isAlpha(args[i][j]))
-					throw LOG(args[i]);
-			}
-		}
+		evalArgs(args);
 
 		// expand the macro and insert its return value
 		input.insert(pos, " " + it->second(args) + " ");
@@ -818,14 +570,29 @@ bool Calc::callMacro(std::string& input, int pos, int size)
 	return false;
 }
 
-bool Calc::findFunction(std::string& input, int pos, int size)
+bool Calc::callFunction(std::string& input, int pos, int size)
 {
 	std::string name = input.substr(pos, size);
 
-	std::unordered_map<std::string, long double(*)(long double)>::iterator it = funcs.find(name);
-	if (it != funcs.end())
+	// TODO: make this less repetitive after creating a Functions class
+	std::map<std::string, long double(*)(long double)>::iterator it = funcs_longDouble_longDouble.find(name);
+	if (it != funcs_longDouble_longDouble.end())
 	{
-		call_longDouble_longDouble(it->second, input, pos, size);
+		call(it->second, input, pos, size);
+		return true;
+	}
+
+	std::map<std::string, std::string(*)()>::iterator it2 = funcs_string_void.find(name);
+	if (it2 != funcs_string_void.end())
+	{
+		call(it2->second, input, pos, size);
+		return true;
+	}
+
+	std::map<std::string, void(*)(int, int, int)>::iterator it3 = funcs_void_int3.find(name);
+	if (it3 != funcs_void_int3.end())
+	{
+		call(it3->second, input, pos, size);
 		return true;
 	}
 
@@ -833,12 +600,12 @@ bool Calc::findFunction(std::string& input, int pos, int size)
 }
 
 // throw info about all symbols
-std::string Calc::help()
+std::string Calc::helpAll()
 {
 	std::string message = "";
 
 	message += "\n Variables:";
-	std::unordered_map<std::string, double>::iterator it;
+	std::map<std::string, double>::iterator it;
 	for (it = vars.begin(); it != vars.end(); it++)
 	{
 		std::stringstream ss;
@@ -852,17 +619,31 @@ std::string Calc::help()
 	}
 
 	message += "\n Functions:\t";
-	std::unordered_map<std::string, long double(*)(long double)>::iterator it3;
+	// TODO: make this less repetitive after creating a Functions class
+	std::map<std::string, long double(*)(long double)>::iterator it3;
 	int i = 0;
-	for (it3 = funcs.begin(); it3 != funcs.end(); it3++, i++)
+	for (it3 = funcs_longDouble_longDouble.begin(); it3 != funcs_longDouble_longDouble.end(); it3++, i++)
 	{
 		if (i % 10 == 0)
 			message += "\n\t";
 		message += it3->first + ", ";
 	}
+	std::map<std::string, std::string(*)()>::iterator it4;
+	for (it4 = funcs_string_void.begin(); it4 != funcs_string_void.end(); it4++, i++)
+	{
+		if (i % 10 == 0)
+			message += "\n\t";
+		message += it4->first + ", ";
+	}
+	std::map<std::string, void(*)(int, int, int)>::iterator it5;
+	for (it5 = funcs_void_int3.begin(); it5 != funcs_void_int3.end(); it5++, i++)
+	{
+		if (i % 10 == 0)
+			message += "\n\t";
+		message += it5->first + ", ";
+	}
 
-	message += "\n Macros:";
-	std::unordered_map<std::string, Macro>::iterator it2;
+	std::map<std::string, Macro>::iterator it2;
 	for (it2 = macros.begin(); it2 != macros.end(); it2++)
 		message += "\n\t " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFormula();
 
@@ -874,7 +655,7 @@ std::string Calc::help(std::string name)
 {
 	std::string message = "";
 
-	std::unordered_map<std::string, double>::iterator it = vars.find(name);
+	std::map<std::string, double>::iterator it = vars.find(name);
 	if (it != vars.end())
 	{
 		std::stringstream ss;
@@ -888,15 +669,24 @@ std::string Calc::help(std::string name)
 		throw message;
 	}
 
-	std::unordered_map<std::string, Macro>::iterator it2 = macros.find(name);
+	std::map<std::string, Macro>::iterator it2 = macros.find(name);
 	if (it2 != macros.end())
 	{
-		message += "Macro " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFormula();
+		message += "Function " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFormula();
 		throw message;
 	}
 
-	std::unordered_map<std::string, long double(*)(long double)>::iterator it3 = funcs.find(name);
-	if (it3 != funcs.end())
+	// TODO: make this less repetitive after creating a Functions class
+	std::map<std::string, long double(*)(long double)>::iterator it3 = funcs_longDouble_longDouble.find(name);
+	if (it3 != funcs_longDouble_longDouble.end())
+		throw "C++ Function";
+
+	std::map<std::string, std::string(*)()>::iterator it4 = funcs_string_void.find(name);
+	if (it4 != funcs_string_void.end())
+		throw "C++ Function";
+
+	std::map<std::string, void(*)(int, int, int)>::iterator it5 = funcs_void_int3.find(name);
+	if (it5 != funcs_void_int3.end())
 		throw "C++ Function";
 
 	throw LOG("Undefined character(s)");
@@ -905,16 +695,159 @@ std::string Calc::help(std::string name)
 void Calc::setprecision(int num)
 {
 	finalPrecision = num;
-	Precision = finalPrecision + 5;
+	precision = finalPrecision + 5;
 }
 
-std::string Calc::random()
+void Calc::call(long double(*funcPtr)(long double), std::string& input, int pos, int size)
 {
-	srand((unsigned)time(0));
-	double r = (rand() % 101) / 100.0;
+	std::vector<std::string> args = splitArgs<long double, long double>(input, pos, size);
+	evalArgs(args);
+
 	std::stringstream ss;
+	ss << funcPtr(stold(args[0]));
 	ss.setf(std::ios::fixed);
-	ss.precision(Precision);
-	ss << r;
-	return ss.str();
+	ss.precision(15);
+
+	insertFunctionResult(input, pos, size, ss.str());
+}
+
+void Calc::call(std::string(*funcPtr)(), std::string& input, int pos, int size)
+{
+	cleanForNoArgs(input, input.substr(pos, size), pos + size);
+	insertFunctionResult(input, pos, size, funcPtr());
+}
+
+void Calc::call(void(*funcPtr)(int, int, int), std::string& input, int pos, int size)
+{
+	std::vector<std::string> args = splitArgs<void, int, int, int>(input, pos, size);
+	evalArgs(args);
+	funcPtr(stoi(args[0]), stoi(args[1]), stoi(args[2]));
+}
+
+// Cleans the input string. This is to be called before calculator functions that do not take arguments.
+void Calc::cleanForNoArgs(std::string& input, std::string name, int argPos)
+{
+	if (input[argPos] != '(')
+		throw LOG("Error: expected '(' after function name");
+
+	bool foundArg = false;
+	for (int i = argPos + 1; i < input.size(); i++)
+	{
+		if (input[i] == ')')
+		{
+			if (foundArg)
+			{
+				std::string message = "Error: expected 0 arguments for function " + name;
+				throw LOG(message);
+			}
+
+			input.erase(argPos, i - argPos);
+			return;
+		}
+		else if (input[i] != ' ')
+			foundArg = true;
+	}
+}
+
+std::vector<std::string> Calc::splitArgString(std::string& input, int argPos)
+{
+	int parentheses = 0;
+
+	if (input[argPos] != '(')
+		throw LOG("Error: expected '(' after function name");
+
+	// split the arguments
+	std::vector<std::string> args;
+	for (int j = argPos + 1, k = j, m = j - 1; ; j++)
+	{
+		if (j > input.size())
+			throw LOG("Invalid syntax");
+		if (j == input.size())
+		{
+			args.push_back(input.substr(k, j - k));
+			input.erase(argPos, j - m + 1);
+			break;
+		}
+		if (input[j] == '(')
+			parentheses++;
+		if (input[j] == ')')
+		{
+			if (parentheses)
+				parentheses--;
+			else
+			{
+				args.push_back(input.substr(k, j - k));
+				input.erase(argPos, j - m + 1);
+				break;
+			}
+		}
+		if (input[j] == ',')
+		{
+			args.push_back(input.substr(k, j - k));
+			j++;
+			k = j;
+		}
+	}
+
+	return args;
+}
+
+// splits the args, validates the amount, and deletes them from the input string
+template <class T, class ...Ts>
+std::vector<std::string> Calc::splitArgs(std::string& input, int pos, int size)
+{
+	std::vector<std::string> args = splitArgString(input, pos + size);
+
+	int sizeTs = sizeof...(Ts);
+	if (args.size() != sizeTs)
+	{
+		std::stringstream message;
+		message << "Error: expected " << std::to_string(sizeTs) << " argument";
+		if (sizeTs != 1)
+			message << "s";
+		message << " for function " << input.substr(pos, size);
+		throw LOG(message.str());
+	}
+
+	return args;
+}
+
+void Calc::evalArgs(std::vector<std::string>& args)
+{
+	// evaluate each argument
+	for (int i = 0; i < args.size(); i++)
+	{
+		Calc calc(this); // the new calculator MUST have access to any symbols created by the user
+		args[i] = calc(args[i]);
+
+		// rethrow messages
+		if (args[i] == "")
+			throw LOG("Invalid syntax");
+		for (int j = 0; j < args[i].size(); j++)
+		{
+			if (isAlpha(args[i][j]))
+				throw LOG(args[i]);
+		}
+	}
+}
+
+void Calc::insertFunctionResult(std::string& input, int pos, int size, std::string result)
+{
+	// If the result of a sine call is in scientific notation with
+	// a negative exponent, set the result to zero
+	for (int i = 0; i < result.size(); i++)
+	{
+		if (result[i] == 'e')
+		{
+			if (input.substr(pos, size) == "sin" && i < result.size() - 1 && result[i + 1] == '-')
+				result = "0";
+			else
+				throw LOG("Error: program not yet equipped for scientific notation");
+		}
+	}
+
+	if (result == "-nan(ind)")
+		throw "Imaginary";
+	input.erase(pos, size);
+	input.insert(pos, "(" + result + ")");
 }

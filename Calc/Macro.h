@@ -1,6 +1,6 @@
 #pragma once
 
-#include <string>
+#include "Common.h"
 #include <vector>
 
 class Macro
@@ -15,3 +15,5 @@ public:
 	std::string getParamStr();
 	std::vector<std::string> getParamVect();
 };
+
+int findMacroNameSize(std::string& input, int eqPos);
