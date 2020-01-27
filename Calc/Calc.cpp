@@ -637,6 +637,37 @@ bool Calc::callFunction(std::string& input, int pos, int size)
 	return false;
 }
 
+
+
+
+
+
+//bool callFunction(std::string& input, int pos, int size)
+//{
+//	std::string name = input.substr(pos, size);
+//
+//	for (int i = 0; i < funcs.size(); i++) // where funcs, a member of Functions, is a vector of FuncMaps?
+//	{
+//		
+//	}
+//}
+//
+//template <class T>
+//bool findFunction(std::string& input, int pos, int size, std::string name, std::map<std::string, T> map)
+//{
+//	std::map<std::string, T>::iterator it = map.find(name);
+//	if (it != map.end())
+//	{
+//		call(it->second, input, pos, size);
+//		return true;
+//	}
+//}
+
+
+
+
+
+
 std::string Calc::help_varsAndMacros()
 {
 	std::string message = "";
@@ -890,7 +921,7 @@ void Calc::insertFunctionResult(std::string& input, int pos, int size, std::stri
 		}
 	}
 
-	if (result == "-nan(ind)")
+	if (result == "-nan(ind)" || result == "nan")
 		throw "Imaginary";
 	input.erase(pos, size);
 	input.insert(pos, "(" + result + ")");

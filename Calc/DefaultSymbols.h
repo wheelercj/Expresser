@@ -71,10 +71,10 @@ const std::map<std::string, long double(*)(long double)> defaultFuncs_longDouble
 	{ "atanh", atanh }
 };
 
-std::string random();
+std::string randomNumber();
 const std::map<std::string, std::string(*)()> defaultFuncs_string_void =
 {
-	{ "rand", random }
+	{ "rand", randomNumber }
 };
 
 void quadraticFormula(int a, int b, int c);

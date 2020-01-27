@@ -1,4 +1,4 @@
-#include "DefaultSymbols.h"
+#include "Functions.h"
 
 std::string randomNumber()
 {
@@ -24,4 +24,9 @@ void quadraticFormula(int a, int b, int c)
 	result += " or ";
 	result += std::to_string((-b + n) / (2 * a));
 	throw result;
+}
+
+long double absValue(long double x)
+{
+	return abs(x);
 }
