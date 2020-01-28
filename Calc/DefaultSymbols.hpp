@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Func.h"
 #include "Functions.h"
 #include "Macro.h"
 #include <cmath>
@@ -46,33 +45,33 @@ const std::map<std::string, Macro> defaultMacros =
 	{ "setprecision", {{ "int" }, "Adjust the number of digits displayed in answers" }}
 };
 
-std::map<std::string, std::any> defaultFuncs =
-{// { "name", Func("params", pointer_) },
-	{ "sqrt", Func("x", sqrt_) },
-	{ "cbrt", Func("x", cbrt_) },
-	{ "abs", Func("x", abs_) },
-	{ "log", Func("x", log_) }, // base e
-	{ "round", Func("x", round_) },
-	{ "ceil", Func("x", ceil_) },
-	{ "floor", Func("x", floor_) },
-	{ "erf", Func("x", erf_) }, // the error function
-	{ "erfc", Func("x", erfc_) }, // the complementary error function
-	{ "tgamma", Func("x", tgamma_) }, // the gamma function
-	{ "lgamma", Func("x", lgamma_) }, // the log-gamma function
+const std::map<std::string, std::any> defaultFuncs =
+{
+	{ "sqrt", sqrt_ },
+	{ "cbrt", cbrt_ },
+	{ "abs", abs_ },
+	{ "log", log_ }, // base e
+	{ "round", round_ },
+	{ "ceil", ceil_ },
+	{ "floor", floor_ },
+	{ "erf", erf_ }, // the error function
+	{ "erfc", erfc_ }, // the complementary error function
+	{ "tgamma", tgamma_ }, // the gamma function
+	{ "lgamma", lgamma_ }, // the log-gamma function
 
-	{ "sin", Func("x", sin_) },
-	{ "cos", Func("x", cos_) },
-	{ "tan", Func("x", tan_) },
-	{ "asin", Func("x", asin_) },
-	{ "acos", Func("x", acos_) },
-	{ "atan", Func("x", atan_) },
-	{ "sinh", Func("x", sinh_) },
-	{ "cosh", Func("x", cosh_) },
-	{ "tanh", Func("x", tanh_) },
-	{ "asinh", Func("x", asinh_) },
-	{ "acosh", Func("x", acosh_) },
-	{ "atanh", Func("x", atanh_) },
+	{ "sin", sin_ },
+	{ "cos", cos_ },
+	{ "tan", tan_ },
+	{ "asin", asin_ },
+	{ "acos", acos_ },
+	{ "atan", atan_ },
+	{ "sinh", sinh_ },
+	{ "cosh", cosh_ },
+	{ "tanh", tanh_ },
+	{ "asinh", asinh_ },
+	{ "acosh", acosh_ },
+	{ "atanh", atanh_ },
 
-	{ "rand", Func("", randomNumber) },
-	{ "quad", Func("a,b,c", quadraticFormula) }
+	{ "rand", randomNumber },
+	{ "quad", quadraticFormula }
 };

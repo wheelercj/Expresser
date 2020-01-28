@@ -2,8 +2,8 @@
 #include "CppUnitTest.h"
 #include "../Calc/Calc.cpp"
 #include "../Calc/Macro.cpp"
-#include "../Calc/DefaultSymbols.cpp"
 #include "../Calc/Common.cpp"
+#include "../Calc/Functions.cpp"
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 // The test methods within each test class run in alphabetical order. They can affect each other.

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DefaultSymbols.h"
+#include "DefaultSymbols.hpp"
 #include <stack>
 
 class Calc
@@ -13,6 +13,8 @@ public:
 	std::string operator()(std::string input);
 	std::string calc(std::string input);
 	void resetSymbols();
+	void setPrecision(int num);
+	int getPrecision();
 private:
 	int finalPrecision = 5;
 	int precision = finalPrecision + 5;
@@ -39,25 +41,24 @@ private:
 	std::map<std::string, double> vars = defaultVars;
 	std::map<std::string, Macro> macros = defaultMacros;
 	std::map<std::string, std::any> funcs = defaultFuncs;
-
 	std::stack<std::string> varsBeingDefined;
 	template<class T> void setSymbol(std::map<std::string, T>& hashTable, std::string newName, T newSymbol);
 	bool getSymbolValue(std::string& input, int alphaPos, int alphaSize);
-	bool getVarValue(std::string& input, int pos, int size);
+	bool callVariable(std::string& input, int pos, int size);
 	bool callMacro(std::string& input, int pos, int size);
 	bool callFunction(std::string& input, int pos, int size);
+	void resolveFunction(std::any func, std::string& input, int pos, int size);
 	
 	std::string help_varsAndMacros();
-	std::string helpAll();
+	std::string help_all();
 	std::string help(std::string);
-	void setprecision(int);
 
-	// function adapters // TODO: move these to a different file after creating a Functions class?
+	// function adapters
 	void call(long double(*funcPtr)(long double), std::string& input, int pos, int size);
 	void call(std::string(*funcPtr)(), std::string& input, int pos, int size);
 	void call(void(*funcPtr)(int, int, int), std::string& input, int pos, int size);
 
-	// adapter library // TODO: move these to a different file after creating a Functions class?
+	// adapter library
 	void cleanForNoArgs(std::string& input, std::string name, int argPos);
 	std::vector<std::string> splitArgString(std::string& input, int argPos);
 	template <class T, class ...Ts> std::vector<std::string> splitArgs(std::string& input, int pos, int size);

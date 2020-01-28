@@ -109,6 +109,17 @@ void Calc::resetSymbols()
 	funcs = defaultFuncs;
 }
 
+void Calc::setPrecision(int num)
+{
+	finalPrecision = num;
+	precision = finalPrecision + 5;
+}
+
+int Calc::getPrecision()
+{
+	return precision;
+}
+
 // search for and handle any assignment operator(s)
 void Calc::assignmentFormat(std::string& input)
 {
@@ -243,8 +254,7 @@ void Calc::readAlpha(std::string& input, int& pos)
 		std::string message = "Undefined character";
 		if (alphaSize != 1)
 			message += "s";
-		message += ": ";
-		message += input.substr(pos, alphaSize);
+		message += ": " + input.substr(pos, alphaSize);
 		throw LOG(message);
 	}
 }
@@ -321,11 +331,7 @@ void Calc::pushOperator(std::string input, int& pos, std::string newOp, int opSi
 	else if (newOp == "-")
 		pushMinus(pos);
 	else
-	{
-		std::string message = "Undefined operator: ";
-		message += newOp;
-		throw LOG(message);
-	}
+		throw LOG("Undefined operator: " + newOp);
 }
 
 void Calc::pushOpenParenthesis(std::string input, int& pos)
@@ -485,11 +491,7 @@ void Calc::handleBinaryOp(std::string op)
 	else if (op == "<")
 		nums.push(num1 < num2);
 	else
-	{
-		std::string message = "Undefined operator: ";
-		message += op;
-		throw LOG(message);
-	}
+		throw LOG("Undefined operator: " + op);
 }
 
 template<class T>
@@ -498,8 +500,7 @@ void Calc::setSymbol(std::map<std::string, T>& hashTable, std::string newName, T
 	// erase any existing symbol with the given name
 	vars.erase(newName);
 	macros.erase(newName);
-	funcs_longDouble_longDouble.erase(newName);
-	funcs_string_void.erase(newName);
+	funcs.erase(newName);
 	
 	hashTable.emplace(newName, newSymbol);
 }
@@ -520,7 +521,7 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 		// for each substring position of the alpha string
 		for (int pos = alphaPos; pos + size <= alphaPos + alphaSize; pos++)
 		{
-			if (getVarValue(input, pos, size))
+			if (callVariable(input, pos, size))
 				return true;
 			if (callMacro(input, pos, size))
 				return true;
@@ -533,7 +534,7 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 	return false;
 }
 
-bool Calc::getVarValue(std::string& input, int pos, int size)
+bool Calc::callVariable(std::string& input, int pos, int size)
 {
 	std::string substr = input.substr(pos, size);
 
@@ -567,13 +568,13 @@ bool Calc::callMacro(std::string& input, int pos, int size)
 		{
 			if (args.size() && args[0] != "")
 				throw help(args[0]);
-			throw helpAll();
+			throw help_all();
 		}
 		if (it->first == "setprecision")
 		{
 			if (args.size() == 1)
 			{
-				setprecision(stold(args[0]));
+				setPrecision(stold(args[0]));
 				throw "";
 			}
 			else
@@ -582,10 +583,9 @@ bool Calc::callMacro(std::string& input, int pos, int size)
 
 		if (args.size() != it->second.getParamVect().size())
 		{
-			std::string message = "Error: expected "
-				+ std::to_string(it->second.getParamVect().size())
-				+ " argument";
-			if (it->second.getParamVect().size() != 1)
+			int paramCount = it->second.getParamVect().size();
+			std::string message = "Error: expected " + std::to_string(paramCount) + " argument";
+			if (paramCount != 1)
 				message += "s";
 			message += " for function " + it->first;
 			throw LOG(message);
@@ -608,43 +608,31 @@ bool Calc::callFunction(std::string& input, int pos, int size)
 	std::map<std::string, std::any>::iterator it = funcs.find(name);
 	if (it != funcs.end())
 	{
-		call(std::any_cast<TYPE>(it->second), input, pos, size);
+		resolveFunction(it->second, input, pos, size);
 		return true;
 	}
 
 	return false;
 }
 
-
-
-
-
-
-//bool callFunction(std::string& input, int pos, int size)
-//{
-//	std::string name = input.substr(pos, size);
-//
-//	for (int i = 0; i < funcs.size(); i++) // where funcs, a member of Functions, is a vector of FuncMaps?
-//	{
-//		
-//	}
-//}
-//
-//template <class T>
-//bool findFunction(std::string& input, int pos, int size, std::string name, std::map<std::string, T> map)
-//{
-//	std::map<std::string, T>::iterator it = map.find(name);
-//	if (it != map.end())
-//	{
-//		call(it->second, input, pos, size);
-//		return true;
-//	}
-//}
-
-
-
-
-
+void Calc::resolveFunction(std::any func, std::string& input, int pos, int size)
+{
+	try
+	{
+		if (func.type().name() == typeid(long double(*)(long double)).name())
+			call(std::any_cast<long double(*)(long double)>(func), input, pos, size);
+		else if (func.type().name() == typeid(std::string(*)(void)).name())
+			call(std::any_cast<std::string(*)(void)>(func), input, pos, size);
+		else if (func.type().name() == typeid(void(*)(int, int, int)).name())
+			call(std::any_cast<void(*)(int, int, int)>(func), input, pos, size);
+		else
+			throw LOG("Code error: The type of function " + input.substr(pos, size) + " is not yet supported.");
+	}
+	catch (const std::bad_any_cast& error)
+	{
+		throw LOG(error.what());
+	}
+}
 
 std::string Calc::help_varsAndMacros()
 {
@@ -671,7 +659,7 @@ std::string Calc::help_varsAndMacros()
 }
 
 // throw info about all symbols
-std::string Calc::helpAll()
+std::string Calc::help_all()
 {
 	std::string message = help_varsAndMacros();
 	message += "\n";
@@ -681,7 +669,8 @@ std::string Calc::helpAll()
 	for (it = funcs.begin(); it != funcs.end(); it++, i++)
 	{
 		if (i % 10 == 0)
-		message += "\n " + it->first + "(" + std::any_cast<TYPE>(it->second).getParams() + ")";
+			message += "\n ";
+		message += it->first + ", ";
 	}
 
 	throw message;
@@ -717,13 +706,7 @@ std::string Calc::help(std::string name)
 	if (it3 != funcs.end())
 		throw "C++ Function";
 
-	throw LOG("Undefined character(s)");
-}
-
-void Calc::setprecision(int num)
-{
-	finalPrecision = num;
-	precision = finalPrecision + 5;
+	throw LOG(name + " is undefined");
 }
 
 void Calc::call(long double(*funcPtr)(long double), std::string& input, int pos, int size)
@@ -734,7 +717,7 @@ void Calc::call(long double(*funcPtr)(long double), std::string& input, int pos,
 	std::stringstream ss;
 	ss << funcPtr(stold(args[0]));
 	ss.setf(std::ios::fixed);
-	ss.precision(15);
+	ss.precision(precision);
 
 	insertFunctionResult(input, pos, size, ss.str());
 }
@@ -764,7 +747,7 @@ void Calc::cleanForNoArgs(std::string& input, std::string name, int argPos)
 		if (input[i] == ')')
 		{
 			if (foundArg)
-				throw LOG("Error: expected 0 arguments for function " + name); // TODO: test this. If it works, there are probably several other error message lines that can be combined.
+				throw LOG("Error: expected 0 arguments for function " + name);
 
 			input.erase(argPos, i - argPos + 1);
 			return;
@@ -826,12 +809,11 @@ std::vector<std::string> Calc::splitArgs(std::string& input, int pos, int size)
 	int sizeTs = sizeof...(Ts);
 	if (args.size() != sizeTs)
 	{
-		std::stringstream message;
-		message << "Error: expected " << std::to_string(sizeTs) << " argument";
+		std::string message = "Error: expected " + std::to_string(sizeTs) + " argument";
 		if (sizeTs != 1)
-			message << "s";
-		message << " for function " << input.substr(pos, size);
-		throw LOG(message.str());
+			message += "s";
+		message += " for function " + input.substr(pos, size);
+		throw LOG(message);
 	}
 
 	return args;
