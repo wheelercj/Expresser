@@ -8,5 +8,8 @@ A command-line calculator.
 - Constants including Pi and Euler's number
 - You can list all functions and variables by entering `help()`
 
+## Prerequisites:
+- C++17 compiler
+
 ## Coming soon:
 - Cleaner code
