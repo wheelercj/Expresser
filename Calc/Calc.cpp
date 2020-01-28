@@ -3,9 +3,7 @@
 
 Calc::Calc()
 {
-	funcs_longDouble_longDouble = defaultFuncs_longDouble_longDouble;
-	funcs_string_void = defaultFuncs_string_void;
-	funcs_void_int3 = defaultFuncs_void_int3;
+	funcs = defaultFuncs;
 
 	// load any saved symbols from a file
 	std::ifstream file("saved_symbols.txt");
@@ -42,9 +40,7 @@ Calc::Calc(int newPrecision)
 
 	vars = defaultVars;
 	macros = defaultMacros;
-	funcs_longDouble_longDouble = defaultFuncs_longDouble_longDouble;
-	funcs_string_void = defaultFuncs_string_void;
-	funcs_void_int3 = defaultFuncs_void_int3;
+	funcs = defaultFuncs;
 }
 
 Calc::Calc(Calc* other)
@@ -53,9 +49,7 @@ Calc::Calc(Calc* other)
 	precision = other->precision + 5;
 	vars = other->vars;
 	macros = other->macros;
-	funcs_longDouble_longDouble = other->funcs_longDouble_longDouble;
-	funcs_string_void = other->funcs_string_void;
-	funcs_void_int3 = defaultFuncs_void_int3;
+	funcs = other->funcs;
 }
 
 std::string Calc::operator()(std::string input)
@@ -112,8 +106,7 @@ void Calc::resetSymbols()
 {
 	vars = defaultVars;
 	macros = defaultMacros;
-	funcs_longDouble_longDouble = defaultFuncs_longDouble_longDouble;
-	funcs_string_void = defaultFuncs_string_void;
+	funcs = defaultFuncs;
 }
 
 // search for and handle any assignment operator(s)
@@ -612,25 +605,10 @@ bool Calc::callFunction(std::string& input, int pos, int size)
 {
 	std::string name = input.substr(pos, size);
 
-	// TODO: make this less repetitive after creating a Functions class
-	std::map<std::string, long double(*)(long double)>::iterator it = funcs_longDouble_longDouble.find(name);
-	if (it != funcs_longDouble_longDouble.end())
+	std::map<std::string, std::any>::iterator it = funcs.find(name);
+	if (it != funcs.end())
 	{
-		call(it->second, input, pos, size);
-		return true;
-	}
-
-	std::map<std::string, std::string(*)()>::iterator it2 = funcs_string_void.find(name);
-	if (it2 != funcs_string_void.end())
-	{
-		call(it2->second, input, pos, size);
-		return true;
-	}
-
-	std::map<std::string, void(*)(int, int, int)>::iterator it3 = funcs_void_int3.find(name);
-	if (it3 != funcs_void_int3.end())
-	{
-		call(it3->second, input, pos, size);
+		call(std::any_cast<TYPE>(it->second), input, pos, size);
 		return true;
 	}
 
@@ -698,28 +676,12 @@ std::string Calc::helpAll()
 	std::string message = help_varsAndMacros();
 	message += "\n";
 
-	// TODO: make this less repetitive after creating a Functions class
-	std::map<std::string, long double(*)(long double)>::iterator it3;
+	std::map<std::string, std::any>::iterator it;
 	int i = 0;
-	for (it3 = funcs_longDouble_longDouble.begin(); it3 != funcs_longDouble_longDouble.end(); it3++, i++)
+	for (it = funcs.begin(); it != funcs.end(); it++, i++)
 	{
 		if (i % 10 == 0)
-			message += "\n ";
-		message += it3->first + ", ";
-	}
-	std::map<std::string, std::string(*)()>::iterator it4;
-	for (it4 = funcs_string_void.begin(); it4 != funcs_string_void.end(); it4++, i++)
-	{
-		if (i % 10 == 0)
-			message += "\n ";
-		message += it4->first + ", ";
-	}
-	std::map<std::string, void(*)(int, int, int)>::iterator it5;
-	for (it5 = funcs_void_int3.begin(); it5 != funcs_void_int3.end(); it5++, i++)
-	{
-		if (i % 10 == 0)
-			message += "\n ";
-		message += it5->first + ", ";
+		message += "\n " + it->first + "(" + std::any_cast<TYPE>(it->second).getParams() + ")";
 	}
 
 	throw message;
@@ -751,17 +713,8 @@ std::string Calc::help(std::string name)
 		throw message;
 	}
 
-	// TODO: make this less repetitive after creating a Functions class
-	std::map<std::string, long double(*)(long double)>::iterator it3 = funcs_longDouble_longDouble.find(name);
-	if (it3 != funcs_longDouble_longDouble.end())
-		throw "C++ Function";
-
-	std::map<std::string, std::string(*)()>::iterator it4 = funcs_string_void.find(name);
-	if (it4 != funcs_string_void.end())
-		throw "C++ Function";
-
-	std::map<std::string, void(*)(int, int, int)>::iterator it5 = funcs_void_int3.find(name);
-	if (it5 != funcs_void_int3.end())
+	std::map<std::string, std::any>::iterator it3 = funcs.find(name);
+	if (it3 != funcs.end())
 		throw "C++ Function";
 
 	throw LOG("Undefined character(s)");
@@ -811,10 +764,7 @@ void Calc::cleanForNoArgs(std::string& input, std::string name, int argPos)
 		if (input[i] == ')')
 		{
 			if (foundArg)
-			{
-				std::string message = "Error: expected 0 arguments for function " + name;
-				throw LOG(message);
-			}
+				throw LOG("Error: expected 0 arguments for function " + name); // TODO: test this. If it works, there are probably several other error message lines that can be combined.
 
 			input.erase(argPos, i - argPos + 1);
 			return;

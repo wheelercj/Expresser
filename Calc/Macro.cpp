@@ -23,7 +23,7 @@ std::string Macro::operator()(std::vector<std::string> args)
 			{
 				// replace the parameter with the corresponding argument
 				tempFormula.erase(j, params[i].size());
-				tempFormula.insert(j, " " + args[i] + " ");
+				tempFormula.insert(j, " " + args[i] + " "); // TODO: what if the user happens to give an argument with the same name as one of the parameters?
 			}
 		}
 	}

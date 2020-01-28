@@ -1,45 +1,31 @@
 #pragma once
 
-#include "Func.h"
-#include <map>
 #include <string>
-#include <any> // requires C++17
 #include <ctime>
+
+inline long double sqrt_(long double x) { return sqrt(x); }
+inline long double cbrt_(long double x) { return cbrt(x); }
+inline long double abs_(long double x) { return abs(x); }
+inline long double log_(long double x) { return log(x); }
+inline long double round_(long double x) { return round(x); }
+inline long double ceil_(long double x) { return ceil(x); }
+inline long double floor_(long double x) { return floor(x); }
+inline long double erf_(long double x) { return erf(x); }
+inline long double erfc_(long double x) { return erfc(x); }
+inline long double tgamma_(long double x) { return tgamma(x); }
+inline long double lgamma_(long double x) { return lgamma(x); }
+inline long double sin_(long double x) { return sin(x); }
+inline long double cos_(long double x) { return cos(x); }
+inline long double tan_(long double x) { return tan(x); }
+inline long double asin_(long double x) { return asin(x); }
+inline long double acos_(long double x) { return acos(x); }
+inline long double atan_(long double x) { return atan(x); }
+inline long double sinh_(long double x) { return sinh(x); }
+inline long double cosh_(long double x) { return cosh(x); }
+inline long double tanh_(long double x) { return tanh(x); }
+inline long double asinh_(long double x) { return asinh(x); }
+inline long double acosh_(long double x) { return acosh(x); }
+inline long double atanh_(long double x) { return atanh(x); }
 
 std::string randomNumber();
 void quadraticFormula(int a, int b, int c);
-long double absValue(long double x);
-
-class Functions
-{
-private:
-	std::map<std::string, std::any> funcs =
-	{// { "name", Func("params", pointer) },
-		{ "sqrt", Func("x", sqrt) },
-		{ "cbrt", Func("x", cbrt) },
-		{ "abs", Func("x", absValue) },
-		{ "log", Func("x", log) }, // base e
-		{ "round", Func("x", round) },
-		{ "ceil", Func("x", ceil) },
-		{ "floor", Func("x", floor) },
-		{ "erf", Func("x", erf) }, // the error function
-		{ "erfc", Func("x", erfc) }, // the complementary error function
-		{ "tgamma", Func("x", tgamma) }, // the gamma function
-		{ "lgamma", Func("x", lgamma) }, // the log-gamma function
-
-		{ "sin", Func("x", sin) },
-		{ "cos", Func("x", cos) },
-		{ "tan", Func("x", tan) },
-		{ "asin", Func("x", asin) },
-		{ "acos", Func("x", acos) },
-		{ "atan", Func("x", atan) },
-		{ "sinh", Func("x", sinh) },
-		{ "cosh", Func("x", cosh) },
-		{ "tanh", Func("x", tanh) },
-		{ "asinh", Func("x", asinh) },
-		{ "acosh", Func("x", acosh) },
-		{ "atanh", Func("x", atanh) },
-		{ "rand", Func("", randomNumber) },
-		{ "quad", Func("a,b,c", quadraticFormula) }
-	};
-};

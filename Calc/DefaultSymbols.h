@@ -1,10 +1,13 @@
 #pragma once
 
+#include "Func.h"
+#include "Functions.h"
 #include "Macro.h"
-#include <ctime>
 #include <cmath>
 #include <map>
 #include <sstream>
+#include <string>
+#include <any> // requires C++17
 
 // Symbol names must contain only alpha characters and/or underscores
 
@@ -43,42 +46,33 @@ const std::map<std::string, Macro> defaultMacros =
 	{ "setprecision", {{ "int" }, "Adjust the number of digits displayed in answers" }}
 };
 
-const std::map<std::string, long double(*)(long double)> defaultFuncs_longDouble_longDouble =
-{
-	{ "sqrt", sqrt },
-	{ "cbrt", cbrt },
-	{ "abs", abs },
-	{ "log", log }, // base e
-	{ "round", round },
-	{ "ceil", ceil },
-	{ "floor", floor },
-	{ "erf", erf }, // the error function
-	{ "erfc", erfc }, // the complementary error function
-	{ "tgamma", tgamma }, // the gamma function
-	{ "lgamma", lgamma }, // the log-gamma function
+std::map<std::string, std::any> defaultFuncs =
+{// { "name", Func("params", pointer_) },
+	{ "sqrt", Func("x", sqrt_) },
+	{ "cbrt", Func("x", cbrt_) },
+	{ "abs", Func("x", abs_) },
+	{ "log", Func("x", log_) }, // base e
+	{ "round", Func("x", round_) },
+	{ "ceil", Func("x", ceil_) },
+	{ "floor", Func("x", floor_) },
+	{ "erf", Func("x", erf_) }, // the error function
+	{ "erfc", Func("x", erfc_) }, // the complementary error function
+	{ "tgamma", Func("x", tgamma_) }, // the gamma function
+	{ "lgamma", Func("x", lgamma_) }, // the log-gamma function
 
-	{ "sin", sin },
-	{ "cos", cos },
-	{ "tan", tan },
-	{ "asin", asin },
-	{ "acos", acos },
-	{ "atan", atan },
-	{ "sinh", sinh },
-	{ "cosh", cosh },
-	{ "tanh", tanh },
-	{ "asinh", asinh },
-	{ "acosh", acosh },
-	{ "atanh", atanh }
-};
+	{ "sin", Func("x", sin_) },
+	{ "cos", Func("x", cos_) },
+	{ "tan", Func("x", tan_) },
+	{ "asin", Func("x", asin_) },
+	{ "acos", Func("x", acos_) },
+	{ "atan", Func("x", atan_) },
+	{ "sinh", Func("x", sinh_) },
+	{ "cosh", Func("x", cosh_) },
+	{ "tanh", Func("x", tanh_) },
+	{ "asinh", Func("x", asinh_) },
+	{ "acosh", Func("x", acosh_) },
+	{ "atanh", Func("x", atanh_) },
 
-std::string randomNumber();
-const std::map<std::string, std::string(*)()> defaultFuncs_string_void =
-{
-	{ "rand", randomNumber }
-};
-
-void quadraticFormula(int a, int b, int c);
-const std::map<std::string, void(*)(int, int, int)> defaultFuncs_void_int3 =
-{
-	{ "quad", quadraticFormula }
+	{ "rand", Func("", randomNumber) },
+	{ "quad", Func("a,b,c", quadraticFormula) }
 };

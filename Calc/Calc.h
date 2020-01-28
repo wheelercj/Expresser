@@ -38,9 +38,7 @@ private:
 
 	std::map<std::string, double> vars = defaultVars;
 	std::map<std::string, Macro> macros = defaultMacros;
-	std::map<std::string, long double(*)(long double)> funcs_longDouble_longDouble = defaultFuncs_longDouble_longDouble;
-	std::map<std::string, std::string(*)()> funcs_string_void = defaultFuncs_string_void;
-	std::map<std::string, void(*)(int, int, int)> funcs_void_int3 = defaultFuncs_void_int3;
+	std::map<std::string, std::any> funcs = defaultFuncs;
 
 	std::stack<std::string> varsBeingDefined;
 	template<class T> void setSymbol(std::map<std::string, T>& hashTable, std::string newName, T newSymbol);
