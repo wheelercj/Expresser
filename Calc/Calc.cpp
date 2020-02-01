@@ -557,7 +557,9 @@ bool Calc::findMacro(std::string& input, int pos, int size)
 	std::string name = input.substr(pos, size);
 
 	std::map<std::string, Macro>::iterator it = macros.find(name);
-	if (it != macros.end())
+	if (it == macros.end())
+		return false;
+	else
 	{
 		std::vector<std::string> args = splitArgString(input, pos + size);
 		input.erase(pos, size);
@@ -593,36 +595,105 @@ bool Calc::findMacro(std::string& input, int pos, int size)
 		input.insert(pos, callMacro(it, args));
 		return true;
 	}
-
-	return false;
 }
 
 std::string Calc::callMacro(std::map<std::string, Macro>::iterator it, std::vector<std::string> args)
 {
-	std::string tempFormula = it->second.getFormula();
+	std::string formula = it->second.getFormula();
 	std::vector<std::string> params = it->second.getParamVect();
 
-	// for each parameter
-	for (int i = 0; i < params.size(); i++)
+	// for each set of alpha characters in the formula
+	for (int i = 0; i < formula.size(); i++)
 	{
-		// for each substring of the formula with the same size as params[i]
-		for (int j = 0; j < tempFormula.size(); j++)
+		if (isAlpha(formula[i]))
 		{
-			std::string substr = tempFormula.substr(j, params[i].size());
-
-			// if the substring is the parameter
-			if (params[i] == substr)
-			{
-				// replace the parameter with the corresponding argument
-				tempFormula.erase(j, params[i].size());
-				tempFormula.insert(j, " " + args[i] + " ");
-			}
+			int alphaSize = getAlphaSize(formula.substr(i, formula.size() - i));
+			std::string alphaStr = formula.substr(i, alphaSize);
+			
+			// search for the parameters and insert the corresponding arguments
+			std::string result = findMacroParams(alphaStr, alphaStr.size(), params, args);
+			i += alphaSize;
 		}
 	}
 
-	tempFormula.insert(0, " (");
-	tempFormula.append(") ");
-	return tempFormula;
+	//// for each parameter
+	//for (int i = 0; i < params.size(); i++)
+	//{
+	//	// for each substring of the formula with the same size as params[i]
+	//	for (int j = 0; j < formula.size(); j++)
+	//	{
+	//		std::string substr = formula.substr(j, params[i].size());
+
+	//		// if the substring is the parameter
+	//		if (params[i] == substr)
+	//		{
+	//			// replace the parameter with the corresponding argument
+	//			formula.erase(j, params[i].size());
+	//			formula.insert(j, " " + args[i] + " ");
+	//		}
+	//	}
+	//}
+
+	formula.insert(0, " (");
+	formula.append(") ");
+	return formula;
+}
+
+std::string Calc::findMacroParams(std::string alphaStr, int size, std::vector<std::string> params, std::vector<std::string> args)
+{
+	// for each substring size of the alpha string
+	for (; size > 0; size--)
+	{
+		// for each substring position of the alpha string
+		for (int pos = 0; pos + size <= alphaStr.size(); pos++)
+		{
+			std::string substr = alphaStr.substr(pos, size);
+
+			// for each parameter
+			bool isParam = false;
+			for (int p = 0; p < params.size(); p++)
+			{
+				// if the substring is the parameter
+				if (params[p] == substr)
+				{
+					isParam = true;
+					alphaStr.erase(pos, params[p].size());
+					alphaStr.insert(pos, " " + args[p] + " ");
+					int rightEdge = pos + args[p].size() + 2;
+
+					// search for more instances of the parameter on either side of the found instance
+					if (pos != 0)
+					{
+						std::string leftStr = alphaStr.substr(0, pos);
+						std::string leftResult = findMacroParams(leftStr, size - 1, params, args);
+
+
+					}
+					if (rightEdge != alphaStr.size() - 1)
+					{
+						std::string rightStr = alphaStr.substr(rightEdge, alphaStr.size() - rightEdge);
+						std::string rightResult = findMacroParams(rightStr, size, params, args);
+
+
+					}
+				}
+			}
+			
+			if (!isParam)
+			{
+				std::map<std::string, double>::iterator it = vars.find(substr);
+				std::map<std::string, Macro>::iterator it2 = macros.find(substr);
+				std::map<std::string, std::any>::iterator it3 = funcs.find(substr);
+
+				// if the substring is a different symbol
+				if (it != vars.end() || it2 != macros.end() || it3 != funcs.end())
+				{
+					// skip over the substring
+					
+				}
+			}
+		}
+	}
 }
 
 bool Calc::findFunction(std::string& input, int pos, int size)

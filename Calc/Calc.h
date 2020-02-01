@@ -47,6 +47,7 @@ private:
 	bool findVariable(std::string& input, int pos, int size);
 	bool findMacro(std::string& input, int pos, int size);
 	std::string callMacro(std::map<std::string, Macro>::iterator it, std::vector<std::string> args);
+	std::string findMacroParams(std::string substr, int size, std::vector<std::string> params, std::vector<std::string> args);
 	bool findFunction(std::string& input, int pos, int size);
 	void resolveFunctionType(std::any func, std::string& input, int pos, int size);
 	
