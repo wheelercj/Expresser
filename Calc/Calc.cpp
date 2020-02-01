@@ -521,11 +521,9 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 		// for each substring position of the alpha string
 		for (int pos = alphaPos; pos + size <= alphaPos + alphaSize; pos++)
 		{
-			if (callVariable(input, pos, size))
-				return true;
-			if (callMacro(input, pos, size))
-				return true;
-			if (callFunction(input, pos, size))
+			if (findVariable(input, pos, size)
+				|| findMacro(input, pos, size)
+				|| findFunction(input, pos, size))
 				return true;
 		}
 	}
@@ -534,7 +532,7 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 	return false;
 }
 
-bool Calc::callVariable(std::string& input, int pos, int size)
+bool Calc::findVariable(std::string& input, int pos, int size)
 {
 	std::string substr = input.substr(pos, size);
 
@@ -554,7 +552,7 @@ bool Calc::callVariable(std::string& input, int pos, int size)
 	return false;
 }
 
-bool Calc::callMacro(std::string& input, int pos, int size)
+bool Calc::findMacro(std::string& input, int pos, int size)
 {
 	std::string name = input.substr(pos, size);
 
@@ -581,9 +579,9 @@ bool Calc::callMacro(std::string& input, int pos, int size)
 				throw LOG("Function setprecision requires one argument");
 		}
 
-		if (args.size() != it->second.getParamVect().size())
+		int paramCount = it->second.getParamVect().size();
+		if (args.size() != paramCount)
 		{
-			int paramCount = it->second.getParamVect().size();
 			std::string message = "Error: expected " + std::to_string(paramCount) + " argument";
 			if (paramCount != 1)
 				message += "s";
@@ -592,30 +590,56 @@ bool Calc::callMacro(std::string& input, int pos, int size)
 		}
 
 		evalArgs(args);
-
-		// expand the macro and insert its return value
-		input.insert(pos, " " + it->second(args) + " ");
+		input.insert(pos, callMacro(it, args));
 		return true;
 	}
 
 	return false;
 }
 
-bool Calc::callFunction(std::string& input, int pos, int size)
+std::string Calc::callMacro(std::map<std::string, Macro>::iterator it, std::vector<std::string> args)
+{
+	std::string tempFormula = it->second.getFormula();
+	std::vector<std::string> params = it->second.getParamVect();
+
+	// for each parameter
+	for (int i = 0; i < params.size(); i++)
+	{
+		// for each substring of the formula with the same size as params[i]
+		for (int j = 0; j < tempFormula.size(); j++)
+		{
+			std::string substr = tempFormula.substr(j, params[i].size());
+
+			// if the substring is the parameter
+			if (params[i] == substr)
+			{
+				// replace the parameter with the corresponding argument
+				tempFormula.erase(j, params[i].size());
+				tempFormula.insert(j, " " + args[i] + " ");
+			}
+		}
+	}
+
+	tempFormula.insert(0, " (");
+	tempFormula.append(") ");
+	return tempFormula;
+}
+
+bool Calc::findFunction(std::string& input, int pos, int size)
 {
 	std::string name = input.substr(pos, size);
 
 	std::map<std::string, std::any>::iterator it = funcs.find(name);
 	if (it != funcs.end())
 	{
-		resolveFunction(it->second, input, pos, size);
+		resolveFunctionType(it->second, input, pos, size);
 		return true;
 	}
 
 	return false;
 }
 
-void Calc::resolveFunction(std::any func, std::string& input, int pos, int size)
+void Calc::resolveFunctionType(std::any func, std::string& input, int pos, int size)
 {
 	try
 	{

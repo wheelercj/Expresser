@@ -44,10 +44,11 @@ private:
 	std::stack<std::string> varsBeingDefined;
 	template<class T> void setSymbol(std::map<std::string, T>& hashTable, std::string newName, T newSymbol);
 	bool getSymbolValue(std::string& input, int alphaPos, int alphaSize);
-	bool callVariable(std::string& input, int pos, int size);
-	bool callMacro(std::string& input, int pos, int size);
-	bool callFunction(std::string& input, int pos, int size);
-	void resolveFunction(std::any func, std::string& input, int pos, int size);
+	bool findVariable(std::string& input, int pos, int size);
+	bool findMacro(std::string& input, int pos, int size);
+	std::string callMacro(std::map<std::string, Macro>::iterator it, std::vector<std::string> args);
+	bool findFunction(std::string& input, int pos, int size);
+	void resolveFunctionType(std::any func, std::string& input, int pos, int size);
 	
 	std::string help_varsAndMacros();
 	std::string help_all();
