@@ -688,6 +688,8 @@ namespace Tests
 			noReturn("f(pi,y) = pi^2+y");
 			equal("5", "f(1,4)");
 			equal("3.14159", "pi");
+			noReturn("f(x) = exp(2x)");
+			equal("403.42879", "f(3)");
 
 			calc.resetSymbols();
 		}
