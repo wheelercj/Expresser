@@ -260,7 +260,7 @@ namespace Tests
 			equal("Error: missing an opening parenthesis", ")");
 			equal("Error: missing an opening parenthesis", "2)");
 			equal("Error: missing an opening parenthesis", ")2");
-			equal("3", "3(");
+			equal("Error: not enough operands for the given operators", "3(");
 			equal("2", "(2");
 			equal("0", "0(0");
 			equal("0", "2(0");
@@ -527,6 +527,8 @@ namespace Tests
 		}
 		TEST_METHOD(UserVars)
 		{
+			calc.resetSymbols();
+
 			equal("Undefined characters: fiv", "five");
 			noReturn(" five = 5");
 			noReturn("four=4");
