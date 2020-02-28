@@ -264,7 +264,7 @@ void Calc::readOp(std::string& input, int& pos)
 	int opSize = getOpSize(input.substr(pos, input.size() - pos));
 	std::string newOp = input.substr(pos, opSize);
 
-	if (ops.empty() && newOp != ")")
+	if (ops.empty() && newOp != ")" && newOp != "(")
 		pushFirstOperator(pos, newOp, opSize);
 	else
 		pushOperator(input, pos, newOp, opSize);
@@ -338,7 +338,7 @@ void Calc::pushOpenParenthesis(std::string input, int& pos)
 {
 	if (pos > 0 && lastTypePushed == NUM)
 	{
-		if (ops.top() == "^" || ops.top() == "*" || ops.top() == "/")
+		if (!ops.empty() && (ops.top() == "^" || ops.top() == "*" || ops.top() == "/"))
 			pop();
 		else
 		{
@@ -599,101 +599,34 @@ bool Calc::findMacro(std::string& input, int pos, int size)
 
 std::string Calc::callMacro(std::map<std::string, Macro>::iterator it, std::vector<std::string> args)
 {
+	// get the macro's formula and parameters
 	std::string formula = it->second.getFormula();
 	std::vector<std::string> params = it->second.getParamVect();
 
-	// for each set of alpha characters in the formula
-	for (int i = 0; i < formula.size(); i++)
-	{
-		if (isAlpha(formula[i]))
-		{
-			int alphaSize = getAlphaSize(formula.substr(i, formula.size() - i));
-			std::string alphaStr = formula.substr(i, alphaSize);
-			
-			// search for the parameters and insert the corresponding arguments
-			std::string result = findMacroParams(alphaStr, alphaStr.size(), params, args);
-			i += alphaSize;
-		}
-	}
+	// create a new calculator that saves the macro's arguments as variables named by the parameters
+	Calc c(this, params, args);
 
-	//// for each parameter
-	//for (int i = 0; i < params.size(); i++)
-	//{
-	//	// for each substring of the formula with the same size as params[i]
-	//	for (int j = 0; j < formula.size(); j++)
-	//	{
-	//		std::string substr = formula.substr(j, params[i].size());
+	// evaluate the macro
+	std::string result = c.calc(formula);
+	rethrowAnyErrors(result);
 
-	//		// if the substring is the parameter
-	//		if (params[i] == substr)
-	//		{
-	//			// replace the parameter with the corresponding argument
-	//			formula.erase(j, params[i].size());
-	//			formula.insert(j, " " + args[i] + " ");
-	//		}
-	//	}
-	//}
-
-	formula.insert(0, " (");
-	formula.append(") ");
-	return formula;
+	result.insert(0, " (");
+	result.append(") ");
+	return result;
 }
 
-std::string Calc::findMacroParams(std::string alphaStr, int size, std::vector<std::string> params, std::vector<std::string> args)
+// only for calling macros
+Calc::Calc(Calc* other, std::vector<std::string> params, std::vector<std::string> args)
 {
-	// for each substring size of the alpha string
-	for (; size > 0; size--)
-	{
-		// for each substring position of the alpha string
-		for (int pos = 0; pos + size <= alphaStr.size(); pos++)
-		{
-			std::string substr = alphaStr.substr(pos, size);
+	finalPrecision = other->finalPrecision + 5;
+	precision = other->precision + 5;
+	vars = other->vars;
+	macros = other->macros;
+	funcs = other->funcs;
 
-			// for each parameter
-			bool isParam = false;
-			for (int p = 0; p < params.size(); p++)
-			{
-				// if the substring is the parameter
-				if (params[p] == substr)
-				{
-					isParam = true;
-					alphaStr.erase(pos, params[p].size());
-					alphaStr.insert(pos, " " + args[p] + " ");
-					int rightEdge = pos + args[p].size() + 2;
-
-					// search for more instances of the parameter on either side of the found instance
-					if (pos != 0)
-					{
-						std::string leftStr = alphaStr.substr(0, pos);
-						std::string leftResult = findMacroParams(leftStr, size - 1, params, args);
-
-
-					}
-					if (rightEdge != alphaStr.size() - 1)
-					{
-						std::string rightStr = alphaStr.substr(rightEdge, alphaStr.size() - rightEdge);
-						std::string rightResult = findMacroParams(rightStr, size, params, args);
-
-
-					}
-				}
-			}
-			
-			if (!isParam)
-			{
-				std::map<std::string, double>::iterator it = vars.find(substr);
-				std::map<std::string, Macro>::iterator it2 = macros.find(substr);
-				std::map<std::string, std::any>::iterator it3 = funcs.find(substr);
-
-				// if the substring is a different symbol
-				if (it != vars.end() || it2 != macros.end() || it3 != funcs.end())
-				{
-					// skip over the substring
-					
-				}
-			}
-		}
-	}
+	// create variables for each macro argument
+	for (int i = 0; i < args.size(); i++)
+		setSymbol<double>(vars, params[i], stold(calc(args[i])));
 }
 
 bool Calc::findFunction(std::string& input, int pos, int size)
@@ -830,11 +763,11 @@ void Calc::call(void(*funcPtr)(int, int, int), std::string& input, int pos, int 
 	funcPtr(stoi(args[0]), stoi(args[1]), stoi(args[2]));
 }
 
-// Cleans the input string. This is to be called before calculator functions that do not take arguments.
-void Calc::cleanForNoArgs(std::string& input, std::string name, int argPos)
+// Cleans the input string. This should be called before calculator functions that do not take arguments.
+void Calc::cleanForNoArgs(std::string& input, std::string funcName, int argPos)
 {
 	if (input[argPos] != '(')
-		throw LOG("Error: expected '(' after function name");
+		throw LOG("Error: expected '(' after name of function " + funcName);
 
 	bool foundArg = false;
 	for (int i = argPos + 1; i < input.size(); i++)
@@ -842,7 +775,7 @@ void Calc::cleanForNoArgs(std::string& input, std::string name, int argPos)
 		if (input[i] == ')')
 		{
 			if (foundArg)
-				throw LOG("Error: expected 0 arguments for function " + name);
+				throw LOG("Error: expected 0 arguments for function " + funcName);
 
 			input.erase(argPos, i - argPos + 1);
 			return;
@@ -921,15 +854,19 @@ void Calc::evalArgs(std::vector<std::string>& args)
 	{
 		Calc calc(this); // the new calculator MUST have access to any symbols created by the user
 		args[i] = calc(args[i]);
+		rethrowAnyErrors(args[i]);
+	}
+}
 
-		// rethrow messages
-		if (args[i] == "")
-			throw LOG("Invalid syntax");
-		for (int j = 0; j < args[i].size(); j++)
-		{
-			if (isAlpha(args[i][j]))
-				throw LOG(args[i]);
-		}
+// This function should be called after the operator() function call of any calculator besides the one in main()
+void Calc::rethrowAnyErrors(std::string str)
+{
+	if (str == "")
+		throw LOG("Invalid syntax");
+	for (int i = 0; i < str.size(); i++)
+	{
+		if (isAlpha(str[i]))
+			throw LOG(str);
 	}
 }
 
