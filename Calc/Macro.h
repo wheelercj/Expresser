@@ -3,6 +3,12 @@
 #include "Common.h"
 #include <vector>
 
+/*
+	A Macro object is not an entire macro. The macro's name is stored
+	as the key in a	hash table, so the function that calls macros
+	must also not be part of the Macro class.
+*/
+
 class Macro
 {
 private:
