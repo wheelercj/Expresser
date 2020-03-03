@@ -703,8 +703,8 @@ namespace Tests
 			equal("0", "sin(pi)");
 			equal("2", "sqrt(4)");
 			equal("Imaginary", "sqrt(-4)");
-			equal("1", "log(e)");
-			equal("1.60944", "log(5");
+			equal("1", "ln(e)");
+			equal("1.60944", "ln(5");
 			equal("8", "ceil(7.3");
 			equal("9", "floor(9.");
 			equal("3", "abs(cbrt(-27))");

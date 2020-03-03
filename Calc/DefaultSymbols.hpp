@@ -23,7 +23,9 @@ const std::map<std::string, Macro> defaultMacros =
 { //{ "name", {{ "parameters" }, "formula" }},
 	{ "pow", {{ "x", "y" }, "x^y" }},
 	{ "exp", {{ "x" }, "e^x" }},
-	{ "logb", {{ "b", "x" }, "log(x)/log(b)" }},
+	{ "log", {{ "x" }, "ln(x)/ln(10)" }},
+	{ "lg", {{ "x" }, "ln(x)/ln(2)" }},
+	{ "logb", {{ "b", "x" }, "ln(x)/ln(b)" }},
 
 	{ "csc", {{ "x" }, "1/sin(x)" }},
 	{ "sec", {{ "x" }, "1/cos(x)" }},
@@ -34,11 +36,16 @@ const std::map<std::string, Macro> defaultMacros =
 	{ "acsch", {{ "x" }, "asinh(1/x)" }},
 	{ "asech", {{ "x" }, "acosh(1/x)" }},
 	{ "acoth", {{ "x" }, "atanh(1/x)" }},
-	  
+	
 	{ "cylinder_volume", {{ "r", "h"}, "pi*r^2*h" }},
 	{ "sphere_volume", {{ "r" }, "(4/3)pi*r^3" }},
 	{ "cone_volume", {{ "r", "h" }, "(h/3)pi*r^2" }},
 	{ "pyramid_volume", {{ "base_area", "h" }, "base_area*h/3" }},
+
+	{ "simple_interest", {{ "P", "r", "t" }, "Prt" }}, // principal amount, rate, time
+	{ "compound_interest", {{ "P", "r", "t", "n" }, "P(1+r/n)^(nt)" }}, // principal amount, rate, time, number of compounds
+	{ "present_value", {{ "C", "r", "n" }, "C/(1+r)^n" }}, // cash flow at period 1, rate of return, number of periods
+	{ "future_value", {{ "C", "r", "n" }, "C(1+r)^n" }}, // cash flow at period 0, rate of return, number of periods
 
 	// functions further defined in the Calc class
 	{ "help", {{ "" }, "Display info about defined variables and functions" }},
@@ -47,31 +54,31 @@ const std::map<std::string, Macro> defaultMacros =
 
 const std::map<std::string, std::any> defaultFuncs =
 {
-	{ "sqrt", sqrt_ },
-	{ "cbrt", cbrt_ },
-	{ "abs", abs_ },
-	{ "log", log_ }, // base e
+	{ "sqrt", sqrt_ },		// square root
+	{ "cbrt", cbrt_ },		// cube root
+	{ "abs", abs_ },		// absolute value
+	{ "ln", ln_ },			// log base e
 	{ "round", round_ },
-	{ "ceil", ceil_ },
-	{ "floor", floor_ },
-	{ "erf", erf_ }, // the error function
-	{ "erfc", erfc_ }, // the complementary error function
-	{ "tgamma", tgamma_ }, // the gamma function
-	{ "lgamma", lgamma_ }, // the log-gamma function
+	{ "ceil", ceil_ },		// ceiling (rounds up)
+	{ "floor", floor_ },	// floor (rounds down)
+	{ "erf", erf_ },		// error
+	{ "erfc", erfc_ },		// complementary error
+	{ "tgamma", tgamma_ },	// gamma
+	{ "lgamma", lgamma_ },	// log-gamma
 
-	{ "sin", sin_ },
-	{ "cos", cos_ },
-	{ "tan", tan_ },
-	{ "asin", asin_ },
-	{ "acos", acos_ },
-	{ "atan", atan_ },
-	{ "sinh", sinh_ },
-	{ "cosh", cosh_ },
-	{ "tanh", tanh_ },
-	{ "asinh", asinh_ },
-	{ "acosh", acosh_ },
-	{ "atanh", atanh_ },
+	{ "sin", sin_ },		// sine
+	{ "cos", cos_ },		// cosine
+	{ "tan", tan_ },		// tangent
+	{ "asin", asin_ },		// arcsine
+	{ "acos", acos_ },		// arccosine
+	{ "atan", atan_ },		// arctangent
+	{ "sinh", sinh_ },		// hyperbolic sine
+	{ "cosh", cosh_ },		// hyperbolic cosine
+	{ "tanh", tanh_ },		// hyperbolic tangent
+	{ "asinh", asinh_ },	// hyperbolic arcsine
+	{ "acosh", acosh_ },	// hyperbolic arccosine
+	{ "atanh", atanh_ },	// hyperbolic arctangent
 
-	{ "rand", randomNumber },
+	{ "rand", randomNumber }, // generate a random number
 	{ "quad", quadraticFormula }
 };

@@ -6,7 +6,7 @@
 inline long double sqrt_(long double x) { return sqrt(x); }
 inline long double cbrt_(long double x) { return cbrt(x); }
 inline long double abs_(long double x) { return abs(x); }
-inline long double log_(long double x) { return log(x); }
+inline long double ln_(long double x) { return log(x); }
 inline long double round_(long double x) { return round(x); }
 inline long double ceil_(long double x) { return ceil(x); }
 inline long double floor_(long double x) { return floor(x); }
