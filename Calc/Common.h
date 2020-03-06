@@ -5,15 +5,15 @@
 #include <vector>
 #include <sstream>
 
-bool isNum(char ch);
-bool isAlpha(char ch);
-bool isOp(char ch);
-int getNumSize(std::string str);
-int getAlphaSize(std::string str);
-int getOpSize(std::string str);
-bool hasPrecedence(std::string op1, std::string op2);
+bool is_num(char ch);
+bool is_alpha(char ch);
+bool is_op(char ch);
+int get_num_size(std::string str);
+int get_alpha_size(std::string str);
+int get_op_size(std::string str);
+bool has_precedence(std::string op1, std::string op2);
 
-void removeEdgeSpaces(std::string& str);
-void validateInput(std::string& input);
-void formatOutput(std::string& str, int precision);
-std::vector<std::string> readParams(std::string str);
+void remove_edge_spaces(std::string& str);
+void validate_input(std::string& input);
+void format_output(std::string& str, int precision);
+std::vector<std::string> read_params(std::string str);

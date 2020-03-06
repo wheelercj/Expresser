@@ -9,21 +9,21 @@
 	#define LOG(message) message
 #elif DEBUG_LEVEL == 1
 	#define CLEAR_LOG(); clearDebugLog();
-	#define LOG(message) logError(__LINE__, __FILENAME__, message)
+	#define LOG(message) log_error(__LINE__, __FILENAME__, message)
 	#define __FILENAME__ (strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 #endif
 #undef DEBUG_LEVEL
 
-inline std::string logError(int line, const char* fileName, const std::string& message)
+inline std::string log_error(int line, const char* file_name, const std::string& message)
 {
-	std::ofstream logFile("debug_log.txt", std::ios::app);
-	logFile << "\n- " << __TIME__ << " \"" << message << "\" from line " << line << " in file " << fileName;
-	logFile.close();
+	std::ofstream log_file("debug_log.txt", std::ios::app);
+	log_file << "\n- " << __TIME__ << " \"" << message << "\" from line " << line << " in file " << file_name;
+	log_file.close();
 	return message;
 }
 
-inline void clearDebugLog()
+inline void clear_debug_log()
 {
-	std::ofstream logFile("debug_log.txt", std::ios::trunc);
-	logFile.close();
+	std::ofstream log_file("debug_log.txt", std::ios::trunc);
+	log_file.close();
 }

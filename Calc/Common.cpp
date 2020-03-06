@@ -1,13 +1,13 @@
 #include "Common.h"
 
-bool isNum(char ch)
+bool is_num(char ch)
 {
 	if (ch >= '0' && ch <= '9' || ch == '.')
 		return true;
 	return false;
 }
 
-bool isAlpha(char ch)
+bool is_alpha(char ch)
 {
 	ch = tolower(ch);
 	if (ch >= 'a' && ch <= 'z' || ch == '_')
@@ -15,29 +15,29 @@ bool isAlpha(char ch)
 	return false;
 }
 
-bool isOp(char ch)
+bool is_op(char ch)
 {
-	std::string validOps = "()^*/+-!%<>=";
-	if (validOps.find(ch) != std::string::npos)
+	std::string valid_ops = "()^*/+-!%<>=";
+	if (valid_ops.find(ch) != std::string::npos)
 		return true;
 	return false;
 }
 
-int getNumSize(std::string str)
+int get_num_size(std::string str)
 {
-	bool periodFound = false;
+	bool period_found = false;
 	for (int i = 0; i < str.size(); i++)
 	{
 		if (str[i] == '.')
 		{
-			if (periodFound)
+			if (period_found)
 				throw LOG("Error: multiple periods in one number");
 			if (str.size() == 1)
 				throw LOG("Invalid use of a period");
 
-			periodFound = true;
+			period_found = true;
 		}
-		else if (!isNum(str[i]))
+		else if (!is_num(str[i]))
 		{
 			if (i == 1 && str[0] == '.')
 				throw LOG("Invalid use of a period");
@@ -49,19 +49,19 @@ int getNumSize(std::string str)
 	return str.size();
 }
 
-int getAlphaSize(std::string str)
+int get_alpha_size(std::string str)
 {
 	int i = 1;
 	for (; i < str.size(); i++)
 	{
-		if (!isAlpha(str[i]))
+		if (!is_alpha(str[i]))
 			break;
 	}
 
 	return i;
 }
 
-int getOpSize(std::string str)
+int get_op_size(std::string str)
 {
 	if (str.size() > 1)
 	{
@@ -75,7 +75,7 @@ int getOpSize(std::string str)
 	return 1;
 }
 
-bool hasPrecedence(std::string op1, std::string op2)
+bool has_precedence(std::string op1, std::string op2)
 {
 	std::vector<std::string> order = { "!", "^", "negate", "*", "+", "%", "==", "(" };
 
@@ -103,7 +103,7 @@ bool hasPrecedence(std::string op1, std::string op2)
 	}
 }
 
-void removeEdgeSpaces(std::string& str)
+void remove_edge_spaces(std::string& str)
 {
 	while (str[0] == ' ')
 		str.erase(0, 1);
@@ -112,7 +112,7 @@ void removeEdgeSpaces(std::string& str)
 }
 
 // check for multiple operators or periods next to each other
-void validateInput(std::string& input)
+void validate_input(std::string& input)
 {
 	for (int i = 1; i < input.size(); i++)
 	{
@@ -121,9 +121,10 @@ void validateInput(std::string& input)
 
 		if (ch1 == '.' && ch2 == '.')
 			throw LOG("Invalid syntax: periods next to each other");
-		else if (isOp(ch2) && ch2 != '-' && ch2 != '(' && ch2 != ')' && ch2 != '=')
+		else if (is_op(ch2) && ch2 != '-' && ch2 != '(' && ch2 != ')' && ch2 != '=')
 		{
-			if (isOp(ch1) && ch1 != ')' && (ch1 != '!' || ch1 == '!' && ch2 == '!' && i < input.size() - 1 && input[i + 1] != '='))
+			if (is_op(ch1) && ch1 != ')' && (ch1 != '!' || ch1 == '!'
+				&& ch2 == '!' && i < input.size() - 1 && input[i + 1] != '='))
 			{
 				std::string message = "Invalid syntax: ";
 				message += ch1;
@@ -134,7 +135,7 @@ void validateInput(std::string& input)
 	}
 }
 
-void formatOutput(std::string& str, int precision)
+void format_output(std::string& str, int precision)
 {
 	// adjust output precision
 	std::stringstream ss;
@@ -145,7 +146,7 @@ void formatOutput(std::string& str, int precision)
 	{
 		for (int i = 0; i < str.size(); i++)
 		{
-			if (isAlpha(str[i]))
+			if (is_alpha(str[i]))
 			{
 				if (str == "inf")
 					str = LOG("Infinity");
@@ -180,23 +181,23 @@ void formatOutput(std::string& str, int precision)
 		str = "0";
 }
 
-std::vector<std::string> readParams(std::string str)
+std::vector<std::string> read_params(std::string str)
 {
 	std::vector<std::string> params;
-	bool alphaFound = false;
-	bool spaceAfterAlpha = false;
+	bool alpha_found = false;
+	bool space_after_alpha = false;
 	for (int i = 0, j = 1; i < str.size(); i++)
 	{
-		if (isAlpha(str[i]))
+		if (is_alpha(str[i]))
 		{
-			alphaFound = true;
-			if (spaceAfterAlpha)
+			alpha_found = true;
+			if (space_after_alpha)
 				throw LOG("Invalid space in parameter name");
 		}
 		else if (str[i] == ' ')
 		{
-			if (alphaFound)
-				spaceAfterAlpha = true;
+			if (alpha_found)
+				space_after_alpha = true;
 		}
 		else if (str[i] == ',' || str[i] == ')')
 		{
@@ -205,13 +206,13 @@ std::vector<std::string> readParams(std::string str)
 				throw LOG("Invalid syntax: unnamed parameter");
 			params.push_back(param);
 			j = i + 1;
-			alphaFound = false;
-			spaceAfterAlpha = false;
+			alpha_found = false;
+			space_after_alpha = false;
 
 			if (str[i] == ')')
 				break;
 		}
-		else if (isOp(str[i]))
+		else if (is_op(str[i]))
 		{
 			if (str[i] != '(' || i > 0)
 			{

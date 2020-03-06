@@ -17,7 +17,7 @@ namespace Tests
 		Assert::AreEqual(str1, calc(str2));
 	}
 
-	void noReturn(std::string input)
+	void no_return(std::string input)
 	{
 		Assert::AreEqual((std::string)"", calc(input));
 	}
@@ -36,8 +36,8 @@ namespace Tests
 			equal("Invalid use of a period", "3+.");
 			equal("Error: multiple periods in one number", "192.168.0.1");
 			equal("Invalid syntax: +/", "+/");
-			noReturn(" ");
-			noReturn("");
+			no_return(" ");
+			no_return("");
 			equal("Undefined character: a", "a");
 			equal("Undefined characters: jajvoai", "jajvoaierjal;ndvoiasejrlaenafl;jo;ijwer");
 			equal("Undefined character: $", "$5");
@@ -527,13 +527,13 @@ namespace Tests
 		}
 		TEST_METHOD(UserVars)
 		{
-			calc.resetSymbols();
+			calc._reset_symbols();
 
 			equal("Undefined characters: fiv", "five");
-			noReturn(" five = 5");
-			noReturn("four=4");
-			noReturn("three = 3.0000");
-			noReturn("num = 5");
+			no_return(" five = 5");
+			no_return("four=4");
+			no_return("three = 3.0000");
+			no_return("num = 5");
 			equal("5", "five");
 			equal("4", "four");
 			equal("5", "num");
@@ -542,38 +542,38 @@ namespace Tests
 			equal("9", "five+four");
 			equal("Undefined characters: fi", "fi ve");
 			equal("Undefined characters: Fiv", "Five");
-			noReturn("seven = 5^2*2-43");
-			noReturn("nine = five + four");
+			no_return("seven = 5^2*2-43");
+			no_return("nine = five + four");
 			equal("7", "seven");
 			equal("9", "nine");
-			noReturn("num = three");
+			no_return("num = three");
 			equal("3", " num ");
-			noReturn("eight = 2four");
+			no_return("eight = 2four");
 			equal("8", "eight");
-			noReturn("num_A = num");
+			no_return("num_A = num");
 			equal("3", "num_A");
-			noReturn("num_C = num_B = num_A = eight");
+			no_return("num_C = num_B = num_A = eight");
 			equal("8", "num_B");
 			equal("8", "num_A");
 			equal("8", "num_C");
-			noReturn("a=b=c=3");
+			no_return("a=b=c=3");
 			equal("3", "a");
 			equal("3", "b");
 			equal("3", "c");
 			equal("Invalid character before assignment operator: 1", "10 = ten");
 			equal("Invalid character before assignment operator: 5", "ten = 5*2 = 5+5");
-			noReturn("bool = 5 > 2");
+			no_return("bool = 5 > 2");
 			equal("1", "bool");
-			noReturn("theta = pi/2");
-			noReturn("test = theta*3");
+			no_return("theta = pi/2");
+			no_return("test = theta*3");
 			equal("4.71239", "test");
-			noReturn("degrees = 180/pi*theta");
+			no_return("degrees = 180/pi*theta");
 			equal("90", "degrees");
-			noReturn("pi = 3");
-			noReturn("Pi = 4");
-			noReturn("PI = 10");
-			noReturn("pI = -4");
-			noReturn("_pi = -3.1415");
+			no_return("pi = 3");
+			no_return("Pi = 4");
+			no_return("PI = 10");
+			no_return("pI = -4");
+			no_return("_pi = -3.1415");
 			equal("Invalid character before assignment operator: -", "-pi = -3.14");
 			equal("3", "pi");
 			equal("4", "Pi");
@@ -583,18 +583,18 @@ namespace Tests
 			equal("3.1415", "-_pi");
 			equal("Undefined character: x", "y = 5x");
 			equal("Invalid character before assignment operator: 2", "y = 2four = 8");
-			noReturn("ans = 7");
+			no_return("ans = 7");
 			equal("7", "ans");
 			equal("1", "ans == 7");
-			noReturn("ans = ans == 7");
+			no_return("ans = ans == 7");
 			equal("0", "ans");
-			noReturn("eight = eight");
+			no_return("eight = eight");
 			equal("8", "eight");
-			noReturn("num = 3");
-			noReturn("num = num + 2");
+			no_return("num = 3");
+			no_return("num = num + 2");
 			equal("5", "num");
 
-			calc.resetSymbols();
+			calc._reset_symbols();
 		}
 		TEST_METHOD(DefaultMacros)
 		{
@@ -618,57 +618,57 @@ namespace Tests
 			equal("Error: expected '(' after function name", "csc (pi/3)");
 			equal("2.7207", "sphere_volume(sin(pi/3)");
 			equal("3.14159", "pi");
-			noReturn("setprecision(15");
+			no_return("setprecision(15");
 			equal("3.141592653589793", "pi");
-			noReturn("setprecision(3");
+			no_return("setprecision(3");
 			equal("3.142", "pi");
-			noReturn("setprecision(5)");
+			no_return("setprecision(5)");
 			equal("3.14159", "pi");
 		}
 		TEST_METHOD(UserMacros)
 		{
-			noReturn("f(x)=4x^2+3x+2");
+			no_return("f(x)=4x^2+3x+2");
 			equal("164", "f(6)");
 			equal("219", "f(7)");
-			noReturn("g(x)=5x+9");
+			no_return("g(x)=5x+9");
 			equal("14", "g(1)");
 			equal("53", "f(2)+g(4)");
 			equal("2088", "f(2)g(4)(3)");
 			equal("828", "f(g(1))");
 			equal("54", "g(f(1))");
 			equal("353", "f(f(1");
-			noReturn("h(x,y) = f(x)+g(y)");
+			no_return("h(x,y) = f(x)+g(y)");
 			equal("Function h(x,y) = f(x)+g(y)", "help(h)");
 			equal("28", "h(1,2)");
-			noReturn("g(x)=4x+9");
+			no_return("g(x)=4x+9");
 			equal("26", "h(1,2)");
 			equal("21.56637", "g(pi)");
 			equal("Error: expected '(' after function name", "g");
 			equal("Multiple simultaneous definitions are only possible with variables", "var = g(x) = 5x");
 			equal("Multiple simultaneous definitions are only possible with variables", "g(x) = f(x) = 5x");
-			noReturn("a=9999");
+			no_return("a=9999");
 			equal("Invalid space before parameter(s)", "add (a,b)=a+b");
-			noReturn(" add( a , b ) = a + b ");
+			no_return(" add( a , b ) = a + b ");
 			equal("60", "add(25,35");
 			equal("Error: expected 2 arguments for function add", "add(25,35,40)");
 			equal("Function add(a,b) = a + b", "help(add)");
-			noReturn("add(a,b,c)=a+b+c");
+			no_return("add(a,b,c)=a+b+c");
 			equal("6", "add(1,2,3)");
 			equal("Error: expected 3 arguments for function add", "add(4,5)");
-			noReturn("divide(numerator,denominator) = numerator/denominator");
+			no_return("divide(numerator,denominator) = numerator/denominator");
 			equal("Error: expected 2 arguments for function divide", "divide(3/6)");
 			equal("0.5", "divide(3,6)");
-			noReturn("f(vjoieuor,joiavjoa,iozuboie)=joiavjoavjoieuoriozuboie");
+			no_return("f(vjoieuor,joiavjoa,iozuboie)=joiavjoavjoieuoriozuboie");
 			equal("60", "f(3,4,5)");
 			equal("Function f(vjoieuor,joiavjoa,iozuboie) = joiavjoavjoieuoriozuboie", "help(f)");
-			noReturn("h(x,y)=8sin(2x)+7tan(sqrt(y))");
+			no_return("h(x,y)=8sin(2x)+7tan(sqrt(y))");
 			equal("2.05032", "h(2,16)");
-			noReturn("f(x)=jobiajweojfalkfsdjvoiajsejf");
+			no_return("f(x)=jobiajweojfalkfsdjvoiajsejf");
 			equal("Function f(x) = jobiajweojfalkfsdjvoiajsejf", "help(f)");
 			equal("Undefined characters: jobi", "f(5)"); // ends at 'a' because 'a' was defined earlier
-			noReturn("f(x,y) = x + y + z");
+			no_return("f(x,y) = x + y + z");
 			equal("Undefined character: z", "f(2,4)");
-			noReturn("f(x)=38973");
+			no_return("f(x)=38973");
 			equal("38973", "f(738684272873)");
 			equal("Undefined character: x", "f(x)==4x");
 			equal("Undefined character: x", "f(x)=");
@@ -685,13 +685,13 @@ namespace Tests
 			equal("Invalid character in parameter list: (", "f((x,y)) = x + y");
 			equal("Invalid character in parameter list: 3", "f(3x,y) = x + y");
 			equal("3.14159", "pi");
-			noReturn("f(pi,y) = pi^2+y");
+			no_return("f(pi,y) = pi^2+y");
 			equal("5", "f(1,4)");
 			equal("3.14159", "pi");
-			noReturn("f(x) = exp(2x)");
+			no_return("f(x) = exp(2x)");
 			equal("403.42879", "f(3)");
 
-			calc.resetSymbols();
+			calc._reset_symbols();
 		}
 		TEST_METHOD(Functions)
 		{

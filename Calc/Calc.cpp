@@ -3,20 +3,20 @@
 
 Calc::Calc()
 {
-	funcs = defaultFuncs;
+	_funcs = default_funcs;
 
 	// load any saved symbols from a file
 	std::ifstream file("saved_symbols.txt");
 	if (!file)
 	{
 		LOG("No file with saved symbols found.");
-		vars = defaultVars;
-		macros = defaultMacros;
+		_vars = default_vars;
+		_macros = default_macros;
 	}
 	else
 	{
 		for (std::string line; std::getline(file, line);)
-			calc(line);
+			_calc(line);
 
 		file.close();
 		LOG("Loaded saved symbols from a file.");
@@ -27,72 +27,72 @@ Calc::~Calc()
 {
 	// save all symbols to a file
 	std::ofstream file("saved_symbols.txt", std::ios::trunc);
-	precision += 5;
-	file << help_varsAndMacros();
+	_precision += 5;
+	file << _help_vars_and_macros();
 	file.close();
 }
 
 // for loading only the default symbols
-Calc::Calc(int newPrecision)
+Calc::Calc(int new_precision)
 {
-	finalPrecision = newPrecision;
-	precision = finalPrecision + 5;
+	_final_precision = new_precision;
+	_precision = _final_precision + 5;
 
-	vars = defaultVars;
-	macros = defaultMacros;
-	funcs = defaultFuncs;
+	_vars = default_vars;
+	_macros = default_macros;
+	_funcs = default_funcs;
 }
 
 Calc::Calc(Calc* other)
 {
-	finalPrecision = other->finalPrecision + 5;
-	precision = other->precision + 5;
-	vars = other->vars;
-	macros = other->macros;
-	funcs = other->funcs;
+	_final_precision = other->_final_precision + 5;
+	_precision = other->_precision + 5;
+	_vars = other->_vars;
+	_macros = other->_macros;
+	_funcs = other->_funcs;
 }
 
 std::string Calc::operator()(std::string input)
 {
-	std::string result = calc(input);
-	formatOutput(result, finalPrecision);
+	std::string result = _calc(input);
+	format_output(result, _final_precision);
 	return result;
 }
 
-std::string Calc::calc(std::string input)
+std::string Calc::_calc(std::string input)
 {
 	std::string result;
 	bool assigning = false;
 
-	while (!nums.empty())
-		nums.pop();
-	while (!ops.empty())
-		ops.pop();
+	while (!_nums.empty())
+		_nums.pop();
+	while (!_ops.empty())
+		_ops.pop();
 
 	try
 	{
-		validateInput(input);
-		assignmentFormat(input);
-		result = evaluate(input);
+		validate_input(input);
+		_detect_assignment(input);
+		result = _parse_input(input);
 
-		while (!varsBeingDefined.empty())
+		while (!_vars_being_defined.empty())
 		{
 			assigning = true;
-			setSymbol<double>(vars, varsBeingDefined.top(), stold(result));
-			varsBeingDefined.pop();
+			_set_symbol<double>(_vars, _vars_being_defined.top(), stold(result));
+			_vars_being_defined.pop();
 		}
 
 		if (assigning)
 			return "";
-		setSymbol<double>(vars, "ans", stold(result));
+		_set_symbol<double>(_vars, "ans", stold(result));
 	}
-	catch (const char* error)
+	catch (const char* message)
 	{
-		result = error;
+		result = message;
 	}
-	catch (std::string error)
+	catch (std::string message)
 	{
-		result = error;
+		result = message;
 	}
 	catch (std::bad_alloc)
 	{
@@ -102,107 +102,110 @@ std::string Calc::calc(std::string input)
 	return result;
 }
 
-void Calc::resetSymbols()
+void Calc::_reset_symbols()
 {
-	vars = defaultVars;
-	macros = defaultMacros;
-	funcs = defaultFuncs;
+	_vars = default_vars;
+	_macros = default_macros;
+	_funcs = default_funcs;
 }
 
-void Calc::setPrecision(int num)
+void Calc::_set_precision(int num)
 {
-	finalPrecision = num;
-	precision = finalPrecision + 5;
+	_final_precision = num;
+	_precision = _final_precision + 5;
 }
 
-int Calc::getPrecision()
+int Calc::_get_precision()
 {
-	return precision;
+	return _precision;
 }
 
 // search for and handle any assignment operator(s)
-void Calc::assignmentFormat(std::string& input)
+void Calc::_detect_assignment(std::string& input)
 {
-	while (true) // multiple simultaneous variable assignments allowed, e.g. "a=b=c=5"
+	bool assigning = true;
+
+	// The user can assign a value to multiple variables in a single input, e.g. `a=b=c=5`.
+	while (assigning) // One assignment operation per loop iteration.
 	{
-		bool assigning = false;
-		int eqPos = 0;
-		for (; eqPos < input.size(); eqPos++)
+		assigning = false;
+		int eq_pos = 0;
+		for (; eq_pos < input.size() && !assigning; eq_pos++)
 		{
-			if (input[eqPos] == '=')
+			if (input[eq_pos] == '=')
 			{
 				// either input[eqPos] is an assignment operator or there isn't a valid one
-				if (eqPos == 0)
-					return;
-				if (eqPos == input.size() - 1 || input[eqPos + 1] == '=')
-					return;
-				if (eqPos >= 1)
+				if (eq_pos == 0)
+					return; // an assignment op must not be at the beginning of the input...
+				if (eq_pos == input.size() - 1 || input[eq_pos + 1] == '=')
+					return; // ...nor at the end
+				if (eq_pos >= 1)
 				{
-					char ch = input[eqPos - 1];
+					char ch = input[eq_pos - 1];
 					if (ch == '>' || ch == '<' || ch == '!')
-						return;
+						return; // an assignment op must not be preceded by one of these operators
 				}
 
 				assigning = true;
-				break;
+				eq_pos--;
 			}
 		}
 
-		if (!assigning)
-			return;
-
-		int macroNameSize = findMacroNameSize(input, eqPos);
-		readSymbolDefinition(input, eqPos, macroNameSize);
+		if (assigning)
+		{
+			int macro_name_size = find_macro_name_size(input, eq_pos);
+			_parse_symbol_definition(input, eq_pos, macro_name_size);
+		}
 	}
 }
 
-void Calc::readSymbolDefinition(std::string& input, int eqPos, int macroNameSize)
+void Calc::_parse_symbol_definition(std::string& input, int eq_pos, int macro_name_size)
 {
-	if (!macroNameSize) // then a variable is being defined
+	if (!macro_name_size) // then a variable is being defined
 	{
-		std::string varName = input.substr(0, eqPos);
-		input.erase(0, eqPos + 1);
-		removeEdgeSpaces(varName);
-		varsBeingDefined.push(varName);
+		std::string var_name = input.substr(0, eq_pos);
+		input.erase(0, eq_pos + 1);
+		remove_edge_spaces(var_name);
+		_vars_being_defined.push(var_name);
 	}
 	else // then a macro is being defined
 	{
-		if (varsBeingDefined.size())
+		if (_vars_being_defined.size())
 			throw LOG("Multiple simultaneous definitions are only possible with variables");
 
-		std::string macroName = input.substr(0, macroNameSize);
-		removeEdgeSpaces(macroName);
+		std::string macro_name = input.substr(0, macro_name_size);
+		remove_edge_spaces(macro_name);
 
-		std::string paramStr = input.substr(macroNameSize, eqPos - macroNameSize + 1);
-		std::vector<std::string> params = readParams(paramStr);
+		std::string param_str = input.substr(macro_name_size, eq_pos - macro_name_size + 1);
+		std::vector<std::string> params = read_params(param_str);
 		for (int i = 0; i < params.size(); i++)
-			removeEdgeSpaces(params[i]);
+			remove_edge_spaces(params[i]);
 
-		std::string formula = input.substr(eqPos + 1, input.size() - eqPos);
-		removeEdgeSpaces(formula);
+		std::string formula = input.substr(eq_pos + 1, input.size() - eq_pos);
+		remove_edge_spaces(formula);
 
-		setSymbol<Macro>(macros, macroName, { params, formula });
+		_set_symbol<Macro>(_macros, macro_name, { params, formula });
 		throw "";
 	}
 }
 
 // read the input string and determine what to do with each part of it
-std::string Calc::evaluate(std::string input)
+std::string Calc::_parse_input(std::string input)
 {
 	std::string result,
 		temp = "";
-	lastTypePushed = NONE;
+	_last_type_pushed = NONE;
 
 	for (int i = 0; i < input.size();)
 	{
-		if (isNum(input[i]))
-			readNum(input, i);
+		if (is_num(input[i]))
+			_parse_num(input, i);
 		else if (input[i] == ' ')
 			i++;
-		else if (isAlpha(input[i]))
-			readAlpha(input, i);
-		else if (isOp(input[i]))
-			readOp(input, i);
+		else if (is_alpha(input[i]))
+			_parse_alpha(input, i);
+		else if (is_op(input[i]))
+			_parse_op(input, i);
 		else
 		{
 			std::string message = "Undefined character: ";
@@ -211,212 +214,212 @@ std::string Calc::evaluate(std::string input)
 		}
 	}
 
-	bool emptyString = true;
+	bool empty_string = true;
 	for (int i = 0; i < input.size(); i++)
 	{
 		if (input[i] != ' ')
-			emptyString = false;
+			empty_string = false;
 	}
-	if (emptyString)
+	if (empty_string)
 		throw "";
 
-	while (!ops.empty())
-		pop();
-	while (nums.size() > 1) // remaining numbers are multiplied together
-		pop();
+	while (!_ops.empty())
+		_pop();
+	while (_nums.size() > 1) // remaining numbers are multiplied together
+		_pop();
 
 	std::stringstream ss;
 	ss.setf(std::ios::fixed);
-	ss.precision(precision);
-	ss << nums.top();
+	ss.precision(_precision);
+	ss << _nums.top();
 	result = ss.str();
 	return result;
 }
 
-void Calc::readNum(std::string& input, int& pos)
+void Calc::_parse_num(std::string& input, int& pos)
 {
-	if (lastTypePushed == NUM)
+	if (_last_type_pushed == NUM)
 		input.insert(pos, "*");
 	else
 	{
-		int numSize = getNumSize(input.substr(pos, input.size() - pos));
-		nums.push(stold(input.substr(pos, numSize)));
-		pos += numSize;
-		lastTypePushed = NUM;
+		int num_size = get_num_size(input.substr(pos, input.size() - pos));
+		_nums.push(stold(input.substr(pos, num_size)));
+		pos += num_size;
+		_last_type_pushed = NUM;
 	}
 }
 
-void Calc::readAlpha(std::string& input, int& pos)
+void Calc::_parse_alpha(std::string& input, int& pos)
 {
-	int alphaSize = getAlphaSize(input.substr(pos, input.size() - pos));
-	if (!getSymbolValue(input, pos, alphaSize))
+	int alpha_size = get_alpha_size(input.substr(pos, input.size() - pos));
+	if (!_get_symbol_value(input, pos, alpha_size))
 	{
 		std::string message = "Undefined character";
-		if (alphaSize != 1)
+		if (alpha_size != 1)
 			message += "s";
-		message += ": " + input.substr(pos, alphaSize);
+		message += ": " + input.substr(pos, alpha_size);
 		throw LOG(message);
 	}
 }
 
-void Calc::readOp(std::string& input, int& pos)
+void Calc::_parse_op(std::string& input, int& pos)
 {
-	int opSize = getOpSize(input.substr(pos, input.size() - pos));
-	std::string newOp = input.substr(pos, opSize);
+	int op_size = get_op_size(input.substr(pos, input.size() - pos));
+	std::string new_op = input.substr(pos, op_size);
 
-	if (ops.empty() && newOp != ")" && newOp != "(")
-		pushFirstOperator(pos, newOp, opSize);
+	if (_ops.empty() && new_op != ")" && new_op != "(")
+		_push_first_op(pos, new_op, op_size);
 	else
-		pushOperator(input, pos, newOp, opSize);
+		_push_op(input, pos, new_op, op_size);
 }
 
-void Calc::pushFirstOperator(int& pos, std::string newOp, int opSize)
+void Calc::_push_first_op(int& pos, std::string new_op, int op_size)
 {
-	if (newOp == "-")
+	if (new_op == "-")
 	{
-		if (lastTypePushed == NONE)
-			ops.push("negate");
+		if (_last_type_pushed == NONE)
+			_ops.push("negate");
 		else
-			ops.push("subtract");
-		lastTypePushed = OP;
+			_ops.push("subtract");
+		_last_type_pushed = OP;
 	}
-	else if (nums.empty() && newOp == "!")
+	else if (_nums.empty() && new_op == "!")
 		throw LOG("Error: expected an operand before the factorial operator");
 	else
 	{
-		ops.push(newOp);
-		lastTypePushed = OP;
+		_ops.push(new_op);
+		_last_type_pushed = OP;
 	}
 
-	pos += opSize;
+	pos += op_size;
 }
 
-void Calc::pushOperator(std::string input, int& pos, std::string newOp, int opSize)
+void Calc::_push_op(std::string input, int& pos, std::string new_op, int op_size)
 {
-	if (newOp == "(")
-		pushOpenParenthesis(input, pos);
-	else if (newOp == ")")
+	if (new_op == "(")
+		_push_open_parenthesis(input, pos);
+	else if (new_op == ")")
 	{
-		while (!ops.empty() && ops.top() != "(")
-			pop();
-		if (ops.empty())
+		while (!_ops.empty() && _ops.top() != "(")
+			_pop();
+		if (_ops.empty())
 			throw LOG("Error: missing an opening parenthesis");
-		pop();
+		_pop();
 		pos++;
 	}
-	else if (newOp == "!" || newOp == "*" || newOp == "/" || newOp == "+"
-		|| newOp == "%" || newOp == "==" || newOp == ">=" || newOp == "<="
-		|| newOp == "!=" || newOp == ">" || newOp == "<")
+	else if (new_op == "!" || new_op == "*" || new_op == "/" || new_op == "+"
+		|| new_op == "%" || new_op == "==" || new_op == ">=" || new_op == "<="
+		|| new_op == "!=" || new_op == ">" || new_op == "<")
 	{
-		if (hasPrecedence(newOp, ops.top()))
+		if (has_precedence(new_op, _ops.top()))
 		{
-			ops.push(newOp);
-			pos += opSize;
-			lastTypePushed = OP;
+			_ops.push(new_op);
+			pos += op_size;
+			_last_type_pushed = OP;
 		}
 		else
-			pop();
+			_pop();
 	}
-	else if (newOp == "^")
+	else if (new_op == "^")
 	{
-		if (ops.top() == "^" || hasPrecedence(newOp, ops.top()))
+		if (_ops.top() == "^" || has_precedence(new_op, _ops.top()))
 		{
-			ops.push(newOp);
-			pos += opSize;
-			lastTypePushed = OP;
+			_ops.push(new_op);
+			pos += op_size;
+			_last_type_pushed = OP;
 		}
 		else
-			pop();
+			_pop();
 	}
-	else if (newOp == "-")
-		pushMinus(pos);
+	else if (new_op == "-")
+		_push_minus(pos);
 	else
-		throw LOG("Undefined operator: " + newOp);
+		throw LOG("Undefined operator: " + new_op);
 }
 
-void Calc::pushOpenParenthesis(std::string input, int& pos)
+void Calc::_push_open_parenthesis(std::string input, int& pos)
 {
-	if (pos > 0 && lastTypePushed == NUM)
+	if (pos > 0 && _last_type_pushed == NUM)
 	{
-		if (!ops.empty() && (ops.top() == "^" || ops.top() == "*" || ops.top() == "/"))
-			pop();
+		if (!_ops.empty() && (_ops.top() == "^" || _ops.top() == "*" || _ops.top() == "/"))
+			_pop();
 		else
 		{
-			ops.push("*");
-			ops.push(input.substr(pos, 1));
+			_ops.push("*");
+			_ops.push(input.substr(pos, 1));
 			pos++;
-			lastTypePushed = OP;
+			_last_type_pushed = OP;
 		}
 	}
 	else
 	{
-		ops.push("(");
+		_ops.push("(");
 		pos++;
-		lastTypePushed = OP;
+		_last_type_pushed = OP;
 	}
 }
 
-void Calc::pushMinus(int& pos)
+void Calc::_push_minus(int& pos)
 {
-	std::string newOp;
+	std::string new_op;
 
-	if (lastTypePushed == NONE || lastTypePushed == OP)
-		newOp = "negate";
+	if (_last_type_pushed == NONE || _last_type_pushed == OP)
+		new_op = "negate";
 	else
-		newOp = "subtract";
+		new_op = "subtract";
 
-	if (newOp == "negate" || hasPrecedence(newOp, ops.top()))
+	if (new_op == "negate" || has_precedence(new_op, _ops.top()))
 	{
-		ops.push(newOp);
+		_ops.push(new_op);
 		pos++;
-		lastTypePushed = OP;
+		_last_type_pushed = OP;
 	}
 	else
-		pop();
+		_pop();
 }
 
 // pop and evaluate numbers and operators
-void Calc::pop()
+void Calc::_pop()
 {
-	if (nums.empty())
+	if (_nums.empty())
 		throw LOG("Error: not enough operands for the given operators");
 
 	std::string op;
-	if (ops.empty())
+	if (_ops.empty())
 		op = "*";
 	else
 	{
-		if (handleUnaryOp())
+		if (_parse_unary_op())
 			return;
-		op = ops.top();
-		ops.pop();
+		op = _ops.top();
+		_ops.pop();
 	}
 
-	handleBinaryOp(op);
+	_parse_binary_op(op);
 }
 
-bool Calc::handleUnaryOp()
+bool Calc::_parse_unary_op()
 {
-	if (ops.top() == "(")
+	if (_ops.top() == "(")
 	{
-		ops.pop();
+		_ops.pop();
 		return true;
 	}
-	else if (ops.top() == "negate")
+	else if (_ops.top() == "negate")
 	{
-		double temp = nums.top();
-		nums.pop();
+		double temp = _nums.top();
+		_nums.pop();
 		temp *= -1;
-		nums.push(temp);
-		ops.pop();
+		_nums.push(temp);
+		_ops.pop();
 		return true;
 	}
-	else if (ops.top() == "!")
+	else if (_ops.top() == "!")
 	{
-		double n = nums.top(),
+		double n = _nums.top(),
 			total = 1,
 			temp = n;
-		nums.pop();
+		_nums.pop();
 
 		if (n < 0)
 			throw "Complex infinity";
@@ -432,21 +435,21 @@ bool Calc::handleUnaryOp()
 				total *= i;
 		}
 
-		nums.push(total);
-		ops.pop();
+		_nums.push(total);
+		_ops.pop();
 		return true;
 	}
 }
 
-void Calc::handleBinaryOp(std::string op)
+void Calc::_parse_binary_op(std::string op)
 {
-	if (nums.size() == 1)
+	if (_nums.size() == 1)
 		throw LOG("Error: not enough operands for the given operators");
 
-	double num2 = nums.top();
-	nums.pop();
-	double num1 = nums.top();
-	nums.pop();
+	double num2 = _nums.top();
+	_nums.pop();
+	double num1 = _nums.top();
+	_nums.pop();
 
 	if (op == "^")
 	{
@@ -454,10 +457,10 @@ void Calc::handleBinaryOp(std::string op)
 			throw "Indeterminate: 0^0";
 		else if (num1 < 0 && num2 < 1 && (int)pow(num2, -1) % 2 == 0)
 			throw "Imaginary: even root of a negative";
-		nums.push(pow(num1, num2));
+		_nums.push(pow(num1, num2));
 	}
 	else if (op == "*")
-		nums.push(num1 * num2);
+		_nums.push(num1 * num2);
 	else if (op == "/")
 	{
 		if (num2 == 0)
@@ -466,46 +469,46 @@ void Calc::handleBinaryOp(std::string op)
 				throw "Indeterminate: 0/0";
 			throw "Infinity: n/0";
 		}
-		nums.push(num1 / num2);
+		_nums.push(num1 / num2);
 	}
 	else if (op == "+")
-		nums.push(num1 + num2);
+		_nums.push(num1 + num2);
 	else if (op == "subtract")
-		nums.push(num1 - num2);
+		_nums.push(num1 - num2);
 	else if (op == "%")
 	{
 		if (num2 == 0)
 			throw "Undefined: n%0";
-		nums.push(fmod(num1, num2));
+		_nums.push(fmod(num1, num2));
 	}
 	else if (op == "==")
-		nums.push(num1 == num2);
+		_nums.push(num1 == num2);
 	else if (op == "!=")
-		nums.push(num1 != num2);
+		_nums.push(num1 != num2);
 	else if (op == ">=")
-		nums.push(num1 >= num2);
+		_nums.push(num1 >= num2);
 	else if (op == "<=")
-		nums.push(num1 <= num2);
+		_nums.push(num1 <= num2);
 	else if (op == ">")
-		nums.push(num1 > num2);
+		_nums.push(num1 > num2);
 	else if (op == "<")
-		nums.push(num1 < num2);
+		_nums.push(num1 < num2);
 	else
 		throw LOG("Undefined operator: " + op);
 }
 
 template<class T>
-void Calc::setSymbol(std::map<std::string, T>& hashTable, std::string newName, T newSymbol)
+void Calc::_set_symbol(std::map<std::string, T>& hash_table, std::string new_name, T new_symbol)
 {
 	// erase any existing symbol with the given name
-	vars.erase(newName);
-	macros.erase(newName);
-	funcs.erase(newName);
+	_vars.erase(new_name);
+	_macros.erase(new_name);
+	_funcs.erase(new_name);
 	
-	hashTable.emplace(newName, newSymbol);
+	hash_table.emplace(new_name, new_symbol);
 }
 
-bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
+bool Calc::_get_symbol_value(std::string& input, int alpha_pos, int alpha_size)
 {
 	/*
 		This function finds the name of one defined symbol within a string of alpha characters
@@ -516,14 +519,14 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 	*/
 
 	// for each substring size of the alpha string
-	for (int size = alphaSize; size > 0; size--)
+	for (int size = alpha_size; size > 0; size--)
 	{
 		// for each substring position of the alpha string
-		for (int pos = alphaPos; pos + size <= alphaPos + alphaSize; pos++)
+		for (int pos = alpha_pos; pos + size <= alpha_pos + alpha_size; pos++)
 		{
-			if (findVariable(input, pos, size)
-				|| findMacro(input, pos, size)
-				|| findFunction(input, pos, size))
+			if (_find_variable(input, pos, size)
+				|| _find_macro(input, pos, size)
+				|| _find_function(input, pos, size))
 				return true;
 		}
 	}
@@ -532,18 +535,18 @@ bool Calc::getSymbolValue(std::string& input, int alphaPos, int alphaSize)
 	return false;
 }
 
-bool Calc::findVariable(std::string& input, int pos, int size)
+bool Calc::_find_variable(std::string& input, int pos, int size)
 {
 	std::string substr = input.substr(pos, size);
 
-	std::map<std::string, double>::iterator it = vars.find(substr);
-	if (it != vars.end())
+	std::map<std::string, double>::iterator it = _vars.find(substr);
+	if (it != _vars.end())
 	{
 		// replace the variable name with its value
 		input.erase(pos, size);
 		std::stringstream ss;
 		ss.setf(std::ios::fixed);
-		ss.precision(precision);
+		ss.precision(_precision);
 		ss << " " << it->second << " ";
 		input.insert(pos, ss.str());
 		return true;
@@ -552,63 +555,63 @@ bool Calc::findVariable(std::string& input, int pos, int size)
 	return false;
 }
 
-bool Calc::findMacro(std::string& input, int pos, int size)
+bool Calc::_find_macro(std::string& input, int pos, int size)
 {
 	std::string name = input.substr(pos, size);
 
-	std::map<std::string, Macro>::iterator it = macros.find(name);
-	if (it == macros.end())
+	std::map<std::string, Macro>::iterator it = _macros.find(name);
+	if (it == _macros.end())
 		return false;
 	else
 	{
-		std::vector<std::string> args = splitArgString(input, pos + size);
+		std::vector<std::string> args = _split_arg_string(input, pos + size);
 		input.erase(pos, size);
 
 		if (it->first == "help")
 		{
 			if (args.size() && args[0] != "")
-				throw help(args[0]);
-			throw help_all();
+				throw _help(args[0]);
+			throw _help_all();
 		}
 		if (it->first == "setprecision")
 		{
 			if (args.size() == 1)
 			{
-				setPrecision(stold(args[0]));
+				_set_precision(stold(args[0]));
 				throw "";
 			}
 			else
 				throw LOG("Function setprecision requires one argument");
 		}
 
-		int paramCount = it->second.getParamVect().size();
-		if (args.size() != paramCount)
+		int param_count = it->second._get_param_vect().size();
+		if (args.size() != param_count)
 		{
-			std::string message = "Error: expected " + std::to_string(paramCount) + " argument";
-			if (paramCount != 1)
+			std::string message = "Error: expected " + std::to_string(param_count) + " argument";
+			if (param_count != 1)
 				message += "s";
 			message += " for function " + it->first;
 			throw LOG(message);
 		}
 
-		evalArgs(args);
-		input.insert(pos, callMacro(it, args));
+		_eval_args(args);
+		input.insert(pos, _call_macro(it, args));
 		return true;
 	}
 }
 
-std::string Calc::callMacro(std::map<std::string, Macro>::iterator it, std::vector<std::string> args)
+std::string Calc::_call_macro(std::map<std::string, Macro>::iterator it, std::vector<std::string> args)
 {
 	// get the macro's formula and parameters
-	std::string formula = it->second.getFormula();
-	std::vector<std::string> params = it->second.getParamVect();
+	std::string formula = it->second._get_formula();
+	std::vector<std::string> params = it->second._get_param_vect();
 
 	// create a new calculator that saves the macro's arguments as variables named by the parameters
 	Calc c(this, params, args);
 
 	// evaluate the macro
-	std::string result = c.calc(formula);
-	rethrowAnyErrors(result);
+	std::string result = c._calc(formula);
+	_rethrow_any_errors(result);
 
 	result.insert(0, " (");
 	result.append(") ");
@@ -618,41 +621,41 @@ std::string Calc::callMacro(std::map<std::string, Macro>::iterator it, std::vect
 // only for calling macros
 Calc::Calc(Calc* other, std::vector<std::string> params, std::vector<std::string> args)
 {
-	finalPrecision = other->finalPrecision + 5;
-	precision = other->precision + 5;
-	vars = other->vars;
-	macros = other->macros;
-	funcs = other->funcs;
+	_final_precision = other->_final_precision + 5;
+	_precision = other->_precision + 5;
+	_vars = other->_vars;
+	_macros = other->_macros;
+	_funcs = other->_funcs;
 
 	// create variables for each macro argument
 	for (int i = 0; i < args.size(); i++)
-		setSymbol<double>(vars, params[i], stold(calc(args[i])));
+		_set_symbol<double>(_vars, params[i], stold(_calc(args[i])));
 }
 
-bool Calc::findFunction(std::string& input, int pos, int size)
+bool Calc::_find_function(std::string& input, int pos, int size)
 {
 	std::string name = input.substr(pos, size);
 
-	std::map<std::string, std::any>::iterator it = funcs.find(name);
-	if (it != funcs.end())
+	std::map<std::string, std::any>::iterator it = _funcs.find(name);
+	if (it != _funcs.end())
 	{
-		resolveFunctionType(it->second, input, pos, size);
+		_resolve_function_type(it->second, input, pos, size);
 		return true;
 	}
 
 	return false;
 }
 
-void Calc::resolveFunctionType(std::any func, std::string& input, int pos, int size)
+void Calc::_resolve_function_type(std::any func, std::string& input, int pos, int size)
 {
 	try
 	{
 		if (func.type().name() == typeid(long double(*)(long double)).name())
-			call(std::any_cast<long double(*)(long double)>(func), input, pos, size);
+			_call(std::any_cast<long double(*)(long double)>(func), input, pos, size);
 		else if (func.type().name() == typeid(std::string(*)(void)).name())
-			call(std::any_cast<std::string(*)(void)>(func), input, pos, size);
+			_call(std::any_cast<std::string(*)(void)>(func), input, pos, size);
 		else if (func.type().name() == typeid(void(*)(int, int, int)).name())
-			call(std::any_cast<void(*)(int, int, int)>(func), input, pos, size);
+			_call(std::any_cast<void(*)(int, int, int)>(func), input, pos, size);
 		else
 			throw LOG("Code error: The type of function " + input.substr(pos, size) + " is not yet supported.");
 	}
@@ -662,39 +665,39 @@ void Calc::resolveFunctionType(std::any func, std::string& input, int pos, int s
 	}
 }
 
-std::string Calc::help_varsAndMacros()
+std::string Calc::_help_vars_and_macros()
 {
 	std::string message = "";
 
 	std::map<std::string, double>::iterator it;
-	for (it = vars.begin(); it != vars.end(); it++)
+	for (it = _vars.begin(); it != _vars.end(); it++)
 	{
 		std::stringstream ss;
 		ss.setf(std::ios::fixed);
-		ss.precision(finalPrecision);
+		ss.precision(_final_precision);
 		ss << it->second;
 		std::string num = ss.str();
 
-		formatOutput(num, finalPrecision);
+		format_output(num, _final_precision);
 		message += "\n " + it->first + " = " + num;
 	}
 
 	std::map<std::string, Macro>::iterator it2;
-	for (it2 = macros.begin(); it2 != macros.end(); it2++)
-		message += "\n " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFormula();
+	for (it2 = _macros.begin(); it2 != _macros.end(); it2++)
+		message += "\n " + it2->first + "(" + it2->second._get_param_str() + ")" + " = " + it2->second._get_formula();
 
 	return message;
 }
 
 // throw info about all symbols
-std::string Calc::help_all()
+std::string Calc::_help_all()
 {
-	std::string message = help_varsAndMacros();
+	std::string message = _help_vars_and_macros();
 	message += "\n";
 
 	std::map<std::string, std::any>::iterator it;
 	int i = 0;
-	for (it = funcs.begin(); it != funcs.end(); it++, i++)
+	for (it = _funcs.begin(); it != _funcs.end(); it++, i++)
 	{
 		if (i % 10 == 0)
 			message += "\n ";
@@ -705,79 +708,80 @@ std::string Calc::help_all()
 }
 
 // throw info about one symbol
-std::string Calc::help(std::string name)
+std::string Calc::_help(std::string name)
 {
 	std::string message = "";
 
-	std::map<std::string, double>::iterator it = vars.find(name);
-	if (it != vars.end())
+	std::map<std::string, double>::iterator it = _vars.find(name);
+	if (it != _vars.end())
 	{
 		std::stringstream ss;
 		ss.setf(std::ios::fixed);
-		ss.precision(finalPrecision);
+		ss.precision(_final_precision);
 		ss << it->second;
 		std::string num = ss.str();
 
-		formatOutput(num, finalPrecision);
+		format_output(num, _final_precision);
 		message += "Variable " + it->first + " = " + num;
 		throw message;
 	}
 
-	std::map<std::string, Macro>::iterator it2 = macros.find(name);
-	if (it2 != macros.end())
+	std::map<std::string, Macro>::iterator it2 = _macros.find(name);
+	if (it2 != _macros.end())
 	{
-		message += "Function " + it2->first + "(" + it2->second.getParamStr() + ")" + " = " + it2->second.getFormula();
+		message += "Function " + it2->first + "(" + it2->second._get_param_str()
+			+ ")" + " = " + it2->second._get_formula();
 		throw message;
 	}
 
-	std::map<std::string, std::any>::iterator it3 = funcs.find(name);
-	if (it3 != funcs.end())
+	std::map<std::string, std::any>::iterator it3 = _funcs.find(name);
+	if (it3 != _funcs.end())
 		throw "C++ Function";
 
 	throw LOG(name + " is undefined");
 }
 
-void Calc::call(long double(*funcPtr)(long double), std::string& input, int pos, int size)
+void Calc::_call(long double(*func_ptr)(long double), std::string& input, int pos, int size)
 {
-	std::vector<std::string> args = splitArgs<long double, long double>(input, pos, size);
-	evalArgs(args);
+	std::vector<std::string> args = _split_args<long double, long double>(input, pos, size);
+	_eval_args(args);
 
 	std::stringstream ss;
-	ss << funcPtr(stold(args[0]));
+	ss << func_ptr(stold(args[0]));
 	ss.setf(std::ios::fixed);
-	ss.precision(precision);
+	ss.precision(_precision);
 
-	insertFunctionResult(input, pos, size, ss.str());
+	_insert_function_result(input, pos, size, ss.str());
 }
 
-void Calc::call(std::string(*funcPtr)(), std::string& input, int pos, int size)
+void Calc::_call(std::string(*func_ptr)(), std::string& input, int pos, int size)
 {
-	cleanForNoArgs(input, input.substr(pos, size), pos + size);
-	insertFunctionResult(input, pos, size, funcPtr());
+	_clean_input_with_no_args(input, input.substr(pos, size), pos + size);
+	_insert_function_result(input, pos, size, func_ptr());
 }
 
-void Calc::call(void(*funcPtr)(int, int, int), std::string& input, int pos, int size)
+void Calc::_call(void(*func_ptr)(int, int, int), std::string& input, int pos, int size)
 {
-	std::vector<std::string> args = splitArgs<void, int, int, int>(input, pos, size);
-	evalArgs(args);
-	funcPtr(stoi(args[0]), stoi(args[1]), stoi(args[2]));
+	std::vector<std::string> args = _split_args<void, int, int, int>(input, pos, size);
+	_eval_args(args);
+	func_ptr(stoi(args[0]), stoi(args[1]), stoi(args[2]));
 }
 
 // Cleans the input string. This should be called before calculator functions that do not take arguments.
-void Calc::cleanForNoArgs(std::string& input, std::string funcName, int argPos)
+void Calc::_clean_input_with_no_args(std::string& input, std::string func_name, int arg_pos)
 {
-	if (input[argPos] != '(')
-		throw LOG("Error: expected '(' after name of function " + funcName);
+	if (input[arg_pos] != '(')
+		throw LOG("Error: expected '(' after name of function " + func_name);
 
 	bool foundArg = false;
-	for (int i = argPos + 1; i < input.size(); i++)
+	for (int i = arg_pos + 1; i < input.size(); i++)
 	{
 		if (input[i] == ')')
 		{
 			if (foundArg)
-				throw LOG("Error: expected 0 arguments for function " + funcName);
+				throw LOG("Error: expected 0 arguments for function " + func_name);
 
-			input.erase(argPos, i - argPos + 1);
+			input.erase(arg_pos, i - arg_pos + 1);
 			return;
 		}
 		else if (input[i] != ' ')
@@ -785,23 +789,23 @@ void Calc::cleanForNoArgs(std::string& input, std::string funcName, int argPos)
 	}
 }
 
-std::vector<std::string> Calc::splitArgString(std::string& input, int argPos)
+std::vector<std::string> Calc::_split_arg_string(std::string& input, int arg_pos)
 {
 	int parentheses = 0;
 
-	if (input[argPos] != '(')
+	if (input[arg_pos] != '(')
 		throw LOG("Error: expected '(' after function name");
 
 	// split the arguments
 	std::vector<std::string> args;
-	for (int j = argPos + 1, k = j, m = j - 1; ; j++)
+	for (int j = arg_pos + 1, k = j, m = j - 1; ; j++)
 	{
 		if (j > input.size())
 			throw LOG("Invalid syntax");
 		if (j == input.size())
 		{
 			args.push_back(input.substr(k, j - k));
-			input.erase(argPos, j - m + 1);
+			input.erase(arg_pos, j - m + 1);
 			break;
 		}
 		if (input[j] == '(')
@@ -813,7 +817,7 @@ std::vector<std::string> Calc::splitArgString(std::string& input, int argPos)
 			else
 			{
 				args.push_back(input.substr(k, j - k));
-				input.erase(argPos, j - m + 1);
+				input.erase(arg_pos, j - m + 1);
 				break;
 			}
 		}
@@ -830,15 +834,15 @@ std::vector<std::string> Calc::splitArgString(std::string& input, int argPos)
 
 // splits the args, validates the amount, and deletes them from the input string
 template <class T, class ...Ts>
-std::vector<std::string> Calc::splitArgs(std::string& input, int pos, int size)
+std::vector<std::string> Calc::_split_args(std::string& input, int pos, int size)
 {
-	std::vector<std::string> args = splitArgString(input, pos + size);
+	std::vector<std::string> args = _split_arg_string(input, pos + size);
 
-	int sizeTs = sizeof...(Ts);
-	if (args.size() != sizeTs)
+	int size_ts = sizeof...(Ts);
+	if (args.size() != size_ts)
 	{
-		std::string message = "Error: expected " + std::to_string(sizeTs) + " argument";
-		if (sizeTs != 1)
+		std::string message = "Error: expected " + std::to_string(size_ts) + " argument";
+		if (size_ts != 1)
 			message += "s";
 		message += " for function " + input.substr(pos, size);
 		throw LOG(message);
@@ -847,30 +851,30 @@ std::vector<std::string> Calc::splitArgs(std::string& input, int pos, int size)
 	return args;
 }
 
-void Calc::evalArgs(std::vector<std::string>& args)
+void Calc::_eval_args(std::vector<std::string>& args)
 {
 	// evaluate each argument
 	for (int i = 0; i < args.size(); i++)
 	{
 		Calc calc(this); // the new calculator MUST have access to any symbols created by the user
 		args[i] = calc(args[i]);
-		rethrowAnyErrors(args[i]);
+		_rethrow_any_errors(args[i]);
 	}
 }
 
 // This function should be called after the operator() function call of any calculator besides the one in main()
-void Calc::rethrowAnyErrors(std::string str)
+void Calc::_rethrow_any_errors(std::string str)
 {
 	if (str == "")
 		throw LOG("Invalid syntax");
 	for (int i = 0; i < str.size(); i++)
 	{
-		if (isAlpha(str[i]))
+		if (is_alpha(str[i]))
 			throw LOG(str);
 	}
 }
 
-void Calc::insertFunctionResult(std::string& input, int pos, int size, std::string result)
+void Calc::_insert_function_result(std::string& input, int pos, int size, std::string result)
 {
 	// If the result of a sine call is in scientific notation with
 	// a negative exponent, set the result to zero

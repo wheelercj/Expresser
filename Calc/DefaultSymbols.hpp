@@ -10,7 +10,7 @@
 
 // Symbol names must contain only alpha characters and/or underscores
 
-const std::map<std::string, double> defaultVars =
+const std::map<std::string, double> default_vars =
 {
 	{ "ans", 0 },
 	{ "phi", 1.618033988749894848204586834365638117720309179805762862135 },
@@ -19,7 +19,7 @@ const std::map<std::string, double> defaultVars =
 	{ "g", 9.80665 }
 };
 
-const std::map<std::string, Macro> defaultMacros =
+const std::map<std::string, Macro> default_macros =
 { //{ "name", {{ "parameters" }, "formula" }},
 	{ "pow", {{ "x", "y" }, "x^y" }},
 	{ "exp", {{ "x" }, "e^x" }},
@@ -52,7 +52,7 @@ const std::map<std::string, Macro> defaultMacros =
 	{ "setprecision", {{ "int" }, "Adjust the number of digits displayed in answers" }}
 };
 
-const std::map<std::string, std::any> defaultFuncs =
+const std::map<std::string, std::any> default_funcs =
 {
 	{ "sqrt", sqrt_ },		// square root
 	{ "cbrt", cbrt_ },		// cube root
@@ -79,6 +79,6 @@ const std::map<std::string, std::any> defaultFuncs =
 	{ "acosh", acosh_ },	// hyperbolic arccosine
 	{ "atanh", atanh_ },	// hyperbolic arctangent
 
-	{ "rand", randomNumber }, // generate a random number
-	{ "quad", quadraticFormula }
+	{ "rand", random_number }, // generate a random number
+	{ "quad", quadratic_formula }
 };

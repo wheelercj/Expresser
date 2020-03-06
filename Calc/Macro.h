@@ -12,13 +12,13 @@
 class Macro
 {
 private:
-	std::vector<std::string> params;
-	std::string formula;
+	std::vector<std::string> _params;
+	std::string _formula;
 public:
-	Macro(std::vector<std::string> newParams, std::string newFormula);
-	std::string getFormula();
-	std::string getParamStr();
-	std::vector<std::string> getParamVect();
+	Macro(std::vector<std::string> new_params, std::string new_formula);
+	std::string _get_formula();
+	std::string _get_param_str();
+	std::vector<std::string> _get_param_vect();
 };
 
-int findMacroNameSize(std::string& input, int eqPos);
+int find_macro_name_size(std::string& input, int eq_pos); // returns zero if the symbol is a variable

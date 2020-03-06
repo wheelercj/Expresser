@@ -27,5 +27,5 @@ inline long double asinh_(long double x) { return asinh(x); }
 inline long double acosh_(long double x) { return acosh(x); }
 inline long double atanh_(long double x) { return atanh(x); }
 
-std::string randomNumber();
-void quadraticFormula(int a, int b, int c);
+std::string random_number();
+void quadratic_formula(int a, int b, int c);

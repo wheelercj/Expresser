@@ -1,57 +1,57 @@
 #include "Macro.h"
 
-Macro::Macro(std::vector<std::string> newParams, std::string newFormula)
+Macro::Macro(std::vector<std::string> new_params, std::string new_formula)
 {
-	params = newParams;
-	formula = newFormula;
+	_params = new_params;
+	_formula = new_formula;
 }
 
-std::string Macro::getFormula()
+std::string Macro::_get_formula()
 {
-	return formula;
+	return _formula;
 }
 
-std::string Macro::getParamStr()
+std::string Macro::_get_param_str()
 {
-	std::string paramStr = "";
-	for (int i = 0; i < params.size(); i++)
+	std::string param_str = "";
+	for (int i = 0; i < _params.size(); i++)
 	{
-		paramStr += params[i];
-		if (i < params.size() - 1)
-			paramStr += ",";
+		param_str += _params[i];
+		if (i < _params.size() - 1)
+			param_str += ",";
 	}
-	return paramStr;
+	return param_str;
 }
 
-std::vector<std::string> Macro::getParamVect()
+std::vector<std::string> Macro::_get_param_vect()
 {
-	return params;
+	return _params;
 }
 
 // returns zero if the symbol is a variable
-int findMacroNameSize(std::string& input, int eqPos)
+int find_macro_name_size(std::string& input, int eq_pos)
 {
-	bool alphaFound = false;
-	bool spaceAfterAlpha = false;
+	bool alpha_found = false;
+	bool space_after_alpha = false;
 
-	for (int i = 0; i < eqPos; i++)
+	for (int i = 0; i < eq_pos; i++)
 	{
-		if (isAlpha(input[i]))
+		if (is_alpha(input[i]))
 		{
-			alphaFound = true;
-			if (spaceAfterAlpha)
+			alpha_found = true;
+			if (space_after_alpha)
 				throw LOG("Invalid space before assignment operator");
 		}
 		else if (input[i] == ' ')
 		{
-			if (alphaFound)
-				spaceAfterAlpha = true;
+			if (alpha_found)
+				space_after_alpha = true;
 		}
 		else if (input[i] == '(')
 		{
-			if (spaceAfterAlpha)
+			if (space_after_alpha)
 				throw LOG("Invalid space before parameter(s)");
-			if (!alphaFound)
+			if (!alpha_found)
 				throw LOG("Missing symbol name before assignment operator");
 
 			return i;
@@ -65,7 +65,7 @@ int findMacroNameSize(std::string& input, int eqPos)
 		}
 	}
 
-	if (!alphaFound)
+	if (!alpha_found)
 		throw LOG("Missing symbol name before assignment operator");
 
 	return 0;

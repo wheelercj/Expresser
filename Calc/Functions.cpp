@@ -1,6 +1,6 @@
 #include "Functions.h"
 
-std::string randomNumber()
+std::string random_number()
 {
 	srand((unsigned)time(0)); // having this here causes random number generation to be limited to one random number per second
 
@@ -14,7 +14,7 @@ std::string randomNumber()
 	return result;
 }
 
-void quadraticFormula(int a, int b, int c)
+void quadratic_formula(int a, int b, int c)
 {
 	if (pow(b, 2) < 4 * a * c)
 		throw "Imaginary";

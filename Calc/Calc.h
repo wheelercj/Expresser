@@ -8,63 +8,63 @@ class Calc
 public:
 	Calc();
 	~Calc();
-	Calc(int newPrecision);
+	Calc(int new_precision); // for loading only the default symbols
 	Calc(Calc*);
 	std::string operator()(std::string input);
-	std::string calc(std::string input);
-	void resetSymbols();
-	void setPrecision(int num);
-	int getPrecision();
+	std::string _calc(std::string input);
+	void _reset_symbols();
+	void _set_precision(int num);
+	int _get_precision();
 private:
-	int finalPrecision = 5;
-	int precision = finalPrecision + 5;
+	int _final_precision = 5;
+	int _precision = _final_precision + 5;
 
-	void assignmentFormat(std::string& input);
-	void readSymbolDefinition(std::string& input, int eqPos, int nameSize);
-	std::string evaluate(std::string str);
+	void _detect_assignment(std::string& input);
+	void _parse_symbol_definition(std::string& input, int eq_pos, int name_size);
+	std::string _parse_input(std::string str);
 
-	std::stack<double> nums;
-	std::stack<std::string> ops;
-	void readNum(std::string& input, int& pos);
-	void readAlpha(std::string& input, int& pos);
-	void readOp(std::string& input, int& pos);
-	enum types { NONE, OP, NUM };
-	int lastTypePushed = NONE;
-	void pushFirstOperator(int& pos, std::string newOp, int opSize);
-	void pushOperator(std::string input, int& pos, std::string newOp, int opSize);
-	void pushOpenParenthesis(std::string input, int& pos);
-	void pushMinus(int& pos);
-	void pop();
-	bool handleUnaryOp();
-	void handleBinaryOp(std::string op);
+	std::stack<double> _nums;
+	std::stack<std::string> _ops;
+	void _parse_num(std::string& input, int& pos);
+	void _parse_alpha(std::string& input, int& pos);
+	void _parse_op(std::string& input, int& pos);
+	enum _types { NONE, OP, NUM };
+	int _last_type_pushed = NONE;
+	void _push_first_op(int& pos, std::string new_op, int op_size);
+	void _push_op(std::string input, int& pos, std::string new_op, int op_size);
+	void _push_open_parenthesis(std::string input, int& pos);
+	void _push_minus(int& pos);
+	void _pop();
+	bool _parse_unary_op();
+	void _parse_binary_op(std::string op);
 
-	std::map<std::string, double> vars = defaultVars;
-	std::map<std::string, Macro> macros = defaultMacros;
-	std::map<std::string, std::any> funcs = defaultFuncs;
-	std::stack<std::string> varsBeingDefined;
-	template<class T> void setSymbol(std::map<std::string, T>& hashTable, std::string newName, T newSymbol);
-	bool getSymbolValue(std::string& input, int alphaPos, int alphaSize);
-	bool findVariable(std::string& input, int pos, int size);
-	bool findMacro(std::string& input, int pos, int size);
-	std::string callMacro(std::map<std::string, Macro>::iterator it, std::vector<std::string> args);
-	Calc(Calc* other, std::vector<std::string> params, std::vector<std::string> args);
-	bool findFunction(std::string& input, int pos, int size);
-	void resolveFunctionType(std::any func, std::string& input, int pos, int size);
+	std::map<std::string, double> _vars = default_vars;
+	std::map<std::string, Macro> _macros = default_macros;
+	std::map<std::string, std::any> _funcs = default_funcs;
+	std::stack<std::string> _vars_being_defined;
+	template<class T> void _set_symbol(std::map<std::string, T>& hash_table, std::string new_name, T new_symbol);
+	bool _get_symbol_value(std::string& input, int alpha_pos, int alpha_size);
+	bool _find_variable(std::string& input, int pos, int size);
+	bool _find_macro(std::string& input, int pos, int size);
+	std::string _call_macro(std::map<std::string, Macro>::iterator it, std::vector<std::string> args);
+	Calc(Calc* other, std::vector<std::string> params, std::vector<std::string> args); // only for calling macros
+	bool _find_function(std::string& input, int pos, int size);
+	void _resolve_function_type(std::any func, std::string& input, int pos, int size);
 	
-	std::string help_varsAndMacros();
-	std::string help_all();
-	std::string help(std::string);
+	std::string _help_vars_and_macros();
+	std::string _help_all();
+	std::string _help(std::string);
 
 	// function adapters
-	void call(long double(*funcPtr)(long double), std::string& input, int pos, int size);
-	void call(std::string(*funcPtr)(), std::string& input, int pos, int size);
-	void call(void(*funcPtr)(int, int, int), std::string& input, int pos, int size);
+	void _call(long double(*func_ptr)(long double), std::string& input, int pos, int size);
+	void _call(std::string(*func_ptr)(), std::string& input, int pos, int size);
+	void _call(void(*func_ptr)(int, int, int), std::string& input, int pos, int size);
 
 	// adapter library
-	void cleanForNoArgs(std::string& input, std::string name, int argPos);
-	std::vector<std::string> splitArgString(std::string& input, int argPos);
-	template <class T, class ...Ts> std::vector<std::string> splitArgs(std::string& input, int pos, int size);
-	void evalArgs(std::vector<std::string>& args);
-	void rethrowAnyErrors(std::string str);
-	void insertFunctionResult(std::string& input, int pos, int size, std::string result);
+	void _clean_input_with_no_args(std::string& input, std::string name, int arg_pos);
+	std::vector<std::string> _split_arg_string(std::string& input, int arg_pos);
+	template <class T, class ...Ts> std::vector<std::string> _split_args(std::string& input, int pos, int size);
+	void _eval_args(std::vector<std::string>& args);
+	void _rethrow_any_errors(std::string str);
+	void _insert_function_result(std::string& input, int pos, int size, std::string result);
 };
