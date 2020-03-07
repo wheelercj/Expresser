@@ -1,11 +1,14 @@
 # Calc
 
 A command-line calculator that lets you easily define your own functions and variables.
+
 [Contributions](https://github.com/wheelercj/Calc/blob/master/docs/CONTRIBUTING.md) are welcome.
+
+To compile the source code, you will need at least a C++17 compiler. [Here](https://drive.google.com/open?id=1mLnwM1aZPquCDheh4-TCCNiOytMtqfzz)'s how to switch compilers in Visual Studio.
 
 ![Calc demo](docs/Calc_demo.png)
 
-## Default Variables
+### Default Variables
 | Name | Value | Info |
 | ---- | ----- | ---- |
 | `ans` | 0 | Automatically changes to the latest answer that is not an error message |
@@ -14,7 +17,7 @@ A command-line calculator that lets you easily define your own functions and var
 | `g` | 9.80665 | Acceleration due to gravity near Earth's surface in meters per second squared |
 | `phi` | 1.618033988749894848204586834365638117720309179805762862135 | Golden Ratio |
 
-## Default Functions
+### Default Functions
 | Name | Parameters | Formula | Info |
 | ---- | ---------- | ------- | ---- |
 | `help` | (`variable or function name`) | C++ | Get help with a variable or function |
@@ -70,3 +73,23 @@ A command-line calculator that lets you easily define your own functions and var
 | `compound_interest` | (`Principal amount`, `rate`, `time`, `number of compounds`) | `P(1+r/n)^(nt)` | |
 | `present_value` | (`Cash flow at period 1`, `rate of return`, `number of periods`) | `C/(1+r)^n` | |
 | `future_value` | (`Cash flow at period 0`, `rate of return`, `number of periods`) | `C(1+r)^n` | |
+
+### Operators
+| Symbol | Name |
+| ------ | ---- |
+| `=` | Set equal to |
+| `(` | Open parenthesis |
+| `)` | Close parenthesis |
+| `!` | Factorial |
+| `^` | Exponent |
+| `*` | Multiplication |
+| `/` | Division |
+| `+` | Addition |
+| `-` | Either subtraction or negation |
+| `%` | Modulo |
+| `==` | Is equal to |
+| `!=` | Is not equal to |
+| `>=` | Is greater than or equal to |
+| `<=` | Is less than or equal to |
+| `>` | Is greater than |
+| `<` | Is less than |
