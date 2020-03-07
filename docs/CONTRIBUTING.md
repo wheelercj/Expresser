@@ -3,7 +3,7 @@
 Thanks for your interest! The main goals of this project are for contributors to learn software engineering techniques and principles, and to help them prepare for a career in software engineering or a closely related field. As such, contributions are welcome provided the following:
 1. Contributors make an effort to create their contributions themselves, and only search online for answers to specific questions as a last resort. Feel free to ask for help from fellow contributors, professors, school classmates, etc.
 2. Contributors help their fellow contributors understand their contributions, whether through the project [wiki](https://github.com/wheelercj/Calc/wiki), a linked guide, or how the contributions are written.
-3. Contributors follow the [code of conduct](https://github.com/wheelercj/Calc/blob/master/CODE_OF_CONDUCT.md).
+3. Contributors follow the [code of conduct](https://github.com/wheelercj/Calc/blob/master/docs/CODE_OF_CONDUCT.md).
 
 ## How to contribute code
 1. Start by cloning the repository if you haven't already.
