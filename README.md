@@ -1,22 +1,25 @@
 # Calc
 
 A command-line calculator that lets you easily define your own functions and variables.
+[Contributions](https://github.com/wheelercj/Calc/blob/master/docs/CONTRIBUTING.md) are welcome.
+
+![Calc demo](docs/Calc_demo.png)
 
 ## Default Variables
 | Name | Value | Info |
 | ---- | ----- | ---- |
-| `ans` | 0 | Automatically changes to the latest answer that is not an error message. |
+| `ans` | 0 | Automatically changes to the latest answer that is not an error message |
 | `pi` | 3.141592653589793238462643383279502884197169399375105820974 | |
 | `e` | 2.718281828459045235360287471352662497757247093699959574966 | Euler's number |
-| `g` | 9.80665 | The acceleration due to gravity near Earth's surface, in meters per second squared. |
-| `phi` | 1.618033988749894848204586834365638117720309179805762862135 | The Golden Ratio |
+| `g` | 9.80665 | Acceleration due to gravity near Earth's surface in meters per second squared |
+| `phi` | 1.618033988749894848204586834365638117720309179805762862135 | Golden Ratio |
 
 ## Default Functions
 | Name | Parameters | Formula | Info |
 | ---- | ---------- | ------- | ---- |
 | `help` | (`variable or function name`) | C++ | Get help with a variable or function |
 | `help` | () | C++ | Get help with all variables and functions |
-| `setprecision` | (`x`) | C++ | Adjust the number of digits displayed in answers |
+| `setprecision` | (`x`) | C++ | Adjust the precision of answers |
 | `sqrt` | (`x`) | C++ | Square root |
 | `cbrt` | (`x`) | C++ | Cube root|
 | `abs` | (`x`) | C++ | Absolute value |
@@ -26,7 +29,7 @@ A command-line calculator that lets you easily define your own functions and var
 | `log` | (`x`) | `ln(x)/ln(10)` | Logarithm base 10 |
 | `lg` | (`x`) | `ln(x)/ln(2)` | Logarithm base 2 |
 | `logb` | (`base`, `x`) | `ln(x)/ln(base)` | Logarithm base b |
-| `round` | (`x`) | C++ | Round a number to the nearest integer |
+| `round` | (`x`) | C++ | Round to the nearest integer |
 | `ceil` | (`x`) | C++ | Round up |
 | `floor` | (`x`) | C++ | Round down |
 | `sin` | (`x`) | C++ | Sine |
@@ -44,14 +47,17 @@ A command-line calculator that lets you easily define your own functions and var
 | `sinh` | (`x`) | C++ | Hyperbolic sine |
 | `cosh` | (`x`) | C++ | Hyperbolic cosine |
 | `tanh` | (`x`) | C++ | Hyperbolic tangent |
-| `asinh` | (`x`) | C++ | Hyperbolic inverse sine |
-| `acosh` | (`x`) | C++ | Hyperbolic inverse cosine |
-| `atanh` | (`x`) | C++ | Hyperbolic inverse tangent |
-| `acsch` | (`x`) | `asinh(1/x)` | Hyperbolic inverse cosecant |
-| `asech` | (`x`) | `acosh(1/x)` | Hyperbolic inverse secant |
-| `acoth` | (`x`) | `atanh(1/x)` | Hyperbolic inverse cotangent |
+| `csch` | (`x`) | `1/sinh(x)` | Hyperbolic cosecant |
+| `sech` | (`x`) | `1/cosh(x)` | Hyperbolic secant |
+| `coth` | (`x`) | `1/tanh(x)` | Hyperbolic cotangent |
+| `asinh` | (`x`) | C++ | Inverse hyperbolic sine |
+| `acosh` | (`x`) | C++ | Inverse hyperbolic cosine |
+| `atanh` | (`x`) | C++ | Inverse hyperbolic tangent |
+| `acsch` | (`x`) | `asinh(1/x)` | Inverse hyperbolic cosecant |
+| `asech` | (`x`) | `acosh(1/x)` | Inverse hyperbolic secant |
+| `acoth` | (`x`) | `atanh(1/x)` | Inverse hyperbolic cotangent |
 | `rand` | () | C++ | Generate a random number |
-| `quad` | (`a`, `b`, `c`) | C++ | The quadratic formula |
+| `quad` | (`a`, `b`, `c`) | C++ | Quadratic formula |
 | `erf` | (`x`) | C++ | Error function |
 | `erfc` | (`x`) | C++ | Complementary error function |
 | `tgamma` | (`x`) | C++ | Gamma function |
