@@ -3,12 +3,12 @@
 A fast and expressive Computer Algebra System focused on ease of use.
 Currently in pre-alpha.
 
-[Contributions](https://github.com/wheelercj/Calc/blob/master/docs/CONTRIBUTING.md) are welcome.
+[Contributions](https://github.com/wheelercj/Expresser/blob/master/docs/CONTRIBUTING.md) are welcome.
 
 To compile the source code, you will need at least a C++17 compiler. [Here](https://drive.google.com/open?id=1mLnwM1aZPquCDheh4-TCCNiOytMtqfzz)'s how to switch compilers in Visual Studio Community 2019.
 
-![Calc demo](docs/Calc_demo.png)
-
+### Features
+* Easily define your own functions and variables
 <details>
 <summary>Operators</summary>
   
@@ -54,7 +54,7 @@ To compile the source code, you will need at least a C++17 compiler. [Here](http
 | `help` | ( ) | Get help with all variables and functions |
 | `setprecision` | (`x`) | Adjust the precision of answers |
 | `sqrt` | (`x`) | Square root |
-| `cbrt` | (`x`) | Cube root|
+| `cbrt` | (`x`) | Cube root |
 | `abs` | (`x`) | Absolute value |
 | `pow` | (`x`, `y`) | Power function |
 | `exp` | (`x`) | Exponential function |
@@ -105,3 +105,5 @@ To compile the source code, you will need at least a C++17 compiler. [Here](http
 | `future_value` | (`Cash flow at period 0`, `rate of return`, `number of periods`) | |
 
 </details>
+
+![Calc demo](docs/Calc_demo.png)
