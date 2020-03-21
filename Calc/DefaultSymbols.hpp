@@ -25,25 +25,25 @@ const std::map<std::string, Macro> default_macros =
 	{ "exp", {{ "x" }, "e^x" }},
 	{ "log", {{ "x" }, "ln(x)/ln(10)" }},
 	{ "lg", {{ "x" }, "ln(x)/ln(2)" }},
-	{ "logb", {{ "b", "x" }, "ln(x)/ln(b)" }},
+	{ "logb", {{ "base", "x" }, "ln(x)/ln(base)" }},
 
-	{ "csc", {{ "x" }, "1/sin(x)" }},
-	{ "sec", {{ "x" }, "1/cos(x)" }},
-	{ "cot", {{ "x" }, "1/tan(x)" }},
-	{ "acsc", {{ "x" }, "asin(1/x)" }},
-	{ "asec", {{ "x" }, "acos(1/x)" }},
-	{ "acot", {{ "x" }, "atan(1/x)" }},
-	{ "csch", {{ "x" }, "1/sinh(x)" }},
-	{ "sech", {{ "x" }, "1/cosh(x)" }},
-	{ "coth", {{ "x" }, "1/tanh(x)" }},
-	{ "acsch", {{ "x" }, "asinh(1/x)" }},
-	{ "asech", {{ "x" }, "acosh(1/x)" }},
-	{ "acoth", {{ "x" }, "atanh(1/x)" }},
+	{ "csc", {{ "radians" }, "1/sin(radians)" }},
+	{ "sec", {{ "radians" }, "1/cos(radians)" }},
+	{ "cot", {{ "radians" }, "1/tan(radians)" }},
+	{ "acsc", {{ "radians" }, "asin(1/radians)" }},
+	{ "asec", {{ "radians" }, "acos(1/radians)" }},
+	{ "acot", {{ "radians" }, "atan(1/radians)" }},
+	{ "csch", {{ "radians" }, "1/sinh(radians)" }},
+	{ "sech", {{ "radians" }, "1/cosh(radians)" }},
+	{ "coth", {{ "radians" }, "1/tanh(radians)" }},
+	{ "acsch", {{ "radians" }, "asinh(1/radians)" }},
+	{ "asech", {{ "radians" }, "acosh(1/radians)" }},
+	{ "acoth", {{ "radians" }, "atanh(1/radians)" }},
 	
 	{ "cylinder_volume", {{ "r", "h"}, "pi*r^2*h" }},
 	{ "sphere_volume", {{ "r" }, "(4/3)pi*r^3" }},
 	{ "cone_volume", {{ "r", "h" }, "(h/3)pi*r^2" }},
-	{ "pyramid_volume", {{ "base_area", "h" }, "base_area*h/3" }},
+	{ "pyramid_volume", {{ "Base_area", "h" }, "Base_area*h/3" }},
 
 	{ "simple_interest", {{ "P", "r", "t" }, "Prt" }}, // principal amount, rate, time
 	{ "compound_interest", {{ "P", "r", "t", "n" }, "P(1+r/n)^(nt)" }}, // principal amount, rate, time, number of compounds
@@ -56,7 +56,7 @@ const std::map<std::string, Macro> default_macros =
 };
 
 const std::map<std::string, std::any> default_funcs =
-{
+{ //{ "function_name", function_pointer },
 	{ "sqrt", sqrt_ },		// square root
 	{ "cbrt", cbrt_ },		// cube root
 	{ "abs", abs_ },		// absolute value
