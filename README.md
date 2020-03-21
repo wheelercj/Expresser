@@ -64,9 +64,9 @@ To compile the source code, you will need at least a C++17 compiler. [Here](http
 | `round` | (`x`) | Round to the nearest integer |
 | `ceil` | (`x`) | Round up |
 | `floor` | (`x`) | Round down |
-| `sin` | (`radians`) Sine |
-| `cos` | (`radians`) Cosine |
-| `tan` | (`radians`) Tangent |
+| `sin` | (`radians`) | Sine |
+| `cos` | (`radians`) | Cosine |
+| `tan` | (`radians`) | Tangent |
 | `csc` | (`radians`) | Cosecant |
 | `sec` | (`radians`) | Secant |
 | `cot` | (`radians`) | Cotangent |
