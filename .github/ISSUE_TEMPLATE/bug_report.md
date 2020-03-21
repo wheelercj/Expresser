@@ -23,9 +23,8 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Device (please complete the following information):**
- - OS: [e.g. Mac, Windows, Linux]
- - Version [e.g. 22]
+**IDE or build tool**
+What software are you using?
 
 **Additional context**
 Add any other context about the problem here.
