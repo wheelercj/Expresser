@@ -605,7 +605,7 @@ namespace Tests
 			equal("37.69911", "cone_volume(3,4)");
 			equal("Error: expected 2 arguments for function cone_volume", "cone_volume(3,4,5)");
 			equal("Variable g = 9.80665", "help(g)");
-			equal("Function acsc(x) = asin(1/x)", "help(acsc)");
+			equal("Function acsc(radians) = asin(1/radians)", "help(acsc)");
 			equal("Function help() = Display info about defined variables and functions", "help(help)");
 			equal("C++ Function", "help(sqrt)");
 			equal("Function setprecision(int) = Adjust the number of digits displayed in answers", "help(setprecision)");
