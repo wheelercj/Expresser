@@ -3,7 +3,7 @@
 Thanks for your interest! The main goals of this project are for contributors to learn software engineering techniques and principles, and to help them prepare for a career in software engineering or a closely related field. As such, contributions are welcome provided the following:
 1. Contributors make an effort to create their contributions themselves, and only search online for answers to specific questions as a last resort. Feel free to ask for help from fellow contributors, professors, school classmates, etc.
 2. Contributors help others understand and learn from their contributions with thorough documentation.
-3. Contributors follow the [code of conduct](https://github.com/wheelercj/Calc/blob/master/docs/CODE_OF_CONDUCT.md).
+3. Contributors follow the [code of conduct](https://github.com/wheelercj/Expresser/blob/master/docs/CODE_OF_CONDUCT.md).
 
 ## Why contribute?
 * Learn software engineering skills not taught in classes at LAVC such as automated testing, version control, and the ability to work with a team.
@@ -13,14 +13,14 @@ Thanks for your interest! The main goals of this project are for contributors to
 
 ## How to contribute code
 1. Start by creating a [fork](https://guides.github.com/activities/forking/) of the repository.
-2. Find a problem to fix or feature to add that will be important to users. Looking at the project's [to do list](https://github.com/wheelercj/Calc/projects/2) or [issues](https://github.com/wheelercj/Calc/issues) might help. One of the easiest ways to add a new feature to the program is by creating a calculator function (see the next section).
+2. Find a problem to fix or feature to add that will be important to users. Looking at the project's [to do list](https://github.com/wheelercj/Expresser/projects/2) or [issues](https://github.com/wheelercj/Expresser/issues) might help. One of the easiest ways to add a new feature to the program is by creating a calculator function (see the next section).
 3. Create a new branch off of the `develop` branch with a descriptive name.
 4. Follow the steps in the [GitHub flow guide](https://guides.github.com/introduction/flow/). Merge your commits to `develop`.
 
 ### How to create a new calculator function
 1. Add the function's info to the `README.md`.
 1. Open the file `DefaultSymbols.hpp`.
-2. If your function is a combination of features the calculator already has, then it can be expressed as a string and can be added to the `default_macros` map. That's it, the function is implemented!
+2. If your function is a combination of features the program already has, then it can be expressed as a string and can be added to the `default_macros` map. That's it, the function is implemented!
 3. Otherwise, you will need to write a C++ function for this new calculator function. Start by adding the function name and [function pointer](https://www.cprogramming.com/tutorial/function-pointers.html) to the `default_funcs` map in `DefaultSymbols.hpp`.
 4. Open the file `Functions.h` and add the function prototype.
 5. Open the file `Functions.cpp` and add the function definition.
@@ -31,12 +31,12 @@ Thanks for your interest! The main goals of this project are for contributors to
 
 ## How to report a bug
 1. If the bug is a security vulnerability, send the bug report to stemclublavc@gmail.com instead of posting it on GitHub.
-2. Otherwise, search the [issues](https://github.com/wheelercj/Calc/issues) to see if someone else already reported the bug.
-3. If the bug has not already been reported, [create a new bug report](https://github.com/wheelercj/Calc/issues/new?assignees=&labels=bug&template=bug_report.md&title=) with as much relevant detail as possible.
+2. Otherwise, search the [issues](https://github.com/wheelercj/Expresser/issues) to see if someone else already reported the bug.
+3. If the bug has not already been reported, [create a new bug report](https://github.com/wheelercj/Expresser/issues/new?assignees=&labels=bug&template=bug_report.md&title=) with as much relevant detail as possible.
 
 ## How to request a feature or enhancement
-1. Search the [issues](https://github.com/wheelercj/Calc/issues) to see if someone else already requested the feature. You can add comments to existing feature requests.
-2. If the feature has not been requested, [create a new feature request](https://github.com/wheelercj/Calc/issues/new?assignees=&labels=enhancement&template=feature_request.md&title=) with as much relevant detail as possible.
+1. Search the [issues](https://github.com/wheelercj/Expresser/issues) to see if someone else already requested the feature. You can add comments to existing feature requests.
+2. If the feature has not been requested, [create a new feature request](https://github.com/wheelercj/Expresser/issues/new?assignees=&labels=enhancement&template=feature_request.md&title=) with as much relevant detail as possible.
 
 ## FAQs
 * **Why doesn't the project use `using namespace std;`?**  
