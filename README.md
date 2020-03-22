@@ -7,7 +7,7 @@ Currently in pre-alpha.
 
 To compile the source code, you will need at least a C++17 compiler. [Here](https://drive.google.com/open?id=1mLnwM1aZPquCDheh4-TCCNiOytMtqfzz)'s how to switch compilers in Visual Studio Community 2019.
 
-### Features
+### Key features
 * Easily define your own functions and variables
 <details>
 <summary>Operators</summary>
