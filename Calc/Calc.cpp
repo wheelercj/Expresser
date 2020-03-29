@@ -28,7 +28,7 @@ Calc::~Calc()
 	// save all symbols to a file
 	std::ofstream file("saved_symbols.txt", std::ios::trunc);
 	_precision += 5;
-	file << _help_vars_and_macros();
+	file << _help_with_vars_and_macros();
 	file.close();
 }
 
@@ -224,9 +224,9 @@ std::string Calc::_parse_input(std::string input)
 		throw "";
 
 	while (!_ops.empty())
-		_pop();
+		_pop_and_evaluate_ops_and_nums();
 	while (_nums.size() > 1) // remaining numbers are multiplied together
-		_pop();
+		_pop_and_evaluate_ops_and_nums();
 
 	std::stringstream ss;
 	ss.setf(std::ios::fixed);
@@ -268,12 +268,12 @@ void Calc::_parse_op(std::string& input, int& pos)
 	std::string new_op = input.substr(pos, op_size);
 
 	if (_ops.empty() && new_op != ")" && new_op != "(")
-		_push_first_op(pos, new_op, op_size);
+		_push_op_onto_empty_stack(pos, new_op, op_size);
 	else
-		_push_op(input, pos, new_op, op_size);
+		_push_op_onto_nonempty_stack(input, pos, new_op, op_size);
 }
 
-void Calc::_push_first_op(int& pos, std::string new_op, int op_size)
+void Calc::_push_op_onto_empty_stack(int& pos, std::string new_op, int op_size)
 {
 	if (new_op == "-")
 	{
@@ -294,17 +294,17 @@ void Calc::_push_first_op(int& pos, std::string new_op, int op_size)
 	pos += op_size;
 }
 
-void Calc::_push_op(std::string input, int& pos, std::string new_op, int op_size)
+void Calc::_push_op_onto_nonempty_stack(std::string input, int& pos, std::string new_op, int op_size)
 {
 	if (new_op == "(")
 		_push_open_parenthesis(input, pos);
 	else if (new_op == ")")
 	{
 		while (!_ops.empty() && _ops.top() != "(")
-			_pop();
+			_pop_and_evaluate_ops_and_nums();
 		if (_ops.empty())
 			throw LOG("Error: missing an opening parenthesis");
-		_pop();
+		_pop_and_evaluate_ops_and_nums();
 		pos++;
 	}
 	else if (new_op == "!" || new_op == "*" || new_op == "/" || new_op == "+"
@@ -318,7 +318,7 @@ void Calc::_push_op(std::string input, int& pos, std::string new_op, int op_size
 			_last_type_pushed = OP;
 		}
 		else
-			_pop();
+			_pop_and_evaluate_ops_and_nums();
 	}
 	else if (new_op == "^")
 	{
@@ -329,7 +329,7 @@ void Calc::_push_op(std::string input, int& pos, std::string new_op, int op_size
 			_last_type_pushed = OP;
 		}
 		else
-			_pop();
+			_pop_and_evaluate_ops_and_nums();
 	}
 	else if (new_op == "-")
 		_push_minus(pos);
@@ -342,7 +342,7 @@ void Calc::_push_open_parenthesis(std::string input, int& pos)
 	if (pos > 0 && _last_type_pushed == NUM)
 	{
 		if (!_ops.empty() && (_ops.top() == "^" || _ops.top() == "*" || _ops.top() == "/"))
-			_pop();
+			_pop_and_evaluate_ops_and_nums();
 		else
 		{
 			_ops.push("*");
@@ -375,11 +375,11 @@ void Calc::_push_minus(int& pos)
 		_last_type_pushed = OP;
 	}
 	else
-		_pop();
+		_pop_and_evaluate_ops_and_nums();
 }
 
 // pop and evaluate numbers and operators
-void Calc::_pop()
+void Calc::_pop_and_evaluate_ops_and_nums()
 {
 	if (_nums.empty())
 		throw LOG("Error: not enough operands for the given operators");
@@ -570,8 +570,8 @@ bool Calc::_find_macro(std::string& input, int pos, int size)
 		if (it->first == "help")
 		{
 			if (args.size() && args[0] != "")
-				throw _help(args[0]);
-			throw _help_all();
+				throw _help_with_one_symbol(args[0]);
+			throw _help_with_all_symbols();
 		}
 		if (it->first == "setprecision")
 		{
@@ -665,7 +665,7 @@ void Calc::_resolve_function_type(std::any func, std::string& input, int pos, in
 	}
 }
 
-std::string Calc::_help_vars_and_macros()
+std::string Calc::_help_with_vars_and_macros()
 {
 	std::string message = "";
 
@@ -690,9 +690,9 @@ std::string Calc::_help_vars_and_macros()
 }
 
 // throw info about all symbols
-std::string Calc::_help_all()
+std::string Calc::_help_with_all_symbols()
 {
-	std::string message = _help_vars_and_macros();
+	std::string message = _help_with_vars_and_macros();
 	message += "\n";
 
 	std::map<std::string, std::any>::iterator it;
@@ -708,7 +708,7 @@ std::string Calc::_help_all()
 }
 
 // throw info about one symbol
-std::string Calc::_help(std::string name)
+std::string Calc::_help_with_one_symbol(std::string name)
 {
 	std::string message = "";
 

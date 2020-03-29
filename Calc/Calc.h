@@ -30,11 +30,11 @@ private:
 	void _parse_op(std::string& input, int& pos);
 	enum _types { NONE, OP, NUM };
 	int _last_type_pushed = NONE;
-	void _push_first_op(int& pos, std::string new_op, int op_size);
-	void _push_op(std::string input, int& pos, std::string new_op, int op_size);
+	void _push_op_onto_empty_stack(int& pos, std::string new_op, int op_size);
+	void _push_op_onto_nonempty_stack(std::string input, int& pos, std::string new_op, int op_size);
 	void _push_open_parenthesis(std::string input, int& pos);
 	void _push_minus(int& pos);
-	void _pop();
+	void _pop_and_evaluate_ops_and_nums();
 	bool _parse_unary_op();
 	void _parse_binary_op(std::string op);
 
@@ -51,9 +51,9 @@ private:
 	bool _find_function(std::string& input, int pos, int size);
 	void _resolve_function_type(std::any func, std::string& input, int pos, int size);
 	
-	std::string _help_vars_and_macros();
-	std::string _help_all();
-	std::string _help(std::string);
+	std::string _help_with_vars_and_macros();
+	std::string _help_with_all_symbols();
+	std::string _help_with_one_symbol(std::string);
 
 	// function adapters
 	void _call(long double(*func_ptr)(long double), std::string& input, int pos, int size);
