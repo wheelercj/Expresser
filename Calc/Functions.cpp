@@ -14,14 +14,17 @@ std::string random_number()
 	return result;
 }
 
-void quadratic_formula(int a, int b, int c)
+void quadratic_formula(double a, double b, double c)
 {
-	if (pow(b, 2) < 4 * a * c)
+	long double radicand = pow(b, 2) - 4 * a * c;
+	if (radicand < 0)
 		throw "Imaginary";
-	long double n = sqrt(pow(b, 2) - 4 * a * c);
-	std::string result = "";
-	result += std::to_string((-b - n) / (2 * a));
-	result += " or ";
-	result += std::to_string((-b + n) / (2 * a));
-	throw result;
+
+	radicand = sqrt(radicand);
+	std::string ans1 = std::to_string((-b - radicand) / (2 * a));
+	std::string ans2 = std::to_string((-b + radicand) / (2 * a));
+
+	format_output(ans1, 5);
+	format_output(ans2, 5);
+	throw ans1 + " or " + ans2;
 }

@@ -16,7 +16,7 @@ Calc::Calc()
 	else
 	{
 		for (std::string line; std::getline(file, line);)
-			_calc(line);
+			_evaluate(line);
 
 		file.close();
 		LOG("Loaded saved symbols from a file.");
@@ -54,27 +54,27 @@ Calc::Calc(Calc* other)
 
 std::string Calc::operator()(std::string input)
 {
-	std::string result = _calc(input);
+	std::string result = _evaluate(input);
 	format_output(result, _final_precision);
 	return result;
 }
 
-std::string Calc::_calc(std::string input)
+std::string Calc::_evaluate(std::string input)
 {
-	std::string result;
-	bool assigning = false;
-
+	// make sure the numbers and operators stacks are clear 
 	while (!_nums.empty())
 		_nums.pop();
 	while (!_ops.empty())
 		_ops.pop();
 
+	std::string result;
 	try
 	{
 		validate_input(input);
 		_detect_assignment(input);
 		result = _parse_input(input);
 
+		bool assigning = false;
 		while (!_vars_being_defined.empty())
 		{
 			assigning = true;
@@ -537,10 +537,12 @@ bool Calc::_get_symbol_value(std::string& input, int alpha_pos, int alpha_size)
 
 bool Calc::_find_variable(std::string& input, int pos, int size)
 {
-	std::string substr = input.substr(pos, size);
+	std::string name = input.substr(pos, size);
 
-	std::map<std::string, double>::iterator it = _vars.find(substr);
-	if (it != _vars.end())
+	std::map<std::string, double>::iterator it = _vars.find(name);
+	if (it == _vars.end())
+		return false;
+	else
 	{
 		// replace the variable name with its value
 		input.erase(pos, size);
@@ -551,8 +553,6 @@ bool Calc::_find_variable(std::string& input, int pos, int size)
 		input.insert(pos, ss.str());
 		return true;
 	}
-
-	return false;
 }
 
 bool Calc::_find_macro(std::string& input, int pos, int size)
@@ -610,7 +610,7 @@ std::string Calc::_call_macro(std::map<std::string, Macro>::iterator it, std::ve
 	Calc c(this, params, args);
 
 	// evaluate the macro
-	std::string result = c._calc(formula);
+	std::string result = c._evaluate(formula);
 	_rethrow_any_errors(result);
 
 	result.insert(0, " (");
@@ -629,7 +629,7 @@ Calc::Calc(Calc* other, std::vector<std::string> params, std::vector<std::string
 
 	// create variables for each macro argument
 	for (int i = 0; i < args.size(); i++)
-		_set_symbol<double>(_vars, params[i], stold(_calc(args[i])));
+		_set_symbol<double>(_vars, params[i], stold(_evaluate(args[i])));
 }
 
 bool Calc::_find_function(std::string& input, int pos, int size)
@@ -637,13 +637,18 @@ bool Calc::_find_function(std::string& input, int pos, int size)
 	std::string name = input.substr(pos, size);
 
 	std::map<std::string, std::any>::iterator it = _funcs.find(name);
-	if (it != _funcs.end())
+	if (it == _funcs.end())
+		return false;
+	else
 	{
+		// TODO: make changes here(?):
+		// 1. delete the function name from the input string
+		// 2. get the function arguments
+		// 3. resolve the function type, passing the iterator and arguments
+		// 4. insert the function's return value at pos
 		_resolve_function_type(it->second, input, pos, size);
 		return true;
 	}
-
-	return false;
 }
 
 void Calc::_resolve_function_type(std::any func, std::string& input, int pos, int size)
@@ -656,6 +661,8 @@ void Calc::_resolve_function_type(std::any func, std::string& input, int pos, in
 			_call(std::any_cast<std::string(*)(void)>(func), input, pos, size);
 		else if (func.type().name() == typeid(void(*)(int, int, int)).name())
 			_call(std::any_cast<void(*)(int, int, int)>(func), input, pos, size);
+		else if (func.type().name() == typeid(void(*)(double, double, double)).name())
+			_call(std::any_cast<void(*)(double, double, double)>(func), input, pos, size);
 		else
 			throw LOG("Code error: The type of function " + input.substr(pos, size) + " is not yet supported.");
 	}
@@ -765,6 +772,13 @@ void Calc::_call(void(*func_ptr)(int, int, int), std::string& input, int pos, in
 	std::vector<std::string> args = _split_args<void, int, int, int>(input, pos, size);
 	_eval_args(args);
 	func_ptr(stoi(args[0]), stoi(args[1]), stoi(args[2]));
+}
+
+void Calc::_call(void(*func_ptr)(double, double, double), std::string& input, int pos, int size)
+{
+	std::vector<std::string> args = _split_args<void, double, double, double>(input, pos, size);
+	_eval_args(args);
+	func_ptr(stod(args[0]), stod(args[1]), stod(args[2]));
 }
 
 // Cleans the input string. This should be called before calculator functions that do not take arguments.

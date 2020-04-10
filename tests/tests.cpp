@@ -721,8 +721,9 @@ namespace Tests
 			Assert::AreNotEqual((std::string)"Error: not enough operands for the given operators", calc("1+rand()"));
 			equal("Error: expected 0 arguments for function rand", "rand(8)");
 			equal("Imaginary", "quad(1,2,3)");
-			equal("-4.791288 or -0.208712", "quad(1,5,1)");
-			equal("1.236068 or -3.236068", "quad(-1,-2,4)");
+			equal("-4.79129 or -0.20871", "quad(1,5,1)");
+			equal("1.23607 or -3.23607", "quad(-1,-2,4)");
+			equal("-1.2546 or 1.464", "quad(4.9, -1.02606, -9)");
 		}
 	};
 }
