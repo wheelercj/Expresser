@@ -14,21 +14,21 @@ To compile the source code, you will need at least a C++17 compiler. [Here](http
   
 | Symbol | Operation |
 | ------ | --------- |
-| `( )` | Parentheses |
-| `!` | Factorial |
-| `^` | Exponent |
-| `*` | Multiply |
-| `/` | Divide |
-| `+` | Add |
-| `-` | Either subtract or negate |
-| `%` | Modulo |
-| `=` | Set equal to (variable or function name must be on the left side) |
-| `==` | Is equal to |
-| `!=` | Is not equal to |
-| `>=` | Is greater than or equal to |
-| `<=` | Is less than or equal to |
-| `>` | Is greater than |
-| `<` | Is less than |
+| `( )` | parentheses |
+| `!` | factorial |
+| `^` | exponent |
+| `*` | multiply |
+| `/` | divide |
+| `+` | add |
+| `-` | either subtract or negate |
+| `%` | modulo |
+| `=` | set equal to (variable or function name must be on the left side) |
+| `==` | is equal to |
+| `!=` | is not equal to |
+| `>=` | is greater than or equal to |
+| `<=` | is less than or equal to |
+| `>` | is greater than |
+| `<` | is less than |
 
 </details>
 
