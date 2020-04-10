@@ -11,7 +11,7 @@ public:
 	Calc(int new_precision); // for loading only the default symbols
 	Calc(Calc*);
 	std::string operator()(std::string input);
-	std::string _calc(std::string input);
+	std::string _evaluate(std::string input);
 	void _reset_symbols();
 	void _set_precision(int num);
 	int _get_precision();
