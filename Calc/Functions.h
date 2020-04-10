@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Common.h"
 #include <string>
 #include <ctime>
 
@@ -28,4 +29,4 @@ inline long double acosh_(long double x) { return acosh(x); }
 inline long double atanh_(long double x) { return atanh(x); }
 
 std::string random_number();
-void quadratic_formula(int a, int b, int c);
+void quadratic_formula(double a, double b, double c);

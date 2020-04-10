@@ -661,6 +661,8 @@ void Calc::_resolve_function_type(std::any func, std::string& input, int pos, in
 			_call(std::any_cast<std::string(*)(void)>(func), input, pos, size);
 		else if (func.type().name() == typeid(void(*)(int, int, int)).name())
 			_call(std::any_cast<void(*)(int, int, int)>(func), input, pos, size);
+		else if (func.type().name() == typeid(void(*)(double, double, double)).name())
+			_call(std::any_cast<void(*)(double, double, double)>(func), input, pos, size);
 		else
 			throw LOG("Code error: The type of function " + input.substr(pos, size) + " is not yet supported.");
 	}
@@ -770,6 +772,13 @@ void Calc::_call(void(*func_ptr)(int, int, int), std::string& input, int pos, in
 	std::vector<std::string> args = _split_args<void, int, int, int>(input, pos, size);
 	_eval_args(args);
 	func_ptr(stoi(args[0]), stoi(args[1]), stoi(args[2]));
+}
+
+void Calc::_call(void(*func_ptr)(double, double, double), std::string& input, int pos, int size)
+{
+	std::vector<std::string> args = _split_args<void, double, double, double>(input, pos, size);
+	_eval_args(args);
+	func_ptr(stod(args[0]), stod(args[1]), stod(args[2]));
 }
 
 // Cleans the input string. This should be called before calculator functions that do not take arguments.

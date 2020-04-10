@@ -59,6 +59,7 @@ private:
 	void _call(long double(*func_ptr)(long double), std::string& input, int pos, int size);
 	void _call(std::string(*func_ptr)(), std::string& input, int pos, int size);
 	void _call(void(*func_ptr)(int, int, int), std::string& input, int pos, int size);
+	void _call(void(*)(double, double, double), std::string& input, int pos, int size);
 
 	// adapter library
 	void _clean_input_with_no_args(std::string& input, std::string name, int arg_pos);
