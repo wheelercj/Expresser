@@ -3,7 +3,7 @@
 Thanks for your interest! The main goals of this project are for contributors to learn software engineering techniques and principles, and to help them prepare for a career in software engineering or a closely related field. As such, contributions are welcome provided the following:
 1. Contributors make an effort to create their contributions themselves, and only search online for answers to specific questions as a last resort. Feel free to ask for help from fellow contributors, professors, school classmates, etc.
 2. Contributors help others understand and learn from their contributions with thorough documentation.
-3. Contributors follow the [code of conduct](https://github.com/wheelercj/Expresser/blob/master/docs/CODE_OF_CONDUCT.md).
+3. Contributors follow the [code of conduct](https://github.com/wheelercj/Expresser/blob/main/docs/CODE_OF_CONDUCT.md).
 
 ## Table of contents
 * [Why contribute?](https://github.com/wheelercj/Expresser/blob/master/docs/CONTRIBUTING.md#why-contribute)
