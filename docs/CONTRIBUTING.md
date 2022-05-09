@@ -6,13 +6,13 @@ Thanks for your interest! The main goals of this project are for contributors to
 3. Contributors follow the [code of conduct](https://github.com/wheelercj/Expresser/blob/main/docs/CODE_OF_CONDUCT.md).
 
 ## Table of contents
-* [Why contribute?](https://github.com/wheelercj/Expresser/blob/master/docs/CONTRIBUTING.md#why-contribute)
-* [How to contribute code](https://github.com/wheelercj/Expresser/blob/master/docs/CONTRIBUTING.md#how-to-contribute-code)
-	* [How to create a new calculator function](https://github.com/wheelercj/Expresser/blob/master/docs/CONTRIBUTING.md#how-to-create-a-new-calculator-function)
-* [How to report a bug](https://github.com/wheelercj/Expresser/blob/master/docs/CONTRIBUTING.md#how-to-report-a-bug)
-* [How to request a feature or enhancement](https://github.com/wheelercj/Expresser/blob/master/docs/CONTRIBUTING.md#how-to-request-a-feature-or-enhancement)
-* [FAQs](https://github.com/wheelercj/Expresser/blob/master/docs/CONTRIBUTING.md#faqs)
-* [Suggested viewing/reading](https://github.com/wheelercj/Expresser/blob/master/docs/CONTRIBUTING.md#suggested-viewingreading)
+* [Why contribute?](https://github.com/wheelercj/Expresser/blob/main/docs/CONTRIBUTING.md#why-contribute)
+* [How to contribute code](https://github.com/wheelercj/Expresser/blob/main/docs/CONTRIBUTING.md#how-to-contribute-code)
+	* [How to create a new calculator function](https://github.com/wheelercj/Expresser/blob/main/docs/CONTRIBUTING.md#how-to-create-a-new-calculator-function)
+* [How to report a bug](https://github.com/wheelercj/Expresser/blob/main/docs/CONTRIBUTING.md#how-to-report-a-bug)
+* [How to request a feature or enhancement](https://github.com/wheelercj/Expresser/blob/main/docs/CONTRIBUTING.md#how-to-request-a-feature-or-enhancement)
+* [FAQs](https://github.com/wheelercj/Expresser/blob/main/docs/CONTRIBUTING.md#faqs)
+* [Suggested viewing/reading](https://github.com/wheelercj/Expresser/blob/main/docs/CONTRIBUTING.md#suggested-viewingreading)
 
 ## Why contribute?
 * Learn essential software engineering skills such as working with a team, design patterns, version control, and automated testing.
@@ -21,7 +21,7 @@ Thanks for your interest! The main goals of this project are for contributors to
 
 ## How to contribute code
 1. Start by creating a [fork](https://guides.github.com/activities/forking/) of the repository.
-2. Find a problem to fix or feature to add that will be important to users. Looking at the project's [issues](https://github.com/wheelercj/Expresser/issues) or [to do list](https://github.com/wheelercj/Expresser/projects/2) might help. One of the easiest ways to add a new feature to the program is by [creating a calculator function](https://github.com/wheelercj/Expresser/blob/master/docs/CONTRIBUTING.md#how-to-create-a-new-calculator-function). If you want a more in-depth understanding of the program, you can take a look at the [wiki](https://github.com/wheelercj/Expresser/wiki).
+2. Find a problem to fix or feature to add that will be important to users. Looking at the project's [issues](https://github.com/wheelercj/Expresser/issues) or [to do list](https://github.com/wheelercj/Expresser/projects/2) might help. One of the easiest ways to add a new feature to the program is by [creating a calculator function](https://github.com/wheelercj/Expresser/blob/main/docs/CONTRIBUTING.md#how-to-create-a-new-calculator-function). If you want a more in-depth understanding of the program, you can take a look at the [wiki](https://github.com/wheelercj/Expresser/wiki).
 3. Create a new branch with a descriptive name off of the `develop` branch.
 4. Follow the steps in the [GitHub flow guide](https://guides.github.com/introduction/flow/).
 
