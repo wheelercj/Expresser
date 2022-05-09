@@ -12,20 +12,25 @@ namespace Tests
 {
 	Calc calc(5);
 
-	void equal(std::string str1, std::string str2)
+	void equal(std::string expected_output, std::string sample_input)
 	{
-		Assert::AreEqual(str1, calc(str2));
+		Assert::AreEqual(expected_output, calc(sample_input));
 	}
 
-	void no_return(std::string input)
+	void no_return(std::string sample_input)
 	{
-		Assert::AreEqual((std::string)"", calc(input));
+		Assert::AreEqual((std::string)"", calc(sample_input));
 	}
+
+	TEST_CLASS(Unit_Tests)
+	{
+	public:
+
+	};
 
 	TEST_CLASS(Ops)
 	{
 	public:
-
 		TEST_METHOD(Syntax)
 		{
 			equal("3", "    1      +         2  ");
@@ -492,8 +497,10 @@ namespace Tests
 			equal("0", "6%5<1");
 		}
 	};
+
 	TEST_CLASS(Symbols)
 	{
+	public:
 		TEST_METHOD(Ans)
 		{
 			// don't change the order of these tests

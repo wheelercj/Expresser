@@ -135,7 +135,7 @@ void validate_input(std::string& input)
 	}
 }
 
-void format_output(std::string& str, int precision)
+void format_global_output(std::string& str, int precision)
 {
 	// adjust output precision
 	std::stringstream ss;

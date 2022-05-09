@@ -55,7 +55,7 @@ Calc::Calc(Calc* other)
 std::string Calc::operator()(std::string input)
 {
 	std::string result = _evaluate(input);
-	format_output(result, _final_precision);
+	format_global_output(result, _final_precision);
 	return result;
 }
 
@@ -564,8 +564,8 @@ bool Calc::_find_macro(std::string& input, int pos, int size)
 		return false;
 	else
 	{
-		std::vector<std::string> args = _split_arg_string(input, pos + size);
-		input.erase(pos, size);
+		input.erase(pos, size); // erase macro name
+		std::vector<std::string> args = _parse_args(input, pos);
 
 		if (it->first == "help")
 		{
@@ -641,35 +641,50 @@ bool Calc::_find_function(std::string& input, int pos, int size)
 		return false;
 	else
 	{
-		// TODO: make changes here(?):
-		// 1. delete the function name from the input string
-		// 2. get the function arguments
-		// 3. resolve the function type, passing the iterator and arguments
-		// 4. insert the function's return value at pos
-		_resolve_function_type(it->second, input, pos, size);
+		input.erase(pos, size); // erase function name
+		std::vector<std::string> args = _parse_args(input, pos);
+		_eval_args(args);
+		std::string result = _call_any_function(it->second, name, args);
+		input.insert(pos, result); // insert function result
 		return true;
 	}
 }
 
-void Calc::_resolve_function_type(std::any func, std::string& input, int pos, int size)
+std::string Calc::_call_any_function(std::any func, std::string function_name, std::vector<std::string> args)
 {
+	std::string result = "";
+
 	try
 	{
 		if (func.type().name() == typeid(long double(*)(long double)).name())
-			_call(std::any_cast<long double(*)(long double)>(func), input, pos, size);
+		{
+			_validate_args(1, args.size(), function_name);
+			result = _call(std::any_cast<long double(*)(long double)>(func), function_name, args);
+		}
 		else if (func.type().name() == typeid(std::string(*)(void)).name())
-			_call(std::any_cast<std::string(*)(void)>(func), input, pos, size);
+		{
+			_validate_args(0, args.size(), function_name);
+			result = _call(std::any_cast<std::string(*)(void)>(func), function_name);
+		}
 		else if (func.type().name() == typeid(void(*)(int, int, int)).name())
-			_call(std::any_cast<void(*)(int, int, int)>(func), input, pos, size);
+		{
+			_validate_args(3, args.size(), function_name);
+			_call(std::any_cast<void(*)(int, int, int)>(func), args);
+		}
 		else if (func.type().name() == typeid(void(*)(double, double, double)).name())
-			_call(std::any_cast<void(*)(double, double, double)>(func), input, pos, size);
+		{
+			_validate_args(3, args.size(), function_name);
+			_call(std::any_cast<void(*)(double, double, double)>(func), args);
+		}
 		else
-			throw LOG("Code error: The type of function " + input.substr(pos, size) + " is not yet supported.");
+			throw LOG("Code error: The type of function " + function_name + " is not yet supported.");
 	}
 	catch (const std::bad_any_cast& error)
 	{
 		throw LOG(error.what());
 	}
+
+	return result;
 }
 
 std::string Calc::_help_with_vars_and_macros()
@@ -685,7 +700,7 @@ std::string Calc::_help_with_vars_and_macros()
 		ss << it->second;
 		std::string num = ss.str();
 
-		format_output(num, _final_precision);
+		format_global_output(num, _final_precision);
 		message += "\n " + it->first + " = " + num;
 	}
 
@@ -728,7 +743,7 @@ std::string Calc::_help_with_one_symbol(std::string name)
 		ss << it->second;
 		std::string num = ss.str();
 
-		format_output(num, _final_precision);
+		format_global_output(num, _final_precision);
 		message += "Variable " + it->first + " = " + num;
 		throw message;
 	}
@@ -748,121 +763,97 @@ std::string Calc::_help_with_one_symbol(std::string name)
 	throw LOG(name + " is undefined");
 }
 
-void Calc::_call(long double(*func_ptr)(long double), std::string& input, int pos, int size)
+std::string Calc::_call(long double(*func_ptr)(long double), std::string func_name, std::vector<std::string> args)
 {
-	std::vector<std::string> args = _split_args<long double, long double>(input, pos, size);
-	_eval_args(args);
-
 	std::stringstream ss;
 	ss << func_ptr(stold(args[0]));
 	ss.setf(std::ios::fixed);
 	ss.precision(_precision);
 
-	_insert_function_result(input, pos, size, ss.str());
+	std::string result = ss.str();
+	_check_for_scientific_notation(func_name, result);
+	_format_output(result);
+	return result;
 }
 
-void Calc::_call(std::string(*func_ptr)(), std::string& input, int pos, int size)
+std::string Calc::_call(std::string(*func_ptr)(), std::string func_name)
 {
-	_clean_input_with_no_args(input, input.substr(pos, size), pos + size);
-	_insert_function_result(input, pos, size, func_ptr());
+	std::string result = func_ptr();
+	_check_for_scientific_notation(func_name, result);
+	_format_output(result);
+	return result;
 }
 
-void Calc::_call(void(*func_ptr)(int, int, int), std::string& input, int pos, int size)
+void Calc::_call(void(*func_ptr)(int, int, int), std::vector<std::string> args)
 {
-	std::vector<std::string> args = _split_args<void, int, int, int>(input, pos, size);
-	_eval_args(args);
 	func_ptr(stoi(args[0]), stoi(args[1]), stoi(args[2]));
 }
 
-void Calc::_call(void(*func_ptr)(double, double, double), std::string& input, int pos, int size)
+void Calc::_call(void(*func_ptr)(double, double, double), std::vector<std::string> args)
 {
-	std::vector<std::string> args = _split_args<void, double, double, double>(input, pos, size);
-	_eval_args(args);
 	func_ptr(stod(args[0]), stod(args[1]), stod(args[2]));
 }
 
-// Cleans the input string. This should be called before calculator functions that do not take arguments.
-void Calc::_clean_input_with_no_args(std::string& input, std::string func_name, int arg_pos)
+std::vector<std::string> Calc::_parse_args(std::string& input, int pos)
 {
-	if (input[arg_pos] != '(')
-		throw LOG("Error: expected '(' after name of function " + func_name);
-
-	bool foundArg = false;
-	for (int i = arg_pos + 1; i < input.size(); i++)
-	{
-		if (input[i] == ')')
-		{
-			if (foundArg)
-				throw LOG("Error: expected 0 arguments for function " + func_name);
-
-			input.erase(arg_pos, i - arg_pos + 1);
-			return;
-		}
-		else if (input[i] != ' ')
-			foundArg = true;
-	}
-}
-
-std::vector<std::string> Calc::_split_arg_string(std::string& input, int arg_pos)
-{
-	int parentheses = 0;
-
-	if (input[arg_pos] != '(')
+	if (input[pos] != '(')
 		throw LOG("Error: expected '(' after function name");
 
-	// split the arguments
-	std::vector<std::string> args;
-	for (int j = arg_pos + 1, k = j, m = j - 1; ; j++)
+	std::string arg_str = _find_args(input, pos);
+	return _split_args(arg_str);
+}
+
+// get the substring of arguments
+std::string Calc::_find_args(std::string& input, int pos)
+{
+	int parentheses = 1,
+		size = 0;
+	for (int i = pos + 1; i < input.size() && parentheses > 0; i++)
 	{
-		if (j > input.size())
-			throw LOG("Invalid syntax");
-		if (j == input.size())
-		{
-			args.push_back(input.substr(k, j - k));
-			input.erase(arg_pos, j - m + 1);
-			break;
-		}
-		if (input[j] == '(')
+		if (input[i] == '(')
 			parentheses++;
-		if (input[j] == ')')
+		else if (input[i] == ')')
+			parentheses--;
+		if (parentheses)
+			size++;
+	}
+
+	std::string arg_str = input.substr(pos + 1, size - pos);
+	input.erase(pos, size - pos + 1);
+	if (!parentheses)
+		input.erase(pos, 1);
+
+	return arg_str;
+}
+
+// split each argument into its own string
+std::vector<std::string> Calc::_split_args(std::string arg_str)
+{
+	std::vector<std::string> args;
+	for (int i = 0; i < arg_str.size(); i++)
+	{
+		if (arg_str[i] == ',')
 		{
-			if (parentheses)
-				parentheses--;
-			else
-			{
-				args.push_back(input.substr(k, j - k));
-				input.erase(arg_pos, j - m + 1);
-				break;
-			}
-		}
-		if (input[j] == ',')
-		{
-			args.push_back(input.substr(k, j - k));
-			j++;
-			k = j;
+			args.push_back(arg_str.substr(0, i));
+			arg_str.erase(0, i + 1);
 		}
 	}
 
+	args.push_back(arg_str);
 	return args;
 }
 
-// splits the args, validates the amount, and deletes them from the input string
-template <class T, class ...Ts>
-std::vector<std::string> Calc::_split_args(std::string& input, int pos, int size)
+// throws an error if the wrong number of arguments is given
+void Calc::_validate_args(int expected_arg_count, int actual_arg_count, std::string function_name)
 {
-	std::vector<std::string> args = _split_arg_string(input, pos + size);
-
-	int size_ts = sizeof...(Ts);
-	if (args.size() != size_ts)
+	if (expected_arg_count != actual_arg_count)
 	{
-		std::string message = "Error: expected " + std::to_string(size_ts) + " argument";
-		if (size_ts != 1)
+		std::string message = "Error: expected " + std::to_string(expected_arg_count) + " argument";
+		if (expected_arg_count != 1)
 			message += "s";
-		message += " for function " + input.substr(pos, size);
+		message += " for function " + function_name;
 		throw LOG(message);
 	}
-
-	return args;
 }
 
 void Calc::_eval_args(std::vector<std::string>& args)
@@ -888,23 +879,29 @@ void Calc::_rethrow_any_errors(std::string str)
 	}
 }
 
-void Calc::_insert_function_result(std::string& input, int pos, int size, std::string result)
+// needs the result of calculations
+void Calc::_format_output(std::string result)
+{
+	if (result == "-nan(ind)" || result == "nan")
+		throw "Imaginary";
+
+	result.insert(0, "(");
+	result.insert(result.size() - 1, ")");
+}
+
+// TODO: delete this function after implementing support for scientific notation
+void Calc::_check_for_scientific_notation(std::string function_name, std::string& result)
 {
 	// If the result of a sine call is in scientific notation with
-	// a negative exponent, set the result to zero
+	// a negative exponent, set the result to zero.
 	for (int i = 0; i < result.size(); i++)
 	{
 		if (result[i] == 'e')
 		{
-			if (input.substr(pos, size) == "sin" && i < result.size() - 1 && result[i + 1] == '-')
+			if (function_name == "sin" && i < result.size() - 1 && result[i + 1] == '-')
 				result = "0";
 			else
 				throw LOG("Error: program not yet equipped for scientific notation");
 		}
 	}
-
-	if (result == "-nan(ind)" || result == "nan")
-		throw "Imaginary";
-	input.erase(pos, size);
-	input.insert(pos, "(" + result + ")");
 }

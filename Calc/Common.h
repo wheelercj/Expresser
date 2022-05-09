@@ -15,5 +15,5 @@ bool has_precedence(std::string op1, std::string op2);
 
 void remove_edge_spaces(std::string& str);
 void validate_input(std::string& input);
-void format_output(std::string& str, int precision);
+void format_global_output(std::string& str, int precision);
 std::vector<std::string> read_params(std::string str);

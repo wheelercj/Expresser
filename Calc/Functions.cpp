@@ -24,7 +24,7 @@ void quadratic_formula(double a, double b, double c)
 	std::string ans1 = std::to_string((-b - radicand) / (2 * a));
 	std::string ans2 = std::to_string((-b + radicand) / (2 * a));
 
-	format_output(ans1, 5);
-	format_output(ans2, 5);
+	format_global_output(ans1, 5);
+	format_global_output(ans2, 5);
 	throw ans1 + " or " + ans2;
 }

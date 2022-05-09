@@ -49,23 +49,25 @@ private:
 	std::string _call_macro(std::map<std::string, Macro>::iterator it, std::vector<std::string> args);
 	Calc(Calc* other, std::vector<std::string> params, std::vector<std::string> args); // only for calling macros
 	bool _find_function(std::string& input, int pos, int size);
-	void _resolve_function_type(std::any func, std::string& input, int pos, int size);
+	std::string _call_any_function(std::any func, std::string name, std::vector<std::string> args);
 	
 	std::string _help_with_vars_and_macros();
 	std::string _help_with_all_symbols();
 	std::string _help_with_one_symbol(std::string);
 
 	// function adapters
-	void _call(long double(*func_ptr)(long double), std::string& input, int pos, int size);
-	void _call(std::string(*func_ptr)(), std::string& input, int pos, int size);
-	void _call(void(*func_ptr)(int, int, int), std::string& input, int pos, int size);
-	void _call(void(*)(double, double, double), std::string& input, int pos, int size);
+	std::string _call(long double(*func_ptr)(long double), std::string func_name, std::vector<std::string> args);
+	std::string _call(std::string(*func_ptr)(), std::string func_name);
+	void _call(void(*func_ptr)(int, int, int), std::vector<std::string> args);
+	void _call(void(*func_ptr)(double, double, double), std::vector<std::string> args);
 
 	// adapter library
-	void _clean_input_with_no_args(std::string& input, std::string name, int arg_pos);
-	std::vector<std::string> _split_arg_string(std::string& input, int arg_pos);
-	template <class T, class ...Ts> std::vector<std::string> _split_args(std::string& input, int pos, int size);
+	std::vector<std::string> _parse_args(std::string& input, int pos);
+	std::string _find_args(std::string& input, int pos);
+	std::vector<std::string> _split_args(std::string arg_str);
+	void _validate_args(int expected_arg_count, int actual_arg_count, std::string function_name);
 	void _eval_args(std::vector<std::string>& args);
 	void _rethrow_any_errors(std::string str);
-	void _insert_function_result(std::string& input, int pos, int size, std::string result);
+	void _format_output(std::string result);
+	void _check_for_scientific_notation(std::string function_name, std::string& result);
 };
